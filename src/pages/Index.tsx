@@ -101,7 +101,7 @@ const Index = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('dashboard.metrics.totalSales', 'Total Sales')}
+                {t('dashboard.totalSales', 'Total Sales')}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -114,7 +114,7 @@ const Index = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('dashboard.metrics.products', 'Products')}
+                {t('dashboard.products', 'Products')}
               </CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -125,7 +125,7 @@ const Index = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('dashboard.metrics.customers', 'Customers')}
+                {t('dashboard.customers', 'Customers')}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -139,10 +139,10 @@ const Index = () => {
         <section id="smart-actions" className="space-y-4">
           <div>
             <h2 className="text-2xl font-bold">
-              {t('dashboard.smartActions.title', 'Smart Actions')}
+              {t('dashboard.smartActions', 'Smart Actions')}
             </h2>
             <p className="text-muted-foreground">
-              {t('dashboard.smartActions.subtitle', 'Actions that require your attention')}
+              {t('dashboard.actionDescription', 'Actions that require your attention')}
             </p>
           </div>
           <SmartActionsFeed />
