@@ -515,7 +515,12 @@ const Settings = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              setSelectedStaff(staff);
+                              setSelectedStaff({
+                                ...staff,
+                                position_ids: positions
+                                  .filter(position => staff.positions.includes(position.name))
+                                  .map(position => position.id)
+                              });
                               setStaffFormOpen(true);
                             }}
                           >

@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,15 +19,37 @@ interface StaffFormProps {
 
 export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions }: StaffFormProps) => {
   const form = useForm({
-    defaultValues: initialData || {
+    defaultValues: {
       name: "",
       status: "active",
-      position_ids: [], // Changed from positions to position_ids
+      position_ids: [],
     },
   });
 
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        status: initialData.status,
+        position_ids: initialData.position_ids || [],
+      });
+      setSelectedPositions(initialData.position_ids || []);
+    } else {
+      form.reset({
+        name: "",
+        status: "active",
+        position_ids: [],
+      });
+      setSelectedPositions([]);
+    }
+  }, [initialData, form]);
+
   const handleSubmit = (data: any) => {
-    onSubmit(data);
+    onSubmit({
+      ...data,
+      position_ids: selectedPositions,
+    });
     onOpenChange(false);
   };
 
@@ -78,7 +100,7 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
                 <FormItem>
                   <FormLabel>Status</FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
