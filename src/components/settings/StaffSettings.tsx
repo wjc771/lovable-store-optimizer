@@ -9,8 +9,7 @@ import { StaffForm } from "@/components/staff/StaffForm";
 import { PositionForm } from "@/components/staff/PositionForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Position } from "@/types/settings";
-import { StaffMember } from "@/types/settings";
+import { Position, StaffMember } from "@/types/settings";
 
 interface StaffSettingsProps {
   staffMembers: StaffMember[];
@@ -73,7 +72,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
         position_ids: staffPositions?.map((sp: any) => sp.position_id) || [],
       };
 
-      setStaffMembers([...staffMembers, newStaffMember]);
+      setStaffMembers(prev => [...prev, newStaffMember]);
       setStaffFormOpen(false);
 
       toast({
@@ -132,7 +131,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
         `)
         .eq('staff_id', selectedStaff.id);
 
-      setStaffMembers(staffMembers.map(staff =>
+      setStaffMembers(prev => prev.map(staff =>
         staff.id === selectedStaff.id
           ? {
               ...staff,
@@ -168,7 +167,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
 
       if (error) throw error;
 
-      setStaffMembers(staffMembers.filter(staff => staff.id !== id));
+      setStaffMembers(prev => prev.filter(staff => staff.id !== id));
 
       toast({
         title: "Success",
@@ -214,7 +213,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
         permissions: permissionsData
       };
 
-      setPositions([...positions, typedPosition]);
+      setPositions(prev => [...prev, typedPosition]);
       setPositionFormOpen(false);
 
       toast({
@@ -246,7 +245,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
 
       if (error) throw error;
 
-      setPositions(positions.map(position =>
+      setPositions(prev => prev.map(position =>
         position.id === selectedPosition.id
           ? {
               ...position,
@@ -281,7 +280,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
 
       if (error) throw error;
 
-      setPositions(positions.filter(position => position.id !== id));
+      setPositions(prev => prev.filter(position => position.id !== id));
 
       toast({
         title: "Success",
