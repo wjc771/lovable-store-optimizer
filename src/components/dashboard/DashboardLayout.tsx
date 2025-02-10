@@ -5,6 +5,7 @@ import { LayoutDashboard, Upload, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [storeName] = useState("My Store");
@@ -12,18 +13,19 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     try {
       await signOut();
       toast({
-        title: "Success",
-        description: "Successfully logged out",
+        title: t('common.success'),
+        description: t('auth.logoutSuccess'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to logout",
+        title: t('common.error'),
+        description: t('auth.logoutError'),
         variant: "destructive",
       });
     }
@@ -57,7 +59,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               onClick={() => navigate("/")}
             >
               <LayoutDashboard className="mr-2 h-5 w-5" />
-              Dashboard
+              {t('common.dashboard')}
             </Button>
             <Button
               variant={isActive("/upload") ? "default" : "ghost"}
@@ -65,7 +67,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               onClick={() => navigate("/upload")}
             >
               <Upload className="mr-2 h-5 w-5" />
-              Upload
+              {t('common.upload')}
             </Button>
             <Button
               variant={isActive("/settings") ? "default" : "ghost"}
@@ -73,7 +75,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               onClick={() => navigate("/settings")}
             >
               <Settings className="mr-2 h-5 w-5" />
-              Settings
+              {t('common.settings')}
             </Button>
           </nav>
         </aside>

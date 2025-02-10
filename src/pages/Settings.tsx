@@ -164,44 +164,45 @@ const Settings = () => {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">{t('settings')}</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('settings.settings')}</h2>
       </div>
       
       <div className="space-y-4">
         <div className="flex gap-4">
           <Select value={theme} onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Theme" />
+              <SelectValue placeholder={t('settings.theme')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="light">
                 <div className="flex items-center gap-2">
                   <Sun className="h-4 w-4" />
-                  {t('light')}
+                  {t('settings.light')}
                 </div>
               </SelectItem>
               <SelectItem value="dark">
                 <div className="flex items-center gap-2">
                   <Moon className="h-4 w-4" />
-                  {t('dark')}
+                  {t('settings.dark')}
                 </div>
               </SelectItem>
               <SelectItem value="system">
                 <div className="flex items-center gap-2">
                   <SettingsIcon className="h-4 w-4" />
-                  {t('system')}
+                  {t('settings.system')}
                 </div>
               </SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={language} onValueChange={(value) => setLanguage(value as 'en' | 'pt')}>
+          <Select value={language} onValueChange={(value) => setLanguage(value as 'en' | 'pt' | 'es')}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Language" />
+              <SelectValue placeholder={t('settings.language')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="en">English</SelectItem>
               <SelectItem value="pt">Português</SelectItem>
+              <SelectItem value="es">Español</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -211,23 +212,23 @@ const Settings = () => {
         <TabsList>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
-            {t('general')}
+            {t('settings.general')}
           </TabsTrigger>
           <TabsTrigger value="business" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            {t('business')}
+            {t('settings.business')}
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            {t('notifications')}
+            {t('settings.notifications')}
           </TabsTrigger>
           <TabsTrigger value="staff" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            {t('staff')}
+            {t('settings.staff')}
           </TabsTrigger>
           <TabsTrigger value="integrations" className="flex items-center gap-2">
             <Link className="h-4 w-4" />
-            {t('integrations')}
+            {t('settings.integrations')}
           </TabsTrigger>
         </TabsList>
 
