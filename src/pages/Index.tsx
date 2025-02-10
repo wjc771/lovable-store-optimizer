@@ -18,23 +18,40 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl font-bold">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Upload and manage your store documents
-          </p>
-        </div>
-
-        <div className="grid gap-8">
-          <div className="glass-card rounded-lg p-6">
-            <FileUpload />
-          </div>
+      <div className="space-y-16">
+        <section id="stores" className="space-y-8">
           <div>
-            <h3 className="text-xl font-semibold mb-4">Chat with your documents</h3>
-            <ChatInterface />
+            <h2 className="text-2xl font-bold">Your Stores</h2>
+            <p className="text-muted-foreground">
+              Manage your store documents and settings
+            </p>
           </div>
-        </div>
+          <div className="grid gap-6">
+            {/* Store list will be implemented later */}
+            <div className="glass-card rounded-lg p-6">
+              <p className="text-muted-foreground">No stores found. Create your first store to get started.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="upload" className="space-y-8">
+          <div>
+            <h2 className="text-2xl font-bold">Upload Documents</h2>
+            <p className="text-muted-foreground">
+              Upload and manage your store documents
+            </p>
+          </div>
+
+          <div className="grid gap-8">
+            <div className="glass-card rounded-lg p-6">
+              <FileUpload />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Chat with your documents</h3>
+              <ChatInterface />
+            </div>
+          </div>
+        </section>
       </div>
     </DashboardLayout>
   );

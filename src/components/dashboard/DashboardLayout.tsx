@@ -9,6 +9,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [storeName] = useState("My Store");
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const [activeSection, setActiveSection] = useState<'stores' | 'upload'>('upload');
 
   const handleLogout = async () => {
     try {
@@ -23,6 +24,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         description: "Failed to logout",
         variant: "destructive",
       });
+    }
+  };
+
+  const scrollToSection = (section: 'stores' | 'upload') => {
+    setActiveSection(section);
+    const element = document.getElementById(section);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -50,17 +59,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r">
           <nav className="p-4 space-y-2">
             <Button
-              variant="ghost"
+              variant={activeSection === 'stores' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => {}}
+              onClick={() => scrollToSection('stores')}
             >
               <Store className="mr-2 h-5 w-5" />
               Stores
             </Button>
             <Button
-              variant="ghost"
+              variant={activeSection === 'upload' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => {}}
+              onClick={() => scrollToSection('upload')}
             >
               <Upload className="mr-2 h-5 w-5" />
               Upload

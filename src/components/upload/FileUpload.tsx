@@ -120,7 +120,7 @@ const FileUpload = () => {
           </div>
           <div>
             <label htmlFor="file-upload">
-              <Button variant="outline" className="mt-2" disabled={isUploading}>
+              <Button variant="outline" className="mt-2 hover:bg-primary hover:text-white transition-colors" disabled={isUploading}>
                 Browse files
               </Button>
             </label>
