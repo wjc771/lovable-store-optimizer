@@ -39,12 +39,12 @@ export const usePermissions = () => {
       }
 
       try {
-        // Get staff record for the user
+        // Get staff record for the user using maybeSingle() instead of single()
         const { data: staffData } = await supabase
           .from('staff')
           .select('id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!staffData) {
           setPermissions(prev => ({ ...prev, loading: false }));
