@@ -24,7 +24,7 @@ const Index = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-screen">
-          {t('common.loading')}
+          {t('common.loading', 'Loading...')}
         </div>
       </DashboardLayout>
     );
@@ -36,7 +36,7 @@ const Index = () => {
         <div className="p-4">
           <Alert variant="destructive">
             <AlertDescription>
-              {t('dashboard.permissions.noAccess')}
+              {t('dashboard.permissions.noAccess', 'You do not have access to this section')}
             </AlertDescription>
           </Alert>
         </div>
