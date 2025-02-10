@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Lock } from "lucide-react";
+import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Lock, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { StaffForm } from "@/components/staff/StaffForm";
+import { PositionForm } from "@/components/staff/PositionForm";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface StaffMember {
   id: string;
@@ -34,29 +36,31 @@ const Settings = () => {
   const [chatWebhookUrl, setChatWebhookUrl] = useState("");
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [staffFormOpen, setStaffFormOpen] = useState(false);
+  const [positionFormOpen, setPositionFormOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const { toast } = useToast();
 
-  // Load existing settings
   useEffect(() => {
-    const loadSettings = async () => {
+    const loadData = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        const { data, error } = await supabase
+        const { data: settingsData, error: settingsError } = await supabase
           .from('store_settings')
           .select('*')
           .eq('user_id', session.user.id)
           .maybeSingle();
 
-        if (error) throw error;
+        if (settingsError) throw settingsError;
 
-        if (data) {
-          setUploadWebhookUrl(data.upload_webhook_url || "");
-          setChatWebhookUrl(data.chat_webhook_url || "");
+        if (settingsData) {
+          setUploadWebhookUrl(settingsData.upload_webhook_url || "");
+          setChatWebhookUrl(settingsData.chat_webhook_url || "");
         }
 
-        // Load staff members
         const { data: staffData, error: staffError } = await supabase
           .from('staff')
           .select(`
@@ -80,7 +84,6 @@ const Settings = () => {
           })));
         }
 
-        // Load positions
         const { data: positionsData, error: positionsError } = await supabase
           .from('positions')
           .select('*');
@@ -91,14 +94,19 @@ const Settings = () => {
           setPositions(positionsData);
         }
       } catch (error) {
-        console.error("Error loading settings:", error);
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load data",
+          variant: "destructive",
+        });
       }
     };
 
-    loadSettings();
-  }, []);
+    loadData();
+  }, [toast]);
 
-  const handleSave = async () => {
+  const handleSaveSettings = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -129,6 +137,187 @@ const Settings = () => {
       toast({
         title: "Error",
         description: "Failed to save settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddStaff = async (data: any) => {
+    try {
+      const { data: newStaff, error } = await supabase
+        .from('staff')
+        .insert([{
+          name: data.name,
+          status: data.status,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setStaffMembers([...staffMembers, {
+        id: newStaff.id,
+        name: newStaff.name,
+        status: newStaff.status,
+        positions: [],
+      }]);
+
+      toast({
+        title: "Success",
+        description: "Staff member added successfully",
+      });
+    } catch (error) {
+      console.error("Error adding staff:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add staff member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateStaff = async (data: any) => {
+    if (!selectedStaff) return;
+
+    try {
+      const { error } = await supabase
+        .from('staff')
+        .update({
+          name: data.name,
+          status: data.status,
+        })
+        .eq('id', selectedStaff.id);
+
+      if (error) throw error;
+
+      setStaffMembers(staffMembers.map(staff =>
+        staff.id === selectedStaff.id
+          ? { ...staff, name: data.name, status: data.status }
+          : staff
+      ));
+
+      toast({
+        title: "Success",
+        description: "Staff member updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating staff:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update staff member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteStaff = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('staff')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setStaffMembers(staffMembers.filter(staff => staff.id !== id));
+
+      toast({
+        title: "Success",
+        description: "Staff member deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting staff:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete staff member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddPosition = async (data: any) => {
+    try {
+      const { data: newPosition, error } = await supabase
+        .from('positions')
+        .insert([{
+          name: data.name,
+          permissions: data.permissions,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setPositions([...positions, newPosition]);
+
+      toast({
+        title: "Success",
+        description: "Position added successfully",
+      });
+    } catch (error) {
+      console.error("Error adding position:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add position",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdatePosition = async (data: any) => {
+    if (!selectedPosition) return;
+
+    try {
+      const { error } = await supabase
+        .from('positions')
+        .update({
+          name: data.name,
+          permissions: data.permissions,
+        })
+        .eq('id', selectedPosition.id);
+
+      if (error) throw error;
+
+      setPositions(positions.map(position =>
+        position.id === selectedPosition.id
+          ? { ...position, name: data.name, permissions: data.permissions }
+          : position
+      ));
+
+      toast({
+        title: "Success",
+        description: "Position updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating position:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update position",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeletePosition = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('positions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setPositions(positions.filter(position => position.id !== id));
+
+      toast({
+        title: "Success",
+        description: "Position deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting position:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete position",
         variant: "destructive",
       });
     }
@@ -236,7 +425,10 @@ const Settings = () => {
             <CardContent className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Staff Members</h3>
-                <Button className="flex items-center gap-2">
+                <Button onClick={() => {
+                  setSelectedStaff(null);
+                  setStaffFormOpen(true);
+                }} className="flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
                   Add Staff Member
                 </Button>
@@ -264,9 +456,42 @@ const Settings = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
-                          <Shield className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedStaff(staff);
+                              setStaffFormOpen(true);
+                            }}
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Staff Member</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this staff member? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteStaff(staff.id)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -274,7 +499,16 @@ const Settings = () => {
               </Table>
 
               <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Position Management</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Position Management</h3>
+                  <Button onClick={() => {
+                    setSelectedPosition(null);
+                    setPositionFormOpen(true);
+                  }} className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Add Position
+                  </Button>
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -288,7 +522,7 @@ const Settings = () => {
                       <TableRow key={position.id}>
                         <TableCell>{position.name}</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             {Object.entries(position.permissions).map(([key, value]) => (
                               value && (
                                 <span key={key} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -299,9 +533,42 @@ const Settings = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Lock className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedPosition(position);
+                                setPositionFormOpen(true);
+                              }}
+                            >
+                              <Lock className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Position</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this position? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeletePosition(position.id)}
+                                    className="bg-red-500 hover:bg-red-600"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -337,11 +604,26 @@ const Settings = () => {
                   placeholder="Enter chat webhook URL"
                 />
               </div>
-              <Button onClick={handleSave}>Save Settings</Button>
+              <Button onClick={handleSaveSettings}>Save Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <StaffForm
+        open={staffFormOpen}
+        onOpenChange={setStaffFormOpen}
+        onSubmit={selectedStaff ? handleUpdateStaff : handleAddStaff}
+        initialData={selectedStaff}
+        positions={positions}
+      />
+
+      <PositionForm
+        open={positionFormOpen}
+        onOpenChange={setPositionFormOpen}
+        onSubmit={selectedPosition ? handleUpdatePosition : handleAddPosition}
+        initialData={selectedPosition}
+      />
     </div>
   );
 };
