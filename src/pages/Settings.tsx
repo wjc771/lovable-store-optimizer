@@ -155,11 +155,32 @@ const Settings = () => {
 
       if (error) throw error;
 
+      if (data.position_ids && data.position_ids.length > 0) {
+        const staffPositionsToInsert = data.position_ids.map((positionId: string) => ({
+          staff_id: newStaff.id,
+          position_id: positionId,
+        }));
+
+        const { error: positionsError } = await supabase
+          .from('staff_positions')
+          .insert(staffPositionsToInsert);
+
+        if (positionsError) throw positionsError;
+      }
+
+      const { data: staffPositions } = await supabase
+        .from('staff_positions')
+        .select(`
+          position_id,
+          positions (name)
+        `)
+        .eq('staff_id', newStaff.id);
+
       setStaffMembers([...staffMembers, {
         id: newStaff.id,
         name: newStaff.name,
         status: newStaff.status,
-        positions: [],
+        positions: staffPositions?.map((sp: any) => sp.positions.name) || [],
       }]);
 
       toast({
@@ -190,9 +211,42 @@ const Settings = () => {
 
       if (error) throw error;
 
+      const { error: deleteError } = await supabase
+        .from('staff_positions')
+        .delete()
+        .eq('staff_id', selectedStaff.id);
+
+      if (deleteError) throw deleteError;
+
+      if (data.position_ids && data.position_ids.length > 0) {
+        const staffPositionsToInsert = data.position_ids.map((positionId: string) => ({
+          staff_id: selectedStaff.id,
+          position_id: positionId,
+        }));
+
+        const { error: insertError } = await supabase
+          .from('staff_positions')
+          .insert(staffPositionsToInsert);
+
+        if (insertError) throw insertError;
+      }
+
+      const { data: staffPositions } = await supabase
+        .from('staff_positions')
+        .select(`
+          position_id,
+          positions (name)
+        `)
+        .eq('staff_id', selectedStaff.id);
+
       setStaffMembers(staffMembers.map(staff =>
         staff.id === selectedStaff.id
-          ? { ...staff, name: data.name, status: data.status }
+          ? {
+              ...staff,
+              name: data.name,
+              status: data.status,
+              positions: staffPositions?.map((sp: any) => sp.positions.name) || [],
+            }
           : staff
       ));
 
