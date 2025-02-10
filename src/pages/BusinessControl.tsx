@@ -7,12 +7,14 @@ import FinancialTab from "@/components/business-control/FinancialTab";
 import TeamTab from "@/components/business-control/TeamTab";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 const BusinessControl = () => {
   const { isManager, loading } = usePermissions();
+  const { t } = useTranslation();
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
   if (!isManager) {
@@ -21,7 +23,7 @@ const BusinessControl = () => {
         <div className="p-4">
           <Alert variant="destructive">
             <AlertDescription>
-              You don't have permission to access this page. This page is only accessible to managers.
+              {t('dashboard.permissions.noAccess')}
             </AlertDescription>
           </Alert>
         </div>
@@ -33,15 +35,15 @@ const BusinessControl = () => {
     <DashboardLayout>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Business Control</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t('business.title')}</h2>
         </div>
         
         <Tabs defaultValue="sales" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="sales">Sales & Inventory</TabsTrigger>
-            <TabsTrigger value="customers">Customers & Orders</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="sales">{t('business.tabs.salesInventory')}</TabsTrigger>
+            <TabsTrigger value="customers">{t('business.tabs.customersOrders')}</TabsTrigger>
+            <TabsTrigger value="financial">{t('business.tabs.financial')}</TabsTrigger>
+            <TabsTrigger value="team">{t('business.tabs.team')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="sales" className="space-y-4">
@@ -66,3 +68,4 @@ const BusinessControl = () => {
 };
 
 export default BusinessControl;
+

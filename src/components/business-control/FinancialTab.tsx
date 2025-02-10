@@ -4,8 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, CreditCard, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from "react-i18next";
 
 const FinancialTab = () => {
+  const { t } = useTranslation();
+
   const { data: financialOverview } = useQuery({
     queryKey: ['financial-overview'],
     queryFn: async () => {
@@ -54,7 +57,7 @@ const FinancialTab = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue (7 days)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.financial.revenue')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -66,7 +69,7 @@ const FinancialTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.financial.pendingPayments')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -78,7 +81,7 @@ const FinancialTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.financial.averageOrder')}</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -91,7 +94,7 @@ const FinancialTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Weekly Revenue</CardTitle>
+          <CardTitle>{t('business.financial.weeklyRevenue')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -112,3 +115,4 @@ const FinancialTab = () => {
 };
 
 export default FinancialTab;
+

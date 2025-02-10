@@ -105,6 +105,54 @@ i18next
             loginError: "Failed to login",
             logoutSuccess: "Successfully logged out",
             logoutError: "Failed to logout"
+          },
+          business: {
+            title: "Business Control",
+            tabs: {
+              salesInventory: "Sales & Inventory",
+              customersOrders: "Customers & Orders",
+              financial: "Financial",
+              team: "Team"
+            },
+            financial: {
+              revenue: "Revenue (7 days)",
+              pendingPayments: "Pending Payments",
+              averageOrder: "Average Order Value",
+              weeklyRevenue: "Weekly Revenue"
+            },
+            sales: {
+              totalSales: "Total Sales",
+              lowStockItems: "Low Stock Items",
+              alerts: "Alerts",
+              salesTrend: "Sales Trend",
+              lowStockAlerts: "Low Stock Alerts",
+              actionNeeded: "Action Needed",
+              allGood: "All Good",
+              itemsLeft: "left"
+            },
+            customers: {
+              totalCustomers: "Total Customers",
+              activeCustomers: "Active Customers",
+              inactiveCustomers: "Inactive Customers",
+              recentOrders: "Recent Orders",
+              customer: "Customer",
+              amount: "Amount",
+              status: "Status",
+              date: "Date"
+            },
+            team: {
+              totalStaff: "Total Staff",
+              activeTasks: "Active Tasks",
+              completedTasks: "Completed Tasks",
+              staffOverview: "Staff Overview",
+              recentTasks: "Recent Tasks",
+              name: "Name",
+              position: "Position",
+              status: "Status",
+              task: "Task",
+              assignedTo: "Assigned To",
+              priority: "Priority"
+            }
           }
         }
       },
@@ -207,6 +255,54 @@ i18next
             loginError: "Falha ao fazer login",
             logoutSuccess: "Logout realizado com sucesso",
             logoutError: "Falha ao fazer logout"
+          },
+          business: {
+            title: "Controle de Negócios",
+            tabs: {
+              salesInventory: "Vendas & Estoque",
+              customersOrders: "Clientes & Pedidos",
+              financial: "Financeiro",
+              team: "Equipe"
+            },
+            financial: {
+              revenue: "Receita (7 dias)",
+              pendingPayments: "Pagamentos Pendentes",
+              averageOrder: "Valor Médio do Pedido",
+              weeklyRevenue: "Receita Semanal"
+            },
+            sales: {
+              totalSales: "Vendas Totais",
+              lowStockItems: "Itens com Baixo Estoque",
+              alerts: "Alertas",
+              salesTrend: "Tendência de Vendas",
+              lowStockAlerts: "Alertas de Baixo Estoque",
+              actionNeeded: "Ação Necessária",
+              allGood: "Tudo Bem",
+              itemsLeft: "restantes"
+            },
+            customers: {
+              totalCustomers: "Total de Clientes",
+              activeCustomers: "Clientes Ativos",
+              inactiveCustomers: "Clientes Inativos",
+              recentOrders: "Pedidos Recentes",
+              customer: "Cliente",
+              amount: "Valor",
+              status: "Status",
+              date: "Data"
+            },
+            team: {
+              totalStaff: "Total de Funcionários",
+              activeTasks: "Tarefas Ativas",
+              completedTasks: "Tarefas Concluídas",
+              staffOverview: "Visão Geral da Equipe",
+              recentTasks: "Tarefas Recentes",
+              name: "Nome",
+              position: "Cargo",
+              status: "Status",
+              task: "Tarefa",
+              assignedTo: "Atribuído a",
+              priority: "Prioridade"
+            }
           }
         }
       },
@@ -309,6 +405,54 @@ i18next
             loginError: "Error al iniciar sesión",
             logoutSuccess: "Sesión cerrada con éxito",
             logoutError: "Error al cerrar sesión"
+          },
+          business: {
+            title: "Control de Negocios",
+            tabs: {
+              salesInventory: "Ventas & Inventario",
+              customersOrders: "Clientes & Pedidos",
+              financial: "Financiero",
+              team: "Equipo"
+            },
+            financial: {
+              revenue: "Ingresos (7 días)",
+              pendingPayments: "Pagos Pendientes",
+              averageOrder: "Valor Promedio de Pedido",
+              weeklyRevenue: "Ingresos Semanales"
+            },
+            sales: {
+              totalSales: "Ventas Totales",
+              lowStockItems: "Productos con Bajo Stock",
+              alerts: "Alertas",
+              salesTrend: "Tendencia de Ventas",
+              lowStockAlerts: "Alertas de Bajo Stock",
+              actionNeeded: "Acción Necesaria",
+              allGood: "Todo Bien",
+              itemsLeft: "restantes"
+            },
+            customers: {
+              totalCustomers: "Total de Clientes",
+              activeCustomers: "Clientes Activos",
+              inactiveCustomers: "Clientes Inactivos",
+              recentOrders: "Pedidos Recientes",
+              customer: "Cliente",
+              amount: "Monto",
+              status: "Estado",
+              date: "Fecha"
+            },
+            team: {
+              totalStaff: "Total de Personal",
+              activeTasks: "Tareas Activas",
+              completedTasks: "Tareas Completadas",
+              staffOverview: "Resumen del Personal",
+              recentTasks: "Tareas Recientes",
+              name: "Nombre",
+              position: "Cargo",
+              status: "Estado",
+              task: "Tarea",
+              assignedTo: "Asignado a",
+              priority: "Prioridad"
+            }
           }
         }
       }

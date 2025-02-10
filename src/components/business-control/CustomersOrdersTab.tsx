@@ -4,8 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, ShoppingBag, UserMinus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const CustomersOrdersTab = () => {
+  const { t } = useTranslation();
+
   const { data: recentOrders } = useQuery({
     queryKey: ['recent-orders'],
     queryFn: async () => {
@@ -53,7 +56,7 @@ const CustomersOrdersTab = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.customers.totalCustomers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -63,7 +66,7 @@ const CustomersOrdersTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.customers.activeCustomers')}</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -73,7 +76,7 @@ const CustomersOrdersTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.customers.inactiveCustomers')}</CardTitle>
             <UserMinus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -84,16 +87,16 @@ const CustomersOrdersTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
+          <CardTitle>{t('business.customers.recentOrders')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>{t('business.customers.customer')}</TableHead>
+                <TableHead>{t('business.customers.amount')}</TableHead>
+                <TableHead>{t('business.customers.status')}</TableHead>
+                <TableHead>{t('business.customers.date')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,3 +125,4 @@ const CustomersOrdersTab = () => {
 };
 
 export default CustomersOrdersTab;
+

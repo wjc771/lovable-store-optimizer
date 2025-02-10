@@ -4,8 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, CheckCircle2, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const TeamTab = () => {
+  const { t } = useTranslation();
+
   const { data: staffOverview } = useQuery({
     queryKey: ['staff-overview'],
     queryFn: async () => {
@@ -53,7 +56,7 @@ const TeamTab = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.team.totalStaff')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -63,7 +66,7 @@ const TeamTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.team.activeTasks')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -75,7 +78,7 @@ const TeamTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('business.team.completedTasks')}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -88,15 +91,15 @@ const TeamTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Staff Overview</CardTitle>
+          <CardTitle>{t('business.team.staffOverview')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t('business.team.name')}</TableHead>
+                <TableHead>{t('business.team.position')}</TableHead>
+                <TableHead>{t('business.team.status')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,16 +125,16 @@ const TeamTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Tasks</CardTitle>
+          <CardTitle>{t('business.team.recentTasks')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead>Assigned To</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t('business.team.task')}</TableHead>
+                <TableHead>{t('business.team.assignedTo')}</TableHead>
+                <TableHead>{t('business.team.priority')}</TableHead>
+                <TableHead>{t('business.team.status')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -146,24 +149,3 @@ const TeamTab = () => {
                       'bg-green-100 text-green-800'
                     }`}>
                       {task.priority}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      task.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {task.status}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-export default TeamTab;
