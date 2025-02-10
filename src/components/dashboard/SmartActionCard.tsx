@@ -1,6 +1,6 @@
 
 import { DollarSign, Package, AlertCircle, Bell, Clock, XCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -30,77 +30,29 @@ const getActionIcon = (type: ActionType) => {
   }
 };
 
-const getPriorityColor = (priority: ActionPriority) => {
-  switch (priority) {
-    case 'high':
-      return 'bg-red-50 border-red-100';
-    case 'medium':
-      return 'bg-yellow-50 border-yellow-100';
+const getPriorityColor = (priority: ActionPriority, type: ActionType) => {
+  switch (type) {
+    case 'revenue_alert':
+      return 'bg-red-50';
+    case 'inventory_alert':
+      return 'bg-yellow-50';
+    case 'payment_reminder':
+      return 'bg-red-50';
     default:
-      return 'bg-blue-50 border-blue-100';
+      return 'bg-gray-50';
   }
 };
 
-const getActionDetails = (type: ActionType, metadata: ActionMetadata) => {
+const getActionButton = (type: ActionType) => {
   switch (type) {
     case 'revenue_alert':
-      return metadata.percentageChange ? (
-        <p className="text-sm text-gray-600">
-          {metadata.percentageChange > 0 ? '↑' : '↓'} {Math.abs(metadata.percentageChange)}% from expected
-          {metadata.suggestion && (
-            <span className="block mt-1 text-gray-500">{metadata.suggestion}</span>
-          )}
-        </p>
-      ) : null;
+      return 'View Report';
     case 'inventory_alert':
-      return metadata.currentStock !== undefined ? (
-        <p className="text-sm text-gray-600">
-          Current stock: {metadata.currentStock} units
-          {metadata.suggestedSupplier && (
-            <span className="block mt-1 text-gray-500">Suggested supplier: {metadata.suggestedSupplier}</span>
-          )}
-        </p>
-      ) : null;
+      return 'Order Stock';
     case 'payment_reminder':
-      return metadata.amount ? (
-        <p className="text-sm text-gray-600">
-          Amount: R$ {metadata.amount.toFixed(2)}
-          {metadata.dueDate && (
-            <span className="block mt-1 text-gray-500">Due: {new Date(metadata.dueDate).toLocaleDateString()}</span>
-          )}
-        </p>
-      ) : null;
+      return 'Process Payment';
     default:
-      return null;
-  }
-};
-
-const getActionButton = (type: ActionType, onAction?: () => void) => {
-  switch (type) {
-    case 'revenue_alert':
-      return onAction && (
-        <Button variant="default" size="sm" onClick={onAction}>
-          View Report
-        </Button>
-      );
-    case 'inventory_alert':
-      return onAction && (
-        <Button variant="default" size="sm" onClick={onAction}>
-          Order Stock
-        </Button>
-      );
-    case 'payment_reminder':
-      return onAction && (
-        <Button variant="default" size="sm" onClick={onAction}>
-          Process Payment
-        </Button>
-      );
-    default:
-      return onAction && (
-        <Button variant="default" size="sm" onClick={onAction}>
-          Take Action
-        </Button>
-      );
+      return 'Take Action';
   }
 };
 
@@ -116,21 +68,45 @@ const SmartActionCard = ({
 }: SmartActionProps) => {
   return (
     <Card className={cn(
-      "transition-all duration-300 hover:shadow-md",
-      getPriorityColor(priority),
-      "border animate-in fade-in-0 slide-in-from-bottom-5"
+      "transition-all duration-300",
+      getPriorityColor(priority, type),
+      "animate-in fade-in-0 slide-in-from-bottom-5"
     )}>
-      <CardContent className="pt-6">
+      <div className="p-6">
         <div className="flex items-start gap-4">
           <div className="rounded-full bg-white p-2 shadow-sm">
             {getActionIcon(type)}
           </div>
           <div className="flex-1">
             <div className="flex items-start justify-between">
-              <div>
+              <div className="space-y-1">
                 <h3 className="font-semibold text-gray-900">{title}</h3>
-                <p className="mt-1 text-sm text-gray-600">{description}</p>
-                {getActionDetails(type, metadata)}
+                <p className="text-sm text-gray-600">{description}</p>
+                {type === 'revenue_alert' && metadata.percentageChange && (
+                  <p className="text-sm text-gray-600">
+                    ↓ {Math.abs(metadata.percentageChange)}% from expected
+                  </p>
+                )}
+                {type === 'inventory_alert' && metadata.currentStock !== undefined && (
+                  <p className="text-sm text-gray-600">
+                    Current stock: {metadata.currentStock} units
+                  </p>
+                )}
+                {metadata.suggestion && (
+                  <p className="text-sm text-gray-600">{metadata.suggestion}</p>
+                )}
+                {type === 'payment_reminder' && metadata.amount && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      Amount: R$ {metadata.amount.toFixed(2)}
+                    </p>
+                    {metadata.dueDate && (
+                      <p className="text-sm text-gray-600">
+                        Due: {new Date(metadata.dueDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
               {onDismiss && (
                 <Button
@@ -143,18 +119,23 @@ const SmartActionCard = ({
                 </Button>
               )}
             </div>
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex gap-2">
-                {getActionButton(type, onAction)}
-                <Button variant="ghost" size="sm" className="gap-1">
-                  <Clock className="h-4 w-4" />
-                  {formatDistanceToNow(new Date(created_at), { addSuffix: true })}
-                </Button>
-              </div>
+            <div className="mt-4 flex items-center gap-2">
+              <Button
+                variant="default"
+                className="bg-black text-white hover:bg-gray-800"
+                size="sm"
+                onClick={onAction}
+              >
+                {getActionButton(type)}
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-500">
+                <Clock className="mr-2 h-4 w-4" />
+                {formatDistanceToNow(new Date(created_at), { addSuffix: true })}
+              </Button>
             </div>
           </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

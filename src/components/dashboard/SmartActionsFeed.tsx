@@ -21,6 +21,7 @@ const SmartActionsFeed = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching smart actions:', error);
         toast({
           title: "Error fetching actions",
           description: error.message,
@@ -81,42 +82,13 @@ const SmartActionsFeed = () => {
   const handleAction = async (action: SmartAction) => {
     switch (action.type) {
       case 'revenue_alert':
-        navigate('/reports/revenue', {
-          state: {
-            date: new Date().toISOString(),
-            alert: action
-          }
-        });
-        toast({
-          title: "Opening Revenue Report",
-          description: "Navigating to detailed revenue analysis",
-        });
+        navigate('/reports/revenue');
         break;
       case 'inventory_alert':
-        navigate('/inventory/reorder', {
-          state: {
-            productName: action.metadata.productName,
-            currentStock: action.metadata.currentStock,
-            alert: action
-          }
-        });
-        toast({
-          title: "Opening Stock Order",
-          description: "Preparing to reorder inventory",
-        });
+        navigate('/inventory/reorder');
         break;
       case 'payment_reminder':
-        navigate('/finance/payments', {
-          state: {
-            amount: action.metadata.amount,
-            dueDate: action.metadata.dueDate,
-            alert: action
-          }
-        });
-        toast({
-          title: "Processing Payment",
-          description: "Opening payment processing form",
-        });
+        navigate('/finance/payments');
         break;
       default:
         toast({
