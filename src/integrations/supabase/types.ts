@@ -381,6 +381,56 @@ export type Database = {
           },
         ]
       }
+      smart_actions: {
+        Row: {
+          created_at: string
+          description: string | null
+          dismissed_at: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          priority: string | null
+          status: string | null
+          store_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          dismissed_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          status?: string | null
+          store_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          dismissed_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          status?: string | null
+          store_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_actions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff: {
         Row: {
           id: string
