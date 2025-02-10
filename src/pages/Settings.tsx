@@ -21,7 +21,8 @@ const Settings = () => {
         const { data, error } = await supabase
           .from('store_settings')
           .select('*')
-          .single();
+          .eq('user_id', session.user.id)
+          .maybeSingle();
 
         if (error) throw error;
 
