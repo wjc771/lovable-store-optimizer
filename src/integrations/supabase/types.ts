@@ -386,6 +386,9 @@ export type Database = {
       }
       smart_actions: {
         Row: {
+          action_data: Json | null
+          action_priority: string | null
+          action_type: string | null
           created_at: string
           description: string | null
           dismissed_at: string | null
@@ -399,6 +402,9 @@ export type Database = {
           type: string
         }
         Insert: {
+          action_data?: Json | null
+          action_priority?: string | null
+          action_type?: string | null
           created_at?: string
           description?: string | null
           dismissed_at?: string | null
@@ -412,6 +418,9 @@ export type Database = {
           type: string
         }
         Update: {
+          action_data?: Json | null
+          action_priority?: string | null
+          action_type?: string | null
           created_at?: string
           description?: string | null
           dismissed_at?: string | null
