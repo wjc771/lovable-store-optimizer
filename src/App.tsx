@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { ThemeProvider } from "next-themes";
 import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Settings from "./pages/Settings";
@@ -25,7 +25,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" />;
   }
 
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return children;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
@@ -85,19 +85,21 @@ const AppRoutes = () => {
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <SettingsProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </SettingsProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <SettingsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

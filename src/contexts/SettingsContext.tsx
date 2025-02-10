@@ -1,9 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Initialize i18next with expanded translations
 i18next
   .use(initReactI18next)
   .init({
@@ -32,7 +30,20 @@ i18next
             customers: "Customers",
             smartActions: "Smart Actions",
             noActions: "No actions to display",
-            caughtUp: "All caught up! We'll notify you when there's something new."
+            caughtUp: "All caught up! We'll notify you when there's something new.",
+            stores: {
+              title: "Your Stores",
+              subtitle: "Manage your store documents and settings",
+              noStores: "No stores found. Create your first store to get started."
+            },
+            upload: {
+              title: "Upload Documents",
+              subtitle: "Upload and manage your store documents",
+              chatTitle: "Chat with your documents"
+            },
+            permissions: {
+              noAccess: "You don't have permission to access this page. This page is only accessible to managers."
+            }
           },
           settings: {
             general: "General",
@@ -98,7 +109,20 @@ i18next
             customers: "Clientes",
             smartActions: "Ações Inteligentes",
             noActions: "Nenhuma ação para exibir",
-            caughtUp: "Tudo em dia! Notificaremos você quando houver algo novo."
+            caughtUp: "Tudo em dia! Notificaremos você quando houver algo novo.",
+            stores: {
+              title: "Suas Lojas",
+              subtitle: "Gerencie os documentos e configurações da sua loja",
+              noStores: "Nenhuma loja encontrada. Crie sua primeira loja para começar."
+            },
+            upload: {
+              title: "Upload de Documentos",
+              subtitle: "Faça upload e gerencie os documentos da sua loja",
+              chatTitle: "Chat com seus documentos"
+            },
+            permissions: {
+              noAccess: "Você não tem permissão para acessar esta página. Esta página é acessível apenas para gerentes."
+            }
           },
           settings: {
             general: "Geral",
@@ -164,7 +188,20 @@ i18next
             customers: "Clientes",
             smartActions: "Acciones Inteligentes",
             noActions: "No hay acciones para mostrar",
-            caughtUp: "¡Todo al día! Te notificaremos cuando haya algo nuevo."
+            caughtUp: "¡Todo al día! Te notificaremos cuando haya algo nuevo.",
+            stores: {
+              title: "Tus Tiendas",
+              subtitle: "Gestiona los documentos y configuraciones de tu tienda",
+              noStores: "No se encontraron tiendas. Crea tu primera tienda para comenzar."
+            },
+            upload: {
+              title: "Subir Documentos",
+              subtitle: "Sube y gestiona los documentos de tu tienda",
+              chatTitle: "Chat con tus documentos"
+            },
+            permissions: {
+              noAccess: "No tienes permiso para acceder a esta página. Esta página es accesible solo para gerentes."
+            }
           },
           settings: {
             general: "General",
@@ -240,13 +277,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     localStorage.setItem('theme', theme);
     const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
     
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.remove('light', 'dark');
       root.classList.add(systemTheme);
     } else {
-      root.classList.remove('light', 'dark');
       root.classList.add(theme);
     }
   }, [theme]);
