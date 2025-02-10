@@ -256,18 +256,21 @@ export type Database = {
       positions: {
         Row: {
           id: string
+          is_managerial: boolean | null
           name: string | null
           permissions: Json | null
           store_department_id: string | null
         }
         Insert: {
           id?: string
+          is_managerial?: boolean | null
           name?: string | null
           permissions?: Json | null
           store_department_id?: string | null
         }
         Update: {
           id?: string
+          is_managerial?: boolean | null
           name?: string | null
           permissions?: Json | null
           store_department_id?: string | null

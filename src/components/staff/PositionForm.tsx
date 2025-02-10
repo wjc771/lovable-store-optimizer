@@ -18,6 +18,7 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
   const form = useForm({
     defaultValues: initialData || {
       name: "",
+      is_managerial: false,
       permissions: {
         sales: false,
         inventory: false,
@@ -54,6 +55,23 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="is_managerial"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel>Managerial Position</FormLabel>
+                </FormItem>
+              )}
+            />
+
             <div className="space-y-4">
               <FormLabel>Permissions</FormLabel>
               {Object.keys(form.getValues().permissions).map((permission) => (

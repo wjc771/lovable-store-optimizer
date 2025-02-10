@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Lock, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Lock, Trash2, Crown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ interface StaffMember {
 interface Position {
   id: string;
   name: string;
+  is_managerial: boolean;
   permissions: {
     sales: boolean;
     inventory: boolean;
@@ -95,6 +96,7 @@ const Settings = () => {
           const typedPositions: Position[] = positionsData.map(pos => ({
             id: pos.id,
             name: pos.name,
+            is_managerial: pos.is_managerial,
             permissions: typeof pos.permissions === 'object' ? pos.permissions : {
               sales: false,
               inventory: false,
@@ -310,6 +312,7 @@ const Settings = () => {
         .from('positions')
         .insert([{
           name: data.name,
+          is_managerial: data.is_managerial,
           permissions: data.permissions,
         }])
         .select()
@@ -341,6 +344,7 @@ const Settings = () => {
         .from('positions')
         .update({
           name: data.name,
+          is_managerial: data.is_managerial,
           permissions: data.permissions,
         })
         .eq('id', selectedPosition.id);
@@ -349,7 +353,7 @@ const Settings = () => {
 
       setPositions(positions.map(position =>
         position.id === selectedPosition.id
-          ? { ...position, name: data.name, permissions: data.permissions }
+          ? { ...position, name: data.name, is_managerial: data.is_managerial, permissions: data.permissions }
           : position
       ));
 
@@ -587,6 +591,7 @@ const Settings = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Position</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Permissions</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -594,7 +599,17 @@ const Settings = () => {
                   <TableBody>
                     {positions.map((position) => (
                       <TableRow key={position.id}>
-                        <TableCell>{position.name}</TableCell>
+                        <TableCell className="flex items-center gap-2">
+                          {position.is_managerial ? (
+                            <Crown className="h-4 w-4 text-yellow-500" />
+                          ) : (
+                            <Shield className="h-4 w-4 text-gray-500" />
+                          )}
+                          {position.name}
+                        </TableCell>
+                        <TableCell>
+                          {position.is_managerial ? "Managerial" : "Standard"}
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-2 flex-wrap">
                             {Object.entries(position.permissions).map(([key, value]) => (
