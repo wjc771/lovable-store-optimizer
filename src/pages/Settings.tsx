@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,7 +15,7 @@ import { StaffTable } from "@/components/settings/StaffTable";
 import { PositionsTable } from "@/components/settings/PositionsTable";
 import { Json } from "@/integrations/supabase/types";
 
-interface StaffMember {
+export interface StaffMember {
   id: string;
   name: string;
   status: "active" | "inactive";
@@ -329,12 +328,21 @@ const Settings = () => {
 
   const handleAddPosition = async (data: any) => {
     try {
+      const permissionsData = {
+        sales: data.permissions.sales || false,
+        inventory: data.permissions.inventory || false,
+        financial: data.permissions.financial || false,
+        customers: data.permissions.customers || false,
+        staff: data.permissions.staff || false,
+        settings: data.permissions.settings || false
+      };
+
       const { data: newPosition, error } = await supabase
         .from('positions')
         .insert([{
           name: data.name,
           is_managerial: data.is_managerial,
-          permissions: data.permissions,
+          permissions: permissionsData,
         }])
         .select()
         .single();
@@ -343,16 +351,9 @@ const Settings = () => {
 
       const typedPosition: Position = {
         id: newPosition.id,
-        name: newPosition.name,
-        is_managerial: newPosition.is_managerial,
-        permissions: typeof newPosition.permissions === 'object' ? newPosition.permissions : {
-          sales: false,
-          inventory: false,
-          financial: false,
-          customers: false,
-          staff: false,
-          settings: false
-        }
+        name: newPosition.name || '',
+        is_managerial: newPosition.is_managerial || false,
+        permissions: permissionsData
       };
 
       setPositions([...positions, typedPosition]);
