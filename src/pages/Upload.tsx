@@ -3,7 +3,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import FileUpload from "@/components/upload/FileUpload";
 import { useTranslation } from "react-i18next";
 
-const Upload = () => {
+const UploadContent = () => {
   const { t } = useTranslation();
 
   return (
@@ -16,4 +16,13 @@ const Upload = () => {
   );
 };
 
+const Upload = () => {
+  return (
+    <DashboardLayout>
+      <UploadContent />
+    </DashboardLayout>
+  );
+};
+
 export default Upload;
+

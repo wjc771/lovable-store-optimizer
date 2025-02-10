@@ -16,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Position, StaffMember } from "@/types/settings";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
-const Settings = () => {
+const SettingsContent = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
   const [chatWebhookUrl, setChatWebhookUrl] = useState("");
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
@@ -146,7 +147,7 @@ const Settings = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
   if (!isManager) {
@@ -154,7 +155,7 @@ const Settings = () => {
       <div className="p-4">
         <Alert variant="destructive">
           <AlertDescription>
-            You don't have permission to access this page. This page is only accessible to managers.
+            {t('dashboard.permissions.noAccess')}
           </AlertDescription>
         </Alert>
       </div>
@@ -267,4 +268,13 @@ const Settings = () => {
   );
 };
 
+const Settings = () => {
+  return (
+    <DashboardLayout>
+      <SettingsContent />
+    </DashboardLayout>
+  );
+};
+
 export default Settings;
+
