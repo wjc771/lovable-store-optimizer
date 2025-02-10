@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import LoginForm from "@/components/auth/LoginForm";
 import FileUpload from "@/components/upload/FileUpload";
+import ChatInterface from "@/components/chat/ChatInterface";
 
 const Index = () => {
   const { user } = useAuth();
@@ -28,6 +29,10 @@ const Index = () => {
         <div className="grid gap-8">
           <div className="glass-card rounded-lg p-6">
             <FileUpload />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Chat with your documents</h3>
+            <ChatInterface />
           </div>
         </div>
       </div>

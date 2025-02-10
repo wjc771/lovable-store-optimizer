@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 
 const FileUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [webhookUrl, setWebhookUrl] = useState("");
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -53,6 +55,7 @@ const FileUpload = () => {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('webhookUrl', webhookUrl);
 
         const response = await supabase.functions.invoke('upload-file', {
           body: formData,
@@ -86,47 +89,59 @@ const FileUpload = () => {
   };
 
   return (
-    <div
-      className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-        isDragging ? "border-primary bg-primary/5" : "border-gray-300"
-      }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <div className="space-y-4">
-        <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-          <Upload className="w-6 h-6 text-primary" />
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Upload files</h3>
-          <p className="text-sm text-muted-foreground">
-            Drag and drop your files here or click to browse
-          </p>
-        </div>
-        <div>
-          <label htmlFor="file-upload">
-            <Button variant="outline" className="mt-2" disabled={isUploading}>
-              Browse files
-            </Button>
-          </label>
-          <input
-            id="file-upload"
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileInput}
-            disabled={isUploading}
-          />
-        </div>
-        {isUploading && (
-          <div className="w-full space-y-2">
-            <Progress value={uploadProgress} className="w-full" />
+    <div className="space-y-4">
+      <div className="flex gap-4 items-center">
+        <Input
+          type="url"
+          placeholder="Enter your N8N webhook URL"
+          value={webhookUrl}
+          onChange={(e) => setWebhookUrl(e.target.value)}
+          className="flex-1"
+        />
+      </div>
+      
+      <div
+        className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+          isDragging ? "border-primary bg-primary/5" : "border-gray-300"
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className="space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Upload className="w-6 h-6 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Upload files</h3>
             <p className="text-sm text-muted-foreground">
-              Uploading... {Math.round(uploadProgress)}%
+              Drag and drop your files here or click to browse
             </p>
           </div>
-        )}
+          <div>
+            <label htmlFor="file-upload">
+              <Button variant="outline" className="mt-2" disabled={isUploading}>
+                Browse files
+              </Button>
+            </label>
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileInput}
+              disabled={isUploading}
+            />
+          </div>
+          {isUploading && (
+            <div className="w-full space-y-2">
+              <Progress value={uploadProgress} className="w-full" />
+              <p className="text-sm text-muted-foreground">
+                Uploading... {Math.round(uploadProgress)}%
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
