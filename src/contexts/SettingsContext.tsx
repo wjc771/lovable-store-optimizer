@@ -46,6 +46,7 @@ i18next
             }
           },
           settings: {
+            settings: "Settings",
             general: "General",
             business: "Business",
             notifications: "Notifications",
@@ -57,12 +58,19 @@ i18next
             light: "Light",
             system: "System",
             businessName: "Business Name",
+            enterBusinessName: "Enter your business name",
             timezone: "Timezone",
+            selectTimezone: "Select timezone",
             salesThreshold: "Sales Alert Threshold",
             inventoryAlert: "Low Stock Alert Level",
             webhookUrls: "Webhook URLs",
             manageStaff: "Manage Staff",
-            positions: "Positions"
+            positions: "Positions",
+            generalDescription: "Configure your basic application settings",
+            businessDescription: "Manage your business settings and preferences",
+            notificationsDescription: "Configure your notification preferences",
+            staffDescription: "Manage staff members and their permissions",
+            integrationsDescription: "Configure external service integrations"
           },
           upload: {
             title: "Upload Files",
@@ -125,6 +133,7 @@ i18next
             }
           },
           settings: {
+            settings: "Configurações",
             general: "Geral",
             business: "Negócio",
             notifications: "Notificações",
@@ -136,12 +145,19 @@ i18next
             light: "Claro",
             system: "Sistema",
             businessName: "Nome da Empresa",
+            enterBusinessName: "Digite o nome da sua empresa",
             timezone: "Fuso Horário",
+            selectTimezone: "Selecione o fuso horário",
             salesThreshold: "Limite de Alerta de Vendas",
             inventoryAlert: "Nível de Alerta de Estoque Baixo",
             webhookUrls: "URLs de Webhook",
             manageStaff: "Gerenciar Equipe",
-            positions: "Cargos"
+            positions: "Cargos",
+            generalDescription: "Configure as configurações básicas do aplicativo",
+            businessDescription: "Gerencie as configurações do seu negócio",
+            notificationsDescription: "Configure suas preferências de notificação",
+            staffDescription: "Gerencie membros da equipe e suas permissões",
+            integrationsDescription: "Configure integrações com serviços externos"
           },
           upload: {
             title: "Upload de Arquivos",
@@ -204,6 +220,7 @@ i18next
             }
           },
           settings: {
+            settings: "Configuración",
             general: "General",
             business: "Negocio",
             notifications: "Notificaciones",
@@ -215,12 +232,19 @@ i18next
             light: "Claro",
             system: "Sistema",
             businessName: "Nombre de la Empresa",
+            enterBusinessName: "Ingrese el nombre de su empresa",
             timezone: "Zona Horaria",
+            selectTimezone: "Seleccione la zona horaria",
             salesThreshold: "Umbral de Alerta de Ventas",
             inventoryAlert: "Nivel de Alerta de Stock Bajo",
             webhookUrls: "URLs de Webhook",
             manageStaff: "Gestionar Personal",
-            positions: "Cargos"
+            positions: "Cargos",
+            generalDescription: "Configure los ajustes básicos de la aplicación",
+            businessDescription: "Gestione la configuración de su negocio",
+            notificationsDescription: "Configure sus preferencias de notificación",
+            staffDescription: "Gestione los miembros del personal y sus permisos",
+            integrationsDescription: "Configure integraciones con servicios externos"
           },
           upload: {
             title: "Subir Archivos",

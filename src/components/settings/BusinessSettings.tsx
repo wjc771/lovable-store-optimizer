@@ -2,29 +2,32 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 
 export const BusinessSettings = () => {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Business Control</CardTitle>
-        <CardDescription>Manage your business settings and preferences</CardDescription>
+        <CardTitle>{t('settings.business')}</CardTitle>
+        <CardDescription>{t('settings.businessDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="salesThreshold">Sales Alert Threshold ($)</label>
+          <label htmlFor="salesThreshold">{t('settings.salesThreshold')}</label>
           <Input
             id="salesThreshold"
             type="number"
-            placeholder="Set sales threshold for alerts"
+            placeholder={t('settings.salesThreshold')}
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="inventoryAlert">Low Stock Alert Level</label>
+          <label htmlFor="inventoryAlert">{t('settings.inventoryAlert')}</label>
           <Input
             id="inventoryAlert"
             type="number"
-            placeholder="Set minimum inventory level"
+            placeholder={t('settings.inventoryAlert')}
           />
         </div>
       </CardContent>
