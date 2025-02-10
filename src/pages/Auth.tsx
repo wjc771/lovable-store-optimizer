@@ -58,6 +58,8 @@ const Auth = () => {
         // Handle specific error cases
         if (error.message.includes("email_address_invalid")) {
           errorMessage = "Please enter a valid email address";
+        } else if (error.message.includes("over_email_send_rate_limit")) {
+          errorMessage = "Please wait a minute before trying to sign up again";
         }
         throw new Error(errorMessage);
       }
