@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface IntegrationSettingsProps {
   uploadWebhookUrl: string;
@@ -19,32 +20,34 @@ export const IntegrationSettings: React.FC<IntegrationSettingsProps> = ({
   onChatWebhookUrlChange,
   onSave,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Webhook Configuration</CardTitle>
-        <CardDescription>Configure your webhook URLs for different services</CardDescription>
+        <CardTitle>{t('settings.webhookConfiguration')}</CardTitle>
+        <CardDescription>{t('settings.integrationsDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="uploadWebhook">Upload Webhook URL</label>
+          <label htmlFor="uploadWebhook">{t('settings.uploadWebhookUrl')}</label>
           <Input
             id="uploadWebhook"
             value={uploadWebhookUrl}
             onChange={(e) => onUploadWebhookUrlChange(e.target.value)}
-            placeholder="Enter upload webhook URL"
+            placeholder={t('settings.enterUploadWebhookUrl')}
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="chatWebhook">Chat Webhook URL</label>
+          <label htmlFor="chatWebhook">{t('settings.chatWebhookUrl')}</label>
           <Input
             id="chatWebhook"
             value={chatWebhookUrl}
             onChange={(e) => onChatWebhookUrlChange(e.target.value)}
-            placeholder="Enter chat webhook URL"
+            placeholder={t('settings.enterChatWebhookUrl')}
           />
         </div>
-        <Button onClick={onSave}>Save Settings</Button>
+        <Button onClick={onSave}>{t('common.save')}</Button>
       </CardContent>
     </Card>
   );
