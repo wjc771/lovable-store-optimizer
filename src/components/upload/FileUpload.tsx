@@ -3,9 +3,13 @@ import { useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
 
 const FileUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -29,12 +33,56 @@ const FileUpload = () => {
     handleFiles(files);
   };
 
-  const handleFiles = (files: File[]) => {
-    // TODO: Implement actual file upload logic
-    toast({
-      title: "Files received",
-      description: `${files.length} files will be processed in the next phase.`,
-    });
+  const handleFiles = async (files: File[]) => {
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to upload files",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await supabase.functions.invoke('upload-file', {
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
+
+        setUploadProgress((prev) => prev + (100 / files.length));
+
+        toast({
+          title: "Success",
+          description: `File ${file.name} uploaded successfully`,
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload file(s)",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   return (
@@ -58,7 +106,7 @@ const FileUpload = () => {
         </div>
         <div>
           <label htmlFor="file-upload">
-            <Button variant="outline" className="mt-2" onClick={() => {}}>
+            <Button variant="outline" className="mt-2" disabled={isUploading}>
               Browse files
             </Button>
           </label>
@@ -68,8 +116,17 @@ const FileUpload = () => {
             multiple
             className="hidden"
             onChange={handleFileInput}
+            disabled={isUploading}
           />
         </div>
+        {isUploading && (
+          <div className="w-full space-y-2">
+            <Progress value={uploadProgress} className="w-full" />
+            <p className="text-sm text-muted-foreground">
+              Uploading... {Math.round(uploadProgress)}%
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
