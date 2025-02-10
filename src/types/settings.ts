@@ -39,4 +39,3 @@ export interface PositionInput {
     settings: boolean;
   };
 }
-

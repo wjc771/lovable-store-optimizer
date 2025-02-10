@@ -15,9 +15,11 @@ export const useStaffManagement = (
   const [positionFormOpen, setPositionFormOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleAddStaff = async (data: any) => {
+    setIsLoading(true);
     try {
       const newStaffMember = await staffService.addStaffMember(data);
       setStaffMembers(prev => [...prev, newStaffMember]);
@@ -33,11 +35,14 @@ export const useStaffManagement = (
         description: "Failed to add staff member",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleUpdateStaff = async (data: any) => {
     if (!selectedStaff) return;
+    setIsLoading(true);
 
     try {
       const updated = await staffService.updateStaffMember(selectedStaff.id, data);
@@ -64,10 +69,13 @@ export const useStaffManagement = (
         description: "Failed to update staff member",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteStaff = async (id: string) => {
+    setIsLoading(true);
     try {
       await staffService.deleteStaffMember(id);
       setStaffMembers(prev => prev.filter(staff => staff.id !== id));
@@ -82,10 +90,13 @@ export const useStaffManagement = (
         description: "Failed to delete staff member",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAddPosition = async (data: any) => {
+    setIsLoading(true);
     try {
       const newPosition = await positionService.addPosition(data);
       setPositions(prev => [...prev, newPosition]);
@@ -101,11 +112,14 @@ export const useStaffManagement = (
         description: "Failed to add position",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleUpdatePosition = async (data: any) => {
     if (!selectedPosition) return;
+    setIsLoading(true);
 
     try {
       await positionService.updatePosition(selectedPosition.id, data);
@@ -131,10 +145,13 @@ export const useStaffManagement = (
         description: "Failed to update position",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeletePosition = async (id: string) => {
+    setIsLoading(true);
     try {
       await positionService.deletePosition(id);
       setPositions(prev => prev.filter(position => position.id !== id));
@@ -149,6 +166,8 @@ export const useStaffManagement = (
         description: "Failed to delete position",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -169,5 +188,6 @@ export const useStaffManagement = (
     handleAddPosition,
     handleUpdatePosition,
     handleDeletePosition,
+    isLoading,
   };
 };
