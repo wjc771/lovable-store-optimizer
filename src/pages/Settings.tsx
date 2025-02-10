@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,32 @@ const Settings = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
   const [chatWebhookUrl, setChatWebhookUrl] = useState("");
   const { toast } = useToast();
+
+  // Load existing settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data, error } = await supabase
+          .from('store_settings')
+          .select('*')
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setUploadWebhookUrl(data.upload_webhook_url || "");
+          setChatWebhookUrl(data.chat_webhook_url || "");
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -26,6 +52,7 @@ const Settings = () => {
       const { error } = await supabase
         .from('store_settings')
         .upsert({
+          user_id: session.user.id,
           upload_webhook_url: uploadWebhookUrl,
           chat_webhook_url: chatWebhookUrl,
         });
@@ -37,6 +64,7 @@ const Settings = () => {
         description: "Settings saved successfully",
       });
     } catch (error) {
+      console.error("Error saving settings:", error);
       toast({
         title: "Error",
         description: "Failed to save settings",

@@ -557,6 +557,7 @@ export type Database = {
           store_id: string | null
           updated_at: string
           upload_webhook_url: string | null
+          user_id: string
         }
         Insert: {
           chat_webhook_url?: string | null
@@ -566,6 +567,7 @@ export type Database = {
           store_id?: string | null
           updated_at?: string
           upload_webhook_url?: string | null
+          user_id: string
         }
         Update: {
           chat_webhook_url?: string | null
@@ -575,6 +577,7 @@ export type Database = {
           store_id?: string | null
           updated_at?: string
           upload_webhook_url?: string | null
+          user_id?: string
         }
         Relationships: [
           {
