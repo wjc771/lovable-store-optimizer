@@ -20,7 +20,7 @@ interface StaffMember {
   name: string;
   status: "active" | "inactive";
   positions: string[];
-  position_ids?: string[];
+  position_ids: string[]; // Changed from optional to required
 }
 
 interface Position {
@@ -101,15 +101,15 @@ const Settings = () => {
         if (positionsData) {
           const typedPositions: Position[] = positionsData.map(pos => ({
             id: pos.id,
-            name: pos.name,
-            is_managerial: pos.is_managerial,
-            permissions: typeof pos.permissions === 'object' ? pos.permissions : {
-              sales: false,
-              inventory: false,
-              financial: false,
-              customers: false,
-              staff: false,
-              settings: false
+            name: pos.name || '',
+            is_managerial: pos.is_managerial || false,
+            permissions: {
+              sales: pos.permissions?.sales || false,
+              inventory: pos.permissions?.inventory || false,
+              financial: pos.permissions?.financial || false,
+              customers: pos.permissions?.customers || false,
+              staff: pos.permissions?.staff || false,
+              settings: pos.permissions?.settings || false
             }
           }));
           setPositions(typedPositions);
