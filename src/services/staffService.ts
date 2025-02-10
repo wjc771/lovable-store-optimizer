@@ -1,8 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { StaffMember } from "@/types/settings";
+import { StaffMember, StaffMemberInput } from "@/types/settings";
 
-export const addStaffMember = async (data: any) => {
+export const addStaffMember = async (data: StaffMemberInput): Promise<StaffMember> => {
   const { data: newStaff, error } = await supabase
     .from('staff')
     .insert([{
@@ -44,7 +44,7 @@ export const addStaffMember = async (data: any) => {
   };
 };
 
-export const updateStaffMember = async (id: string, data: any) => {
+export const updateStaffMember = async (id: string, data: StaffMemberInput): Promise<{ positions: string[], position_ids: string[] }> => {
   const { error } = await supabase
     .from('staff')
     .update({
@@ -89,7 +89,7 @@ export const updateStaffMember = async (id: string, data: any) => {
   };
 };
 
-export const deleteStaffMember = async (id: string) => {
+export const deleteStaffMember = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from('staff')
     .delete()
@@ -97,3 +97,4 @@ export const deleteStaffMember = async (id: string) => {
 
   if (error) throw error;
 };
+

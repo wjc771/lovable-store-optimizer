@@ -1,8 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Position } from "@/types/settings";
+import { Position, PositionInput } from "@/types/settings";
 
-export const addPosition = async (data: any) => {
+export const addPosition = async (data: PositionInput): Promise<Position> => {
   const permissionsData = {
     sales: data.permissions.sales || false,
     inventory: data.permissions.inventory || false,
@@ -32,7 +32,7 @@ export const addPosition = async (data: any) => {
   };
 };
 
-export const updatePosition = async (id: string, data: any) => {
+export const updatePosition = async (id: string, data: PositionInput): Promise<void> => {
   const { error } = await supabase
     .from('positions')
     .update({
@@ -45,7 +45,7 @@ export const updatePosition = async (id: string, data: any) => {
   if (error) throw error;
 };
 
-export const deletePosition = async (id: string) => {
+export const deletePosition = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from('positions')
     .delete()
@@ -53,3 +53,4 @@ export const deletePosition = async (id: string) => {
 
   if (error) throw error;
 };
+
