@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Upload, Settings, LogOut, PieChart } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -71,7 +71,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                 onClick={() => navigate("/business")}
               >
                 <PieChart className="mr-2 h-5 w-5" />
-                Business Control
+                {t('common.business')}
               </Button>
             )}
 
@@ -82,6 +82,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             >
               <Upload className="mr-2 h-5 w-5" />
               {t('common.upload')}
+            </Button>
+
+            <Button
+              variant={isActive("/chat") ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => navigate("/chat")}
+            >
+              <MessageSquare className="mr-2 h-5 w-5" />
+              {t('common.chat')}
             </Button>
             
             <Button

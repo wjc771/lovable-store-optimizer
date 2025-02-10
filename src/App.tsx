@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import BusinessControl from "./pages/BusinessControl";
+import Chat from "./pages/Chat";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -75,6 +76,14 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <BusinessControl />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/chat"
+        element={
+          <PrivateRoute>
+            <Chat />
           </PrivateRoute>
         }
       />
