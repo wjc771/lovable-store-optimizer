@@ -173,10 +173,13 @@ export type Database = {
           file_path: string
           filename: string
           id: string
+          media_type: string | null
           n8n_webhook_url: string | null
           processing_result: Json | null
+          processing_status: string | null
           size: number | null
           status: string
+          transcription: string | null
           updated_at: string
           user_id: string
         }
@@ -186,10 +189,13 @@ export type Database = {
           file_path: string
           filename: string
           id?: string
+          media_type?: string | null
           n8n_webhook_url?: string | null
           processing_result?: Json | null
+          processing_status?: string | null
           size?: number | null
           status?: string
+          transcription?: string | null
           updated_at?: string
           user_id: string
         }
@@ -199,10 +205,13 @@ export type Database = {
           file_path?: string
           filename?: string
           id?: string
+          media_type?: string | null
           n8n_webhook_url?: string | null
           processing_result?: Json | null
+          processing_status?: string | null
           size?: number | null
           status?: string
+          transcription?: string | null
           updated_at?: string
           user_id?: string
         }

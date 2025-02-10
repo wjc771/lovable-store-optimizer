@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Upload } from "lucide-react";
+import { useState, useRef } from "react";
+import { Upload, Camera, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,10 @@ const FileUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -36,10 +40,43 @@ const FileUpload = () => {
   };
 
   const triggerFileInput = () => {
-    // Programmatically trigger the hidden file input
-    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Could not access camera",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const capturePhoto = async () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const photoDataUrl = canvas.toDataURL('image/jpeg');
+        setMediaPreview(photoDataUrl);
+        
+        // Convert data URL to blob
+        const res = await fetch(photoDataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+        handleFiles([file]);
+      }
     }
   };
 
@@ -93,6 +130,12 @@ const FileUpload = () => {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setMediaPreview(null);
+      if (videoRef.current?.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        tracks.forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
     }
   };
 
@@ -117,6 +160,41 @@ const FileUpload = () => {
         onDrop={handleDrop}
       >
         <div className="space-y-4">
+          <div className="flex justify-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={startCamera}
+              className="rounded-full"
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsRecording(!isRecording)}
+              className={`rounded-full ${isRecording ? 'bg-red-500 text-white' : ''}`}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {mediaPreview && (
+            <div className="mt-4">
+              <img src={mediaPreview} alt="Preview" className="max-w-xs mx-auto rounded" />
+              <Button onClick={capturePhoto} className="mt-2">
+                Capture Photo
+              </Button>
+            </div>
+          )}
+
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className={`max-w-xs mx-auto ${videoRef.current?.srcObject ? 'block' : 'hidden'}`}
+          />
+
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Upload className="w-6 h-6 text-primary" />
           </div>
@@ -131,11 +209,12 @@ const FileUpload = () => {
               variant="outline" 
               className="mt-2 hover:bg-primary hover:text-white transition-colors" 
               disabled={isUploading}
-              onClick={triggerFileInput}  // Direct click handler
+              onClick={triggerFileInput}
             >
               Browse files
             </Button>
             <input
+              ref={fileInputRef}
               id="file-upload"
               type="file"
               multiple
