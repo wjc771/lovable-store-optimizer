@@ -14,15 +14,15 @@ const FinancialTab = () => {
         .select('amount, created_at')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
-      const dailyTotals = (sales || []).reduce((acc, sale) => {
+      const dailyTotals = (sales || []).reduce((acc: Record<string, number>, sale) => {
         const date = new Date(sale.created_at).toLocaleDateString();
-        acc[date] = (acc[date] || 0) + Number(sale.amount);
+        acc[date] = (acc[date] || 0) + (typeof sale.amount === 'number' ? sale.amount : 0);
         return acc;
       }, {});
 
       return Object.entries(dailyTotals).map(([date, amount]) => ({
         date,
-        amount
+        amount: Number(amount)
       }));
     }
   });
@@ -36,13 +36,18 @@ const FinancialTab = () => {
         .eq('status', 'pending');
 
       const pendingAmount = pendingOrders?.reduce((sum, order) => 
-        sum + Number(order.total_amount), 0) || 0;
+        sum + (typeof order.total_amount === 'number' ? Number(order.total_amount) : 0), 0) || 0;
 
       return {
         pendingAmount
       };
     }
   });
+
+  const totalRevenue = financialOverview?.reduce((sum, day) => sum + day.amount, 0) || 0;
+  const averageOrderValue = financialOverview && financialOverview.length > 0
+    ? totalRevenue / financialOverview.length
+    : 0;
 
   return (
     <div className="space-y-4">
@@ -54,7 +59,7 @@ const FinancialTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${financialOverview?.reduce((sum, day) => sum + day.amount, 0).toFixed(2) || '0.00'}
+              ${totalRevenue.toFixed(2)}
             </div>
           </CardContent>
         </Card>
@@ -78,9 +83,7 @@ const FinancialTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${financialOverview && financialOverview.length > 0
-                ? (financialOverview.reduce((sum, day) => sum + day.amount, 0) / financialOverview.length).toFixed(2)
-                : '0.00'}
+              ${averageOrderValue.toFixed(2)}
             </div>
           </CardContent>
         </Card>
