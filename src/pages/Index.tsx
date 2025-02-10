@@ -1,13 +1,13 @@
 
-import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import LoginForm from "@/components/auth/LoginForm";
 import FileUpload from "@/components/upload/FileUpload";
 
 const Index = () => {
-  const [isAuthenticated] = useState(false);
+  const { user } = useAuth();
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <LoginForm />
