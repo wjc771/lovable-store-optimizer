@@ -47,9 +47,11 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8 p-8">
-        <h1 className="text-3xl font-bold">
-          {t('dashboard.title', 'Dashboard')}
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">
+            {t('dashboard.title', 'Dashboard')}
+          </h1>
+        </div>
 
         {/* Smart Actions Section */}
         <section id="smart-actions" className="space-y-4">
