@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import LoginForm from "@/components/auth/LoginForm";
 import FileUpload from "@/components/upload/FileUpload";
 import ChatInterface from "@/components/chat/ChatInterface";
+import SmartActionsFeed from "@/components/dashboard/SmartActionsFeed";
 
 const Index = () => {
   const { user } = useAuth();
@@ -19,6 +20,16 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="space-y-16">
+        <section id="smart-actions" className="space-y-8">
+          <div>
+            <h2 className="text-2xl font-bold">Smart Actions</h2>
+            <p className="text-muted-foreground">
+              Important alerts and actions that need your attention
+            </p>
+          </div>
+          <SmartActionsFeed />
+        </section>
+
         <section id="stores" className="space-y-8">
           <div>
             <h2 className="text-2xl font-bold">Your Stores</h2>
@@ -27,7 +38,6 @@ const Index = () => {
             </p>
           </div>
           <div className="grid gap-6">
-            {/* Store list will be implemented later */}
             <div className="glass-card rounded-lg p-6">
               <p className="text-muted-foreground">No stores found. Create your first store to get started.</p>
             </div>
