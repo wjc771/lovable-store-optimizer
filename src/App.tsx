@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
-import Dashboard from "./pages/Dashboard";
+import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -49,7 +49,7 @@ const AppRoutes = () => {
         path="/"
         element={
           <PrivateRoute>
-            <Dashboard />
+            <Index />
           </PrivateRoute>
         }
       />

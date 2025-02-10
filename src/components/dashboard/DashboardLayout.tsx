@@ -34,12 +34,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b">
+    <div className="min-h-screen bg-background">
+      <nav className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold">{storeName}</h1>
+              <h1 className="text-xl font-semibold text-foreground">{storeName}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" onClick={handleLogout}>
@@ -51,7 +51,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </nav>
 
       <div className="flex">
-        <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r">
+        <aside className="w-64 bg-card h-[calc(100vh-4rem)] border-r border-border">
           <nav className="p-4 space-y-2">
             <Button
               variant={isActive("/") ? "default" : "ghost"}
@@ -80,7 +80,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </nav>
         </aside>
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 bg-background">{children}</main>
       </div>
     </div>
   );
