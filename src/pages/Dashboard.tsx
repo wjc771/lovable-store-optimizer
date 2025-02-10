@@ -27,7 +27,14 @@ const Dashboard = () => {
 
       const [salesResponse, productsResponse, customersResponse] = await Promise.all(promises);
 
-      const totalSales = salesResponse.data?.reduce((sum, sale) => sum + Number(sale.amount), 0) || 0;
+      const totalSales = salesResponse.data?.reduce((sum, sale) => {
+        // Type guard to ensure sale has amount property
+        if ('amount' in sale) {
+          return sum + Number(sale.amount);
+        }
+        return sum;
+      }, 0) || 0;
+      
       const totalProducts = productsResponse.count || 0;
       const totalCustomers = customersResponse.count || 0;
 
