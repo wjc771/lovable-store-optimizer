@@ -1,11 +1,12 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Upload, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, LogOut, PieChart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [storeName] = useState("My Store");
@@ -14,6 +15,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { isManager } = usePermissions();
 
   const handleLogout = async () => {
     try {
@@ -61,6 +63,18 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <LayoutDashboard className="mr-2 h-5 w-5" />
               {t('common.dashboard')}
             </Button>
+            
+            {isManager && (
+              <Button
+                variant={isActive("/business") ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => navigate("/business")}
+              >
+                <PieChart className="mr-2 h-5 w-5" />
+                Business Control
+              </Button>
+            )}
+
             <Button
               variant={isActive("/upload") ? "default" : "ghost"}
               className="w-full justify-start"
@@ -69,6 +83,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <Upload className="mr-2 h-5 w-5" />
               {t('common.upload')}
             </Button>
+            
             <Button
               variant={isActive("/settings") ? "default" : "ghost"}
               className="w-full justify-start"

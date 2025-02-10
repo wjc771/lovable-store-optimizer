@@ -13,6 +13,7 @@ import Upload from "./pages/Upload";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import BusinessControl from "./pages/BusinessControl";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -66,6 +67,14 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <Settings />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/business"
+        element={
+          <PrivateRoute>
+            <BusinessControl />
           </PrivateRoute>
         }
       />
