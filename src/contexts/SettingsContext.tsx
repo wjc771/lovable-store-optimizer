@@ -22,7 +22,9 @@ i18next
             edit: "Edit",
             add: "Add",
             confirm: "Confirm",
-            back: "Back"
+            back: "Back",
+            business: "Business",
+            chat: "Chat"
           },
           dashboard: {
             totalSales: "Total Sales",
@@ -153,6 +155,10 @@ i18next
               assignedTo: "Assigned To",
               priority: "Priority"
             }
+          },
+          chat: {
+            title: "Chat",
+            description: "Chat with your documents and get instant answers."
           }
         }
       },
@@ -172,7 +178,9 @@ i18next
             edit: "Editar",
             add: "Adicionar",
             confirm: "Confirmar",
-            back: "Voltar"
+            back: "Voltar",
+            business: "Negócios",
+            chat: "Chat"
           },
           dashboard: {
             totalSales: "Vendas Totais",
@@ -303,6 +311,10 @@ i18next
               assignedTo: "Atribuído a",
               priority: "Prioridade"
             }
+          },
+          chat: {
+            title: "Chat",
+            description: "Chat com seus documentos e obtenha respostas instantâneas."
           }
         }
       },
@@ -322,7 +334,9 @@ i18next
             edit: "Editar",
             add: "Agregar",
             confirm: "Confirmar",
-            back: "Volver"
+            back: "Volver",
+            business: "Negocios",
+            chat: "Chat"
           },
           dashboard: {
             totalSales: "Ventas Totales",
@@ -443,9 +457,9 @@ i18next
             team: {
               totalStaff: "Total de Personal",
               activeTasks: "Tareas Activas",
-              completedTasks: "Tareas Completadas",
+              completedTasks: "Tarefas Completadas",
               staffOverview: "Resumen del Personal",
-              recentTasks: "Tareas Recientes",
+              recentTasks: "Tarefas Recientes",
               name: "Nombre",
               position: "Cargo",
               status: "Estado",
@@ -453,6 +467,10 @@ i18next
               assignedTo: "Asignado a",
               priority: "Prioridad"
             }
+          },
+          chat: {
+            title: "Chat",
+            description: "Chat con tus documentos y obtén respuestas instantáneas."
           }
         }
       }
