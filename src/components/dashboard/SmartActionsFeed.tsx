@@ -1,14 +1,17 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import SmartActionCard from "./SmartActionCard";
 import { useToast } from "@/hooks/use-toast";
 import type { SmartAction } from "@/types/smart-actions";
+import { useEffect } from "react";
 
 const SmartActionsFeed = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const { data: actions, isLoading } = useQuery({
+  const { data: actions, isLoading, refetch } = useQuery({
     queryKey: ['smart-actions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -29,6 +32,28 @@ const SmartActionsFeed = () => {
       return (data || []) as SmartAction[];
     },
   });
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('smart-actions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'smart_actions'
+        },
+        () => {
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   const handleDismiss = async (id: string) => {
     const { error } = await supabase
@@ -56,21 +81,38 @@ const SmartActionsFeed = () => {
   const handleAction = async (action: SmartAction) => {
     switch (action.type) {
       case 'revenue_alert':
-        // Navigate to revenue report or show modal
+        navigate('/reports/revenue', {
+          state: {
+            date: new Date().toISOString(),
+            alert: action
+          }
+        });
         toast({
           title: "Opening Revenue Report",
           description: "Navigating to detailed revenue analysis",
         });
         break;
       case 'inventory_alert':
-        // Open reorder form or navigate to inventory
+        navigate('/inventory/reorder', {
+          state: {
+            productName: action.metadata.productName,
+            currentStock: action.metadata.currentStock,
+            alert: action
+          }
+        });
         toast({
           title: "Opening Stock Order",
           description: "Preparing to reorder inventory",
         });
         break;
       case 'payment_reminder':
-        // Open payment processing or navigate to finances
+        navigate('/finance/payments', {
+          state: {
+            amount: action.metadata.amount,
+            dueDate: action.metadata.dueDate,
+            alert: action
+          }
+        });
         toast({
           title: "Processing Payment",
           description: "Opening payment processing form",
