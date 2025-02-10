@@ -1,15 +1,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, Store, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [storeName] = useState("My Store");
   const { signOut } = useAuth();
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState<'stores' | 'upload'>('upload');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -27,13 +29,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const scrollToSection = (section: 'stores' | 'upload') => {
-    setActiveSection(section);
-    const element = document.getElementById(section);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,9 +40,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <h1 className="text-xl font-semibold">{storeName}</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
               <Button variant="ghost" size="icon" onClick={handleLogout}>
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -59,25 +52,33 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r">
           <nav className="p-4 space-y-2">
             <Button
-              variant={activeSection === 'stores' ? 'default' : 'ghost'}
+              variant={isActive("/") ? "default" : "ghost"}
               className="w-full justify-start"
-              onClick={() => scrollToSection('stores')}
+              onClick={() => navigate("/")}
             >
-              <Store className="mr-2 h-5 w-5" />
-              Stores
+              <LayoutDashboard className="mr-2 h-5 w-5" />
+              Dashboard
             </Button>
             <Button
-              variant={activeSection === 'upload' ? 'default' : 'ghost'}
+              variant={isActive("/upload") ? "default" : "ghost"}
               className="w-full justify-start"
-              onClick={() => scrollToSection('upload')}
+              onClick={() => navigate("/upload")}
             >
               <Upload className="mr-2 h-5 w-5" />
               Upload
             </Button>
+            <Button
+              variant={isActive("/settings") ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => navigate("/settings")}
+            >
+              <Settings className="mr-2 h-5 w-5" />
+              Settings
+            </Button>
           </nav>
         </aside>
 
-        <main className="flex-1 p-8">{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );
