@@ -16,6 +16,7 @@ interface StaffMember {
   name: string;
   status: string;
   positions: string[];
+  position_ids?: string[];
 }
 
 interface Position {
@@ -91,7 +92,19 @@ const Settings = () => {
         if (positionsError) throw positionsError;
 
         if (positionsData) {
-          setPositions(positionsData);
+          const typedPositions: Position[] = positionsData.map(pos => ({
+            id: pos.id,
+            name: pos.name,
+            permissions: typeof pos.permissions === 'object' ? pos.permissions : {
+              sales: false,
+              inventory: false,
+              financial: false,
+              customers: false,
+              staff: false,
+              settings: false
+            }
+          }));
+          setPositions(typedPositions);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -176,12 +189,14 @@ const Settings = () => {
         `)
         .eq('staff_id', newStaff.id);
 
-      setStaffMembers([...staffMembers, {
+      const newStaffMember: StaffMember = {
         id: newStaff.id,
         name: newStaff.name,
         status: newStaff.status,
         positions: staffPositions?.map((sp: any) => sp.positions.name) || [],
-      }]);
+      };
+
+      setStaffMembers([...staffMembers, newStaffMember]);
 
       toast({
         title: "Success",

@@ -9,16 +9,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
 
+interface Position {
+  id: string;
+  name: string;
+  permissions: {
+    sales: boolean;
+    inventory: boolean;
+    financial: boolean;
+    customers: boolean;
+    staff: boolean;
+    settings: boolean;
+  };
+}
+
+interface StaffFormData {
+  name: string;
+  status: "active" | "inactive";
+  position_ids: string[];
+}
+
 interface StaffFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: any) => void;
-  initialData?: any;
-  positions: any[];
+  onSubmit: (data: StaffFormData) => void;
+  initialData?: StaffFormData;
+  positions: Position[];
 }
 
 export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions }: StaffFormProps) => {
-  const form = useForm({
+  const form = useForm<StaffFormData>({
     defaultValues: {
       name: "",
       status: "active",
@@ -45,7 +64,7 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
     }
   }, [initialData, form]);
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: StaffFormData) => {
     onSubmit({
       ...data,
       position_ids: selectedPositions,
