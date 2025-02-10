@@ -47,6 +47,11 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8 p-8">
+        <h1 className="text-3xl font-bold">
+          {t('dashboard.title', 'Dashboard')}
+        </h1>
+
+        {/* Smart Actions Section */}
         <section id="smart-actions" className="space-y-4">
           <div>
             <h2 className="text-2xl font-bold">
