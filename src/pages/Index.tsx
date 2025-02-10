@@ -49,9 +49,11 @@ const Index = () => {
       <div className="space-y-8 p-8">
         <section id="smart-actions" className="space-y-4">
           <div>
-            <h2 className="text-2xl font-bold">{t('dashboard.smartActions.title')}</h2>
+            <h2 className="text-2xl font-bold">
+              {t('dashboard.smartActions.title', 'Smart Actions')}
+            </h2>
             <p className="text-muted-foreground">
-              {t('dashboard.smartActions.subtitle')}
+              {t('dashboard.smartActions.subtitle', 'Actions that require your attention')}
             </p>
           </div>
           <SmartActionsFeed />
