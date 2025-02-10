@@ -50,7 +50,7 @@ const ChatInterface = () => {
       setMessages((prev) => [...prev, data as Message]);
       setNewMessage("");
 
-      // Call N8N webhook to process the message
+      // Call edge function to process the message
       const response = await supabase.functions.invoke('process-message', {
         body: { messageId: data.id },
       });
