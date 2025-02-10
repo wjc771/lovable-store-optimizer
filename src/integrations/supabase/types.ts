@@ -9,6 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      department_templates: {
+        Row: {
+          id: string
+          metadata: Json | null
+          name: string
+          type: string | null
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          name: string
+          type?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          name?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
+      departments: {
+        Row: {
+          id: string
+          name: string | null
+          store_id: string | null
+          type: string | null
+        }
+        Insert: {
+          id: string
+          name?: string | null
+          store_id?: string | null
+          type?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | null
+          store_id?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          id: string
+          processed: boolean | null
+          store_id: string | null
+          type: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          id: string
+          processed?: boolean | null
+          store_id?: string | null
+          type?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          processed?: boolean | null
+          store_id?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       file_uploads: {
         Row: {
           content_type: string | null
@@ -51,6 +120,59 @@ export type Database = {
         }
         Relationships: []
       }
+      positions: {
+        Row: {
+          id: string
+          name: string | null
+          permissions: Json | null
+          store_department_id: string | null
+        }
+        Insert: {
+          id?: string
+          name?: string | null
+          permissions?: Json | null
+          store_department_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | null
+          permissions?: Json | null
+          store_department_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_store_department_id_fkey"
+            columns: ["store_department_id"]
+            isOneToOne: false
+            referencedRelation: "store_departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          id: string
+          metadata: Json | null
+          name: string | null
+          stock: number | null
+          store_id: string | null
+        }
+        Insert: {
+          id: string
+          metadata?: Json | null
+          name?: string | null
+          stock?: number | null
+          store_id?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          stock?: number | null
+          store_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -75,6 +197,159 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      staff: {
+        Row: {
+          id: string
+          metadata: Json | null
+          name: string | null
+          status: string | null
+          store_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          status?: string | null
+          store_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          status?: string | null
+          store_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_positions: {
+        Row: {
+          end_date: string | null
+          position_id: string
+          staff_id: string
+          start_date: string | null
+        }
+        Insert: {
+          end_date?: string | null
+          position_id: string
+          staff_id: string
+          start_date?: string | null
+        }
+        Update: {
+          end_date?: string | null
+          position_id?: string
+          staff_id?: string
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_positions_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_positions_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_departments: {
+        Row: {
+          id: string
+          name: string | null
+          settings: Json | null
+          store_id: string | null
+          template_id: string | null
+        }
+        Insert: {
+          id?: string
+          name?: string | null
+          settings?: Json | null
+          store_id?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | null
+          settings?: Json | null
+          store_id?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_departments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_departments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "department_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          id: string
+          name: string
+          settings: Json | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          settings?: Json | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          settings?: Json | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          email: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          metadata?: Json | null
         }
         Relationships: []
       }
