@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -537,4 +537,16 @@ const Settings = () => {
         onSubmit={selectedStaff ? handleUpdateStaff : handleAddStaff}
         initialData={selectedStaff}
         positions={positions}
-      
+      />
+
+      <PositionForm
+        open={positionFormOpen}
+        onOpenChange={setPositionFormOpen}
+        onSubmit={selectedPosition ? handleUpdatePosition : handleAddPosition}
+        initialData={selectedPosition}
+      />
+    </div>
+  );
+};
+
+export default Settings;
