@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      file_uploads: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          file_path: string
+          filename: string
+          id: string
+          n8n_webhook_url: string | null
+          processing_result: Json | null
+          size: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          file_path: string
+          filename: string
+          id?: string
+          n8n_webhook_url?: string | null
+          processing_result?: Json | null
+          size?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          file_path?: string
+          filename?: string
+          id?: string
+          n8n_webhook_url?: string | null
+          processing_result?: Json | null
+          size?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
