@@ -35,6 +35,14 @@ const FileUpload = () => {
     handleFiles(files);
   };
 
+  const triggerFileInput = () => {
+    // Programmatically trigger the hidden file input
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   const handleFiles = async (files: File[]) => {
     if (files.length === 0) return;
 
@@ -119,11 +127,14 @@ const FileUpload = () => {
             </p>
           </div>
           <div>
-            <label htmlFor="file-upload">
-              <Button variant="outline" className="mt-2 hover:bg-primary hover:text-white transition-colors" disabled={isUploading}>
-                Browse files
-              </Button>
-            </label>
+            <Button 
+              variant="outline" 
+              className="mt-2 hover:bg-primary hover:text-white transition-colors" 
+              disabled={isUploading}
+              onClick={triggerFileInput}  // Direct click handler
+            >
+              Browse files
+            </Button>
             <input
               id="file-upload"
               type="file"
