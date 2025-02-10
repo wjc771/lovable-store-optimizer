@@ -14,13 +14,14 @@ import { NotificationSettings } from "@/components/settings/NotificationSettings
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { StaffTable } from "@/components/settings/StaffTable";
 import { PositionsTable } from "@/components/settings/PositionsTable";
+import { Json } from "@/integrations/supabase/types";
 
 interface StaffMember {
   id: string;
   name: string;
   status: "active" | "inactive";
   positions: string[];
-  position_ids: string[]; // Changed from optional to required
+  position_ids: string[];
 }
 
 interface Position {
@@ -35,6 +36,13 @@ interface Position {
     staff: boolean;
     settings: boolean;
   };
+}
+
+interface SupabasePosition {
+  id: string;
+  name: string | null;
+  is_managerial: boolean | null;
+  permissions: Json;
 }
 
 const Settings = () => {
@@ -99,19 +107,22 @@ const Settings = () => {
         if (positionsError) throw positionsError;
 
         if (positionsData) {
-          const typedPositions: Position[] = positionsData.map(pos => ({
-            id: pos.id,
-            name: pos.name || '',
-            is_managerial: pos.is_managerial || false,
-            permissions: {
-              sales: pos.permissions?.sales || false,
-              inventory: pos.permissions?.inventory || false,
-              financial: pos.permissions?.financial || false,
-              customers: pos.permissions?.customers || false,
-              staff: pos.permissions?.staff || false,
-              settings: pos.permissions?.settings || false
-            }
-          }));
+          const typedPositions: Position[] = (positionsData as SupabasePosition[]).map(pos => {
+            const permissionsData = pos.permissions as { [key: string]: boolean } || {};
+            return {
+              id: pos.id,
+              name: pos.name || '',
+              is_managerial: pos.is_managerial || false,
+              permissions: {
+                sales: permissionsData.sales || false,
+                inventory: permissionsData.inventory || false,
+                financial: permissionsData.financial || false,
+                customers: permissionsData.customers || false,
+                staff: permissionsData.staff || false,
+                settings: permissionsData.settings || false
+              }
+            };
+          });
           setPositions(typedPositions);
         }
       } catch (error) {
