@@ -15,8 +15,33 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const validateEmail = (email: string) => {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    // Prevent test@example.com which Supabase rejects
+    if (email.toLowerCase().includes("example.com")) {
+      return "Please use a real email address (example.com is not allowed)";
+    }
+    return null;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email before making the request
+    const emailError = validateEmail(email);
+    if (emailError) {
+      toast({
+        title: "Invalid Email",
+        description: emailError,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -27,7 +52,15 @@ const Auth = () => {
           },
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        let errorMessage = error.message;
+        // Handle specific error cases
+        if (error.message.includes("email_address_invalid")) {
+          errorMessage = "Please enter a valid email address";
+        }
+        throw new Error(errorMessage);
+      }
       
       toast({
         title: "Success",
@@ -44,6 +77,18 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email before making the request
+    const emailError = validateEmail(email);
+    if (emailError) {
+      toast({
+        title: "Invalid Email",
+        description: emailError,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
