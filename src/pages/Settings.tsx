@@ -1,16 +1,19 @@
+
 import { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, UserPlus, Shield, Crown } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StaffForm } from "@/components/staff/StaffForm";
 import { PositionForm } from "@/components/staff/PositionForm";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { GeneralSettings } from "@/components/settings/GeneralSettings";
+import { BusinessSettings } from "@/components/settings/BusinessSettings";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
+import { StaffTable } from "@/components/settings/StaffTable";
+import { PositionsTable } from "@/components/settings/PositionsTable";
 
 interface StaffMember {
   id: string;
@@ -79,12 +82,14 @@ const Settings = () => {
         if (staffError) throw staffError;
 
         if (staffData) {
-          setStaffMembers(staffData.map(staff => ({
+          const typedStaffMembers: StaffMember[] = staffData.map(staff => ({
             id: staff.id,
             name: staff.name,
-            status: staff.status,
-            positions: staff.staff_positions.map((sp: any) => sp.positions.name)
-          })));
+            status: staff.status as "active" | "inactive",
+            positions: staff.staff_positions.map((sp: any) => sp.positions.name),
+            position_ids: staff.staff_positions.map((sp: any) => sp.position_id)
+          }));
+          setStaffMembers(typedStaffMembers);
         }
 
         const { data: positionsData, error: positionsError } = await supabase
@@ -195,11 +200,13 @@ const Settings = () => {
       const newStaffMember: StaffMember = {
         id: newStaff.id,
         name: newStaff.name,
-        status: newStaff.status,
+        status: newStaff.status as "active" | "inactive",
         positions: staffPositions?.map((sp: any) => sp.positions.name) || [],
+        position_ids: staffPositions?.map((sp: any) => sp.position_id) || [],
       };
 
       setStaffMembers([...staffMembers, newStaffMember]);
+      setStaffFormOpen(false);
 
       toast({
         title: "Success",
@@ -262,11 +269,13 @@ const Settings = () => {
           ? {
               ...staff,
               name: data.name,
-              status: data.status,
+              status: data.status as "active" | "inactive",
               positions: staffPositions?.map((sp: any) => sp.positions.name) || [],
+              position_ids: staffPositions?.map((sp: any) => sp.position_id) || [],
             }
           : staff
       ));
+      setStaffFormOpen(false);
 
       toast({
         title: "Success",
@@ -321,7 +330,22 @@ const Settings = () => {
 
       if (error) throw error;
 
-      setPositions([...positions, newPosition]);
+      const typedPosition: Position = {
+        id: newPosition.id,
+        name: newPosition.name,
+        is_managerial: newPosition.is_managerial,
+        permissions: typeof newPosition.permissions === 'object' ? newPosition.permissions : {
+          sales: false,
+          inventory: false,
+          financial: false,
+          customers: false,
+          staff: false,
+          settings: false
+        }
+      };
+
+      setPositions([...positions, typedPosition]);
+      setPositionFormOpen(false);
 
       toast({
         title: "Success",
@@ -354,9 +378,15 @@ const Settings = () => {
 
       setPositions(positions.map(position =>
         position.id === selectedPosition.id
-          ? { ...position, name: data.name, is_managerial: data.is_managerial, permissions: data.permissions }
+          ? {
+              ...position,
+              name: data.name,
+              is_managerial: data.is_managerial,
+              permissions: data.permissions,
+            }
           : position
       ));
+      setPositionFormOpen(false);
 
       toast({
         title: "Success",
@@ -397,254 +427,6 @@ const Settings = () => {
     }
   };
 
-  const renderGeneralSettings = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>General Settings</CardTitle>
-        <CardDescription>Configure your basic application settings</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="businessName">Business Name</label>
-          <Input
-            id="businessName"
-            placeholder="Enter your business name"
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="timezone">Timezone</label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select timezone" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="utc">UTC</SelectItem>
-              <SelectItem value="local">Local Time</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderBusinessSettings = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Business Control</CardTitle>
-        <CardDescription>Manage your business settings and preferences</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="salesThreshold">Sales Alert Threshold ($)</label>
-          <Input
-            id="salesThreshold"
-            type="number"
-            placeholder="Set sales threshold for alerts"
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="inventoryAlert">Low Stock Alert Level</label>
-          <Input
-            id="inventoryAlert"
-            type="number"
-            placeholder="Set minimum inventory level"
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderNotificationSettings = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notification Preferences</CardTitle>
-        <CardDescription>Configure how you receive notifications</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label>Email Notifications</label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select email frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="instant">Instant</SelectItem>
-              <SelectItem value="daily">Daily Digest</SelectItem>
-              <SelectItem value="weekly">Weekly Summary</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <label>Push Notifications</label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select notification type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Notifications</SelectItem>
-              <SelectItem value="important">Important Only</SelectItem>
-              <SelectItem value="none">Disabled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderStaffTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Position(s)</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {staffMembers.map((staff) => (
-          <TableRow key={staff.id}>
-            <TableCell>{staff.name}</TableCell>
-            <TableCell>{staff.positions.join(", ")}</TableCell>
-            <TableCell>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                staff.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-              }`}>
-                {staff.status}
-              </span>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedStaff({
-                      ...staff,
-                      position_ids: positions
-                        .filter(position => staff.positions.includes(position.name))
-                        .map(position => position.id)
-                    });
-                    setStaffFormOpen(true);
-                  }}
-                >
-                  <Shield className="h-4 w-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Staff Member</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this staff member? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteStaff(staff.id)}
-                        className="bg-red-500 hover:bg-red-600"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-
-  const renderPositionsTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Position</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Permissions</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {positions.map((position) => (
-          <TableRow key={position.id}>
-            <TableCell className="flex items-center gap-2">
-              {position.is_managerial ? (
-                <Crown className="h-4 w-4 text-yellow-500" />
-              ) : (
-                <Shield className="h-4 w-4 text-gray-500" />
-              )}
-              {position.name}
-            </TableCell>
-            <TableCell>
-              {position.is_managerial ? "Managerial" : "Standard"}
-            </TableCell>
-            <TableCell>
-              <div className="flex gap-2 flex-wrap">
-                {Object.entries(position.permissions).map(([key, value]) => (
-                  value && (
-                    <span key={key} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {key}
-                    </span>
-                  )
-                ))}
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedPosition(position);
-                    setPositionFormOpen(true);
-                  }}
-                >
-                  {position.is_managerial ? (
-                    <Crown className="h-4 w-4" />
-                  ) : (
-                    <Shield className="h-4 w-4" />
-                  )}
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Position</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this position? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeletePosition(position.id)}
-                        className="bg-red-500 hover:bg-red-600"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -676,15 +458,15 @@ const Settings = () => {
         </TabsList>
 
         <TabsContent value="general">
-          {renderGeneralSettings()}
+          <GeneralSettings />
         </TabsContent>
 
         <TabsContent value="business">
-          {renderBusinessSettings()}
+          <BusinessSettings />
         </TabsContent>
 
         <TabsContent value="notifications">
-          {renderNotificationSettings()}
+          <NotificationSettings />
         </TabsContent>
 
         <TabsContent value="staff">
@@ -705,7 +487,14 @@ const Settings = () => {
                 </Button>
               </div>
               
-              {renderStaffTable()}
+              <StaffTable
+                staffMembers={staffMembers}
+                onEdit={(staff) => {
+                  setSelectedStaff(staff);
+                  setStaffFormOpen(true);
+                }}
+                onDelete={handleDeleteStaff}
+              />
 
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4">
@@ -718,40 +507,27 @@ const Settings = () => {
                     Add Position
                   </Button>
                 </div>
-                {renderPositionsTable()}
+                <PositionsTable
+                  positions={positions}
+                  onEdit={(position) => {
+                    setSelectedPosition(position);
+                    setPositionFormOpen(true);
+                  }}
+                  onDelete={handleDeletePosition}
+                />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="integrations">
-          <Card>
-            <CardHeader>
-              <CardTitle>Webhook Configuration</CardTitle>
-              <CardDescription>Configure your webhook URLs for different services</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="uploadWebhook">Upload Webhook URL</label>
-                <Input
-                  id="uploadWebhook"
-                  value={uploadWebhookUrl}
-                  onChange={(e) => setUploadWebhookUrl(e.target.value)}
-                  placeholder="Enter upload webhook URL"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="chatWebhook">Chat Webhook URL</label>
-                <Input
-                  id="chatWebhook"
-                  value={chatWebhookUrl}
-                  onChange={(e) => setChatWebhookUrl(e.target.value)}
-                  placeholder="Enter chat webhook URL"
-                />
-              </div>
-              <Button onClick={handleSaveSettings}>Save Settings</Button>
-            </CardContent>
-          </Card>
+          <IntegrationSettings
+            uploadWebhookUrl={uploadWebhookUrl}
+            chatWebhookUrl={chatWebhookUrl}
+            onUploadWebhookUrlChange={setUploadWebhookUrl}
+            onChatWebhookUrlChange={setChatWebhookUrl}
+            onSave={handleSaveSettings}
+          />
         </TabsContent>
       </Tabs>
 
@@ -761,16 +537,4 @@ const Settings = () => {
         onSubmit={selectedStaff ? handleUpdateStaff : handleAddStaff}
         initialData={selectedStaff}
         positions={positions}
-      />
-
-      <PositionForm
-        open={positionFormOpen}
-        onOpenChange={setPositionFormOpen}
-        onSubmit={selectedPosition ? handleUpdatePosition : handleAddPosition}
-        initialData={selectedPosition}
-      />
-    </div>
-  );
-};
-
-export default Settings;
+      
