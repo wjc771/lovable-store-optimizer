@@ -1,13 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
-import { z } from 'zod';
 
-// Define minimal types for what we need
-type SimpleSale = {
-  readonly amount: number;
-  readonly created_at: string;
-};
+// Remove unused import
+// import { z } from 'zod';
 
 export async function validateSalesRelationships(data: any): Promise<ValidationResult> {
   if (data.product_id) {
@@ -153,18 +149,21 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
   }
 
   if (data.id) {
-    const { data: sales } = await supabase
+    type SalesRecord = { amount: number; created_at: string };
+    
+    const { data: salesData } = await supabase
       .from('sales')
       .select('amount, created_at')
       .eq('customer_id', data.id);
 
-    const actualTotalPurchases = (sales || []).length;
+    const sales = (salesData || []) as SalesRecord[];
+    const actualTotalPurchases = sales.length;
 
     if (data.total_purchases !== undefined && data.total_purchases !== actualTotalPurchases) {
       throw new Error('Total purchases does not match sales history');
     }
 
-    if (sales && sales.length > 0 && data.last_purchase_date) {
+    if (sales.length > 0 && data.last_purchase_date) {
       const timestamps = sales.map(s => new Date(s.created_at).getTime());
       const lastSaleDate = new Date(Math.max(...timestamps));
       const providedLastPurchaseDate = new Date(data.last_purchase_date);
