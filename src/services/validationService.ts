@@ -270,10 +270,10 @@ export class ValidationService {
     }
 
     if (data.id) {
-      interface SaleRecord {
+      type SaleRecord = {
         amount: number;
         created_at: string;
-      }
+      };
 
       const { data: sales } = await supabase
         .from('sales')
@@ -287,8 +287,7 @@ export class ValidationService {
       }
 
       if (sales && sales.length > 0 && data.last_purchase_date) {
-        const typedSales = sales as SaleRecord[];
-        const lastSaleDate = new Date(Math.max(...typedSales.map(s => new Date(s.created_at).getTime())));
+        const lastSaleDate = new Date(Math.max(...(sales as SaleRecord[]).map(s => new Date(s.created_at).getTime())));
         const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
         if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
