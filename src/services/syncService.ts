@@ -54,7 +54,8 @@ class SyncService {
     }
   }
 
-  private async syncPendingItems() {
+  // Changed from private to public
+  async syncPendingItems() {
     if (this.syncInProgress) return;
     this.syncInProgress = true;
 
