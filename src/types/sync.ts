@@ -1,4 +1,7 @@
 
+// PostgreSQL interval represented as string in ISO 8601 duration format
+export type PostgresInterval = string;
+
 export interface DeviceInfo {
   deviceId: string;
   platform: string;
@@ -33,4 +36,11 @@ export interface SyncPerformance {
   avgSyncTime: number;
   errorRate: number;
   mostCommonError: string;
+}
+
+// Base type for all database records that support versioning
+export interface VersionedRecord {
+  version?: number;
+  updated_at?: string;
+  created_at?: string;
 }

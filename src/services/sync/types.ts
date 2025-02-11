@@ -1,5 +1,6 @@
 
 import { Database } from '@/integrations/supabase/types';
+import { DeviceInfo, PostgresInterval, SyncPreferences } from '@/types/sync';
 
 // Basic JSON type that matches Postgres jsonb
 export type JsonPrimitive = string | number | boolean | null;
@@ -24,16 +25,15 @@ export interface SyncMetadata {
   user_id: string;
   last_sync_at: string | null;
   last_successful_sync_at: string | null;
-  sync_frequency: string | null; // PostgreSQL interval as string
-  sync_preferences: JsonValue;
-  device_info: JsonValue;
+  sync_frequency: PostgresInterval | null;
+  sync_preferences: SyncPreferences;
+  device_info: DeviceInfo;
   created_at: string;
   updated_at: string;
 }
 
-export interface RecordData {
+export interface RecordData extends Record<string, JsonValue> {
   version?: number;
-  [key: string]: JsonValue | undefined;
 }
 
 export interface SyncQueueItem {
@@ -88,5 +88,14 @@ export const isJsonValue = (value: unknown): value is JsonValue => {
 };
 
 export const isRecordData = (value: unknown): value is RecordData => {
-  return isJsonObject(value);
+  if (!isJsonObject(value)) return false;
+  if ('version' in value && typeof value.version !== 'undefined') {
+    return typeof value.version === 'number';
+  }
+  return true;
+};
+
+export const convertToJsonValue = (value: unknown): JsonValue => {
+  if (isJsonValue(value)) return value;
+  return JSON.parse(JSON.stringify(value));
 };
