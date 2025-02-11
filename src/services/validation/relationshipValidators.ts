@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 
@@ -49,7 +50,7 @@ interface CustomersData extends BaseValidationData {
   status?: 'active' | 'inactive';
 }
 
-export async function validateSalesRelationships(data: SalesData): Promise<ValidationResult> {
+export async function validateSalesRelationships(data: SalesData): Promise<ValidationResult<SalesData>> {
   if (data.product_id) {
     const { data: product } = await supabase
       .from('products')
@@ -81,7 +82,7 @@ export async function validateSalesRelationships(data: SalesData): Promise<Valid
   return { success: true, data };
 }
 
-export async function validateOrdersRelationships(data: OrdersData): Promise<ValidationResult> {
+export async function validateOrdersRelationships(data: OrdersData): Promise<ValidationResult<OrdersData>> {
   if (data.customer_id) {
     const { data: customer } = await supabase
       .from('customers')
@@ -113,7 +114,7 @@ export async function validateOrdersRelationships(data: OrdersData): Promise<Val
   return { success: true, data };
 }
 
-export async function validateTasksRelationships(data: TasksData): Promise<ValidationResult> {
+export async function validateTasksRelationships(data: TasksData): Promise<ValidationResult<TasksData>> {
   if (data.staff_id) {
     const { data: staff } = await supabase
       .from('staff')
@@ -149,7 +150,7 @@ export async function validateTasksRelationships(data: TasksData): Promise<Valid
   return { success: true, data };
 }
 
-export async function validateProductsRelationships(data: ProductsData): Promise<ValidationResult> {
+export async function validateProductsRelationships(data: ProductsData): Promise<ValidationResult<ProductsData>> {
   if (data.store_id) {
     const { data: store } = await supabase
       .from('stores')
@@ -179,7 +180,7 @@ export async function validateProductsRelationships(data: ProductsData): Promise
   return { success: true, data };
 }
 
-export async function validateCustomersRelationships(data: CustomersData): Promise<ValidationResult> {
+export async function validateCustomersRelationships(data: CustomersData): Promise<ValidationResult<CustomersData>> {
   if (data.store_id) {
     const { data: store } = await supabase
       .from('stores')
