@@ -10,7 +10,7 @@ import {
   validateCustomersRelationships
 } from './relationshipValidators';
 
-export class ValidationService {
+class ValidationService {
   validateRecord(tableName: TableNames, data: any): ValidationResult {
     const schema = schemas[tableName];
     if (!schema) {
@@ -74,5 +74,5 @@ export class ValidationService {
   }
 }
 
-export const validationService = new ValidationService();
-
+const validationService = new ValidationService();
+export default validationService;

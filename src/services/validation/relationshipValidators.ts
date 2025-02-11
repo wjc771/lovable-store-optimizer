@@ -1,6 +1,13 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 import { z } from 'zod';
+
+// Explicitly type the sales data to avoid recursion
+type SaleData = {
+  amount: number;
+  created_at: string;
+};
 
 export async function validateSalesRelationships(data: any): Promise<ValidationResult> {
   if (data.product_id) {
@@ -158,7 +165,8 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
     }
 
     if (sales && sales.length > 0 && data.last_purchase_date) {
-      const lastSaleDate = new Date(Math.max(...sales.map(s => new Date(s.created_at).getTime())));
+      const salesData = sales as SaleData[];
+      const lastSaleDate = new Date(Math.max(...salesData.map(s => new Date(s.created_at).getTime())));
       const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
       if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {

@@ -1,7 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { indexedDB } from './indexedDB';
 import { v4 as uuidv4 } from 'uuid';
-import { validationService, schemas } from './validationService';
+import validationService from './validationService';
+import { schemas } from './validationService';
 
 type TableName = keyof typeof schemas | 'positions' | 'staff';
 type ValidatedTableName = keyof typeof schemas;
