@@ -628,6 +628,143 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_conflicts: {
+        Row: {
+          client_data: Json
+          created_at: string | null
+          id: string
+          record_id: string | null
+          resolution_notes: string | null
+          resolution_status: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          server_data: Json
+          store_id: string | null
+          sync_queue_id: string | null
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          client_data: Json
+          created_at?: string | null
+          id?: string
+          record_id?: string | null
+          resolution_notes?: string | null
+          resolution_status?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          server_data: Json
+          store_id?: string | null
+          sync_queue_id?: string | null
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          client_data?: Json
+          created_at?: string | null
+          id?: string
+          record_id?: string | null
+          resolution_notes?: string | null
+          resolution_status?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          server_data?: Json
+          store_id?: string | null
+          sync_queue_id?: string | null
+          table_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_conflicts_sync_queue_id_fkey"
+            columns: ["sync_queue_id"]
+            isOneToOne: false
+            referencedRelation: "sync_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_logs: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          id: string
+          status: string
+          store_id: string | null
+          sync_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          status: string
+          store_id?: string | null
+          sync_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          status?: string
+          store_id?: string | null
+          sync_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sync_queue: {
+        Row: {
+          attempt_count: number | null
+          client_generated_id: string | null
+          created_at: string | null
+          data: Json
+          error_message: string | null
+          id: string
+          operation_type: string
+          processed_at: string | null
+          record_id: string | null
+          status: string
+          store_id: string | null
+          table_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number | null
+          client_generated_id?: string | null
+          created_at?: string | null
+          data: Json
+          error_message?: string | null
+          id?: string
+          operation_type: string
+          processed_at?: string | null
+          record_id?: string | null
+          status?: string
+          store_id?: string | null
+          table_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number | null
+          client_generated_id?: string | null
+          created_at?: string | null
+          data?: Json
+          error_message?: string | null
+          id?: string
+          operation_type?: string
+          processed_at?: string | null
+          record_id?: string | null
+          status?: string
+          store_id?: string | null
+          table_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string
