@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "@/hooks/usePermissions";
+import { SyncStatus } from "@/components/sync/SyncStatus";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [storeName] = useState("My Store");
@@ -44,6 +45,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <h1 className="text-xl font-semibold text-foreground">{storeName}</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <SyncStatus />
               <Button variant="ghost" size="icon" onClick={handleLogout}>
                 <LogOut className="h-5 w-5" />
               </Button>
