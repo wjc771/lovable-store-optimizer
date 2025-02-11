@@ -1,21 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { DeviceInfo, SyncPreferences, SyncAnalytics } from '@/types/sync';
-
-export interface SyncMetadata {
-  id: string;
-  user_id: string;
-  last_sync_at: string | null;
-  last_successful_sync_at: string | null;
-  sync_frequency: string | null;
-  sync_preferences: SyncPreferences;
-  device_info: DeviceInfo;
-  created_at: string;
-  updated_at: string;
-}
+import { DeviceInfo, SyncPreferences } from '@/types/sync';
+import { JsonValue, convertToJsonValue } from './types';
 
 class SyncMetadataService {
-  async getSyncMetadata(): Promise<SyncMetadata | null> {
+  async getSyncMetadata() {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return null;
 
@@ -26,10 +15,20 @@ class SyncMetadataService {
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+
+    if (data) {
+      // Convert stored JSON back to proper types
+      return {
+        ...data,
+        device_info: data.device_info as DeviceInfo,
+        sync_preferences: data.sync_preferences as SyncPreferences
+      };
+    }
+
+    return null;
   }
 
-  async updateSyncMetadata(metadata: Partial<Omit<SyncMetadata, 'id' | 'user_id' | 'created_at'>>): Promise<void> {
+  async updateSyncMetadata(metadata: Partial<Omit<SyncMetadata, 'id' | 'user_id' | 'created_at'>>) {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 
@@ -38,7 +37,9 @@ class SyncMetadataService {
       .upsert({
         ...metadata,
         user_id: user.user.id,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        device_info: metadata.device_info ? convertToJsonValue(metadata.device_info) : undefined,
+        sync_preferences: metadata.sync_preferences ? convertToJsonValue(metadata.sync_preferences) : undefined
       });
 
     if (error) throw error;
@@ -53,7 +54,7 @@ class SyncMetadataService {
     avg_operation_time_ms: number;
     network_info: Record<string, any>;
     error_details: Record<string, any>;
-  }): Promise<void> {
+  }) {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 
@@ -61,13 +62,15 @@ class SyncMetadataService {
       .from('sync_analytics')
       .insert({
         ...analytics,
-        user_id: user.user.id
+        user_id: user.user.id,
+        network_info: convertToJsonValue(analytics.network_info),
+        error_details: convertToJsonValue(analytics.error_details)
       });
 
     if (error) throw error;
   }
 
-  async getSyncPerformance(timeWindow: string = '24 hours'): Promise<any> {
+  async getSyncPerformance(timeWindow: string = '24 hours') {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 

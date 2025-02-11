@@ -86,7 +86,7 @@ class SyncService {
       
       const endTime = Date.now();
       await syncMetadataService.recordSyncAnalytics({
-        sync_type: 'queue',
+        sync_type: 'queue', // Changed from syncType to sync_type
         operation_count: 1,
         success_count: 1,
         error_count: 0,

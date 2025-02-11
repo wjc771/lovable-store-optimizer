@@ -1,11 +1,11 @@
 
 import pako from 'pako';
-import { Json, isJson } from './types';
+import { JsonValue, isJsonValue } from './types';
 
 export class CompressionService {
   static async compressData(data: unknown): Promise<{ compressedData: Uint8Array; algorithm: string }> {
     // Validate that data can be safely converted to JSON
-    if (!isJson(data)) {
+    if (!isJsonValue(data)) {
       throw new Error('Invalid data format for compression');
     }
 
@@ -18,7 +18,7 @@ export class CompressionService {
     return { compressedData: compressed, algorithm: 'deflate' };
   }
 
-  static async decompressData(compressedData: Uint8Array, algorithm: string): Promise<Json | null> {
+  static async decompressData(compressedData: Uint8Array, algorithm: string): Promise<JsonValue | null> {
     if (algorithm === 'none' || !compressedData.length) {
       return null;
     }
@@ -27,7 +27,7 @@ export class CompressionService {
       const decompressed = pako.inflate(compressedData, { to: 'string' });
       const parsed = JSON.parse(decompressed);
       
-      if (!isJson(parsed)) {
+      if (!isJsonValue(parsed)) {
         throw new Error('Decompressed data is not valid JSON');
       }
       
