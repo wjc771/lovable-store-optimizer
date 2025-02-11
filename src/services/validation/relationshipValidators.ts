@@ -1,36 +1,52 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 
-// Define interface for data shape
+// Define strict interfaces without index signatures
 interface BaseValidationData {
   store_id?: string;
-  [key: string]: any;
+  version?: number;
+  created_at?: string;
+  updated_at?: string;
+  checksum?: string;
 }
 
 interface SalesData extends BaseValidationData {
   product_id?: string;
   quantity?: number;
+  amount?: number;
+  status?: 'pending' | 'completed' | 'cancelled';
 }
 
 interface OrdersData extends BaseValidationData {
   customer_id?: string;
+  total_amount?: number;
+  status?: 'pending' | 'completed' | 'cancelled';
 }
 
 interface TasksData extends BaseValidationData {
   staff_id?: string;
   due_date?: string;
+  title?: string;
+  description?: string;
+  priority?: 'low' | 'medium' | 'high';
+  status?: 'pending' | 'in_progress' | 'completed';
 }
 
 interface ProductsData extends BaseValidationData {
   id?: string;
   stock?: number;
+  name?: string;
+  metadata?: Record<string, unknown>;
 }
 
 interface CustomersData extends BaseValidationData {
   id?: string;
   total_purchases?: number;
   last_purchase_date?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  status?: 'active' | 'inactive';
 }
 
 export async function validateSalesRelationships(data: SalesData): Promise<ValidationResult> {
