@@ -4,12 +4,19 @@ import { indexedDB } from '@/services/indexedDB';
 import { syncService, SyncQueueItem } from '@/services/syncService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSyncQueue } from '@/hooks/useSyncQueue';
 
 interface OfflineContextType {
   isOnline: boolean;
   isSyncing: boolean;
   pendingChanges: number;
   syncStatus: 'idle' | 'syncing' | 'error';
+  syncStats: {
+    pending: number;
+    failed: number;
+    processing: number;
+  };
+  queueItems: SyncQueueItem[];
   forceSyncNow: () => Promise<void>;
 }
 
@@ -18,6 +25,12 @@ const OfflineContext = createContext<OfflineContextType>({
   isSyncing: false,
   pendingChanges: 0,
   syncStatus: 'idle',
+  syncStats: {
+    pending: 0,
+    failed: 0,
+    processing: 0,
+  },
+  queueItems: [],
   forceSyncNow: async () => {}
 });
 
@@ -26,9 +39,9 @@ export const useOffline = () => useContext(OfflineContext);
 export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [pendingChanges, setPendingChanges] = useState(0);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error'>('idle');
   const { toast } = useToast();
+  const { queueItems, stats } = useSyncQueue();
 
   const forceSyncNow = async () => {
     if (!isOnline) {
@@ -108,28 +121,13 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  useEffect(() => {
-    const checkPendingChanges = async () => {
-      try {
-        const queue = await indexedDB.getAll<SyncQueueItem>('syncQueue');
-        const pending = queue.filter(item => item.status === 'pending').length;
-        setPendingChanges(pending);
-      } catch (error) {
-        console.error('Error checking pending changes:', error);
-      }
-    };
-
-    const interval = setInterval(checkPendingChanges, 5000);
-    checkPendingChanges();
-
-    return () => clearInterval(interval);
-  }, []);
-
   const value = {
     isOnline,
     isSyncing,
-    pendingChanges,
+    pendingChanges: stats.pending,
     syncStatus,
+    syncStats: stats,
+    queueItems,
     forceSyncNow
   };
 
