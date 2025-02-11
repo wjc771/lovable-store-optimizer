@@ -72,7 +72,7 @@ class SyncService {
     }
 
     // Validate relationships
-    const relationshipResult = validationService.validateRelationships(
+    const relationshipResult = await validationService.validateRelationships(
       validatedTableName,
       item.data
     );

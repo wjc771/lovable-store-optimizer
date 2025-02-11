@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -232,7 +233,6 @@ export class ValidationService {
       }
     }
 
-    // Check for negative stock after pending sales
     if (data.id && data.stock !== undefined) {
       const { data: pendingSales } = await supabase
         .from('sales')
@@ -264,10 +264,9 @@ export class ValidationService {
     }
 
     if (data.id) {
-      // Validate total_purchases against sales history
       const { data: sales } = await supabase
         .from('sales')
-        .select('amount')
+        .select('amount, created_at')
         .eq('customer_id', data.id);
 
       const actualTotalPurchases = (sales || []).length;
@@ -276,7 +275,6 @@ export class ValidationService {
         throw new Error('Total purchases does not match sales history');
       }
 
-      // Validate last_purchase_date
       if (sales && sales.length > 0 && data.last_purchase_date) {
         const lastSaleDate = new Date(Math.max(...sales.map(s => new Date(s.created_at).getTime())));
         const providedLastPurchaseDate = new Date(data.last_purchase_date);
@@ -291,8 +289,6 @@ export class ValidationService {
   }
 
   validateDataIntegrity(tableName: keyof typeof schemas, data: any): ValidationResult {
-    // Add data integrity validation logic here
-    // For now, we'll just return success
     return { success: true, data };
   }
 }
