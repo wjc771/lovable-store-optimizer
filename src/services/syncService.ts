@@ -46,7 +46,7 @@ class SyncService {
   }
 
   private calculateRetryDelay(attemptCount: number): number {
-    return Math.min(RETRY_DELAY_BASE * Math.pow(2, attemptCount), 30000); // Max 30 seconds
+    return Math.min(RETRY_DELAY_BASE * Math.pow(2, attemptCount), 30000);
   }
 
   private async logSyncEvent(queueItem: SyncQueueItem, eventType: string, status: string, details: any = {}, durationMs?: number) {
@@ -73,6 +73,39 @@ class SyncService {
     if (error?.status === 409) return 'conflict';
     if (error?.status === 400 || error?.status === 422) return 'validation';
     return 'unknown';
+  }
+
+  private async checkForConflicts(item: SyncQueueItem): Promise<boolean> {
+    if (item.operationType !== 'update' || !item.recordId) return false;
+
+    const { data: serverRecord } = await supabase
+      .from(item.tableName)
+      .select('*')
+      .eq('id', item.recordId)
+      .single();
+
+    if (!serverRecord) return false;
+
+    // Compare versions
+    if (serverRecord.version > (item.data.version || 1)) {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) return false;
+
+      // Log the conflict
+      await supabase.from('sync_conflicts').insert({
+        user_id: user.data.user.id,
+        table_name: item.tableName,
+        record_id: item.recordId,
+        sync_queue_id: item.clientId,
+        client_data: item.data,
+        server_data: serverRecord,
+        resolution_status: 'pending'
+      });
+
+      return true;
+    }
+
+    return false;
   }
 
   async queueOperation(operation: Omit<SyncQueueItem, 'clientId' | 'status' | 'attemptCount' | 'createdAt' | 'updatedAt'>): Promise<void> {
@@ -110,6 +143,17 @@ class SyncService {
           item.status = 'processing';
           item.updatedAt = new Date();
           await indexedDB.update('syncQueue', item.clientId, item);
+
+          // Check for conflicts before performing the operation
+          const hasConflict = await this.checkForConflicts(item);
+          if (hasConflict) {
+            item.status = 'failed';
+            item.errorType = 'conflict';
+            item.errorMessage = 'Data conflict detected - requires manual resolution';
+            item.updatedAt = new Date();
+            await indexedDB.update('syncQueue', item.clientId, item);
+            continue;
+          }
 
           const { error } = await this.performServerOperation(item);
 
@@ -151,7 +195,6 @@ class SyncService {
             duration
           );
 
-          // Schedule retry if attempts remain
           if (item.attemptCount < MAX_RETRY_ATTEMPTS) {
             const delay = this.calculateRetryDelay(item.attemptCount);
             setTimeout(() => this.syncPendingItems(), delay);

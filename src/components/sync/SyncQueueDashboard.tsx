@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useOffline } from '@/contexts/OfflineContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -20,9 +20,28 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import ConflictResolutionDialog from './ConflictResolutionDialog';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const SyncQueueDashboard = () => {
   const { queueItems, syncStats, forceSyncNow, isSyncing, retryOperation } = useOffline();
+  const [selectedConflict, setSelectedConflict] = useState(null);
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+
+  const { data: conflicts, refetch: refetchConflicts } = useQuery({
+    queryKey: ['sync-conflicts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sync_conflicts')
+        .select('*')
+        .eq('resolution_status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const getErrorStatusColor = (errorType?: string) => {
     switch (errorType) {
@@ -54,6 +73,11 @@ const SyncQueueDashboard = () => {
     }
   };
 
+  const handleConflictClick = (conflict: any) => {
+    setSelectedConflict(conflict);
+    setConflictDialogOpen(true);
+  };
+
   return (
     <Card className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -68,7 +92,7 @@ const SyncQueueDashboard = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Pending</div>
           <div className="text-2xl font-bold">{syncStats.pending}</div>
@@ -81,7 +105,52 @@ const SyncQueueDashboard = () => {
           <div className="text-sm text-muted-foreground">Failed</div>
           <div className="text-2xl font-bold text-destructive">{syncStats.failed}</div>
         </Card>
+        <Card className="p-4">
+          <div className="text-sm text-muted-foreground">Conflicts</div>
+          <div className="text-2xl font-bold text-purple-500">{conflicts?.length || 0}</div>
+        </Card>
       </div>
+
+      {conflicts && conflicts.length > 0 && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <h3 className="text-purple-800 font-semibold mb-2">Data Conflicts Detected</h3>
+          <p className="text-purple-600 text-sm mb-4">
+            There are {conflicts.length} conflicts that need your attention. Please review and resolve them.
+          </p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Table</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {conflicts.map((conflict) => (
+                <TableRow key={conflict.id}>
+                  <TableCell className="capitalize">{conflict.table_name}</TableCell>
+                  <TableCell>{format(new Date(conflict.created_at), 'PPp')}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-purple-500 border-purple-500">
+                      Pending Resolution
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleConflictClick(conflict)}
+                    >
+                      Resolve
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <Table>
         <TableHeader>
@@ -181,6 +250,13 @@ const SyncQueueDashboard = () => {
           )}
         </TableBody>
       </Table>
+
+      <ConflictResolutionDialog
+        open={conflictDialogOpen}
+        onOpenChange={setConflictDialogOpen}
+        conflict={selectedConflict}
+        onResolved={refetchConflicts}
+      />
     </Card>
   );
 };

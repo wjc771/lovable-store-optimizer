@@ -62,6 +62,7 @@ export type Database = {
           store_id: string | null
           total_purchases: number | null
           updated_at: string
+          version: number | null
         }
         Insert: {
           created_at?: string
@@ -74,6 +75,7 @@ export type Database = {
           store_id?: string | null
           total_purchases?: number | null
           updated_at?: string
+          version?: number | null
         }
         Update: {
           created_at?: string
@@ -86,6 +88,7 @@ export type Database = {
           store_id?: string | null
           total_purchases?: number | null
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -226,6 +229,7 @@ export type Database = {
           store_id: string | null
           total_amount: number
           updated_at: string
+          version: number | null
         }
         Insert: {
           created_at?: string
@@ -235,6 +239,7 @@ export type Database = {
           store_id?: string | null
           total_amount: number
           updated_at?: string
+          version?: number | null
         }
         Update: {
           created_at?: string
@@ -244,6 +249,7 @@ export type Database = {
           store_id?: string | null
           total_amount?: number
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -301,6 +307,7 @@ export type Database = {
           name: string | null
           stock: number | null
           store_id: string | null
+          version: number | null
         }
         Insert: {
           id: string
@@ -308,6 +315,7 @@ export type Database = {
           name?: string | null
           stock?: number | null
           store_id?: string | null
+          version?: number | null
         }
         Update: {
           id?: string
@@ -315,6 +323,7 @@ export type Database = {
           name?: string | null
           stock?: number | null
           store_id?: string | null
+          version?: number | null
         }
         Relationships: []
       }
@@ -355,6 +364,7 @@ export type Database = {
           status: string | null
           store_id: string | null
           updated_at: string
+          version: number | null
         }
         Insert: {
           amount: number
@@ -365,6 +375,7 @@ export type Database = {
           status?: string | null
           store_id?: string | null
           updated_at?: string
+          version?: number | null
         }
         Update: {
           amount?: number
@@ -375,6 +386,7 @@ export type Database = {
           status?: string | null
           store_id?: string | null
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -830,6 +842,7 @@ export type Database = {
           store_id: string | null
           title: string
           updated_at: string
+          version: number | null
         }
         Insert: {
           created_at?: string
@@ -842,6 +855,7 @@ export type Database = {
           store_id?: string | null
           title: string
           updated_at?: string
+          version?: number | null
         }
         Update: {
           created_at?: string
@@ -854,6 +868,7 @@ export type Database = {
           store_id?: string | null
           title?: string
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
