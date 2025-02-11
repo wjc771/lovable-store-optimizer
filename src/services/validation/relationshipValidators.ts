@@ -1,13 +1,12 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 import { z } from 'zod';
 
-// Define a strict interface for sales data to prevent type recursion
-interface SaleData {
-  amount: number;
-  created_at: string;
-}
+// Define minimal types for what we need
+type SimpleSale = {
+  readonly amount: number;
+  readonly created_at: string;
+};
 
 export async function validateSalesRelationships(data: any): Promise<ValidationResult> {
   if (data.product_id) {
@@ -155,7 +154,7 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
   if (data.id) {
     const { data: sales } = await supabase
       .from('sales')
-      .select('amount, created_at')
+      .select<'sales', SimpleSale>('amount, created_at')
       .eq('customer_id', data.id);
 
     const actualTotalPurchases = (sales || []).length;
@@ -165,10 +164,8 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
     }
 
     if (sales && sales.length > 0 && data.last_purchase_date) {
-      // Explicitly cast the sales data to our interface
-      const salesData = sales as SaleData[];
-      // Get the most recent sale date by comparing timestamps
-      const lastSaleDate = new Date(Math.max(...salesData.map(s => new Date(s.created_at).getTime())));
+      const timestamps = sales.map(s => new Date(s.created_at).getTime());
+      const lastSaleDate = new Date(Math.max(...timestamps));
       const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
       if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
