@@ -652,6 +652,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_analytics: {
+        Row: {
+          avg_operation_time_ms: number | null
+          created_at: string
+          error_count: number | null
+          error_details: Json | null
+          id: string
+          network_info: Json | null
+          operation_count: number | null
+          success_count: number | null
+          sync_type: string
+          total_time_ms: number | null
+          user_id: string
+        }
+        Insert: {
+          avg_operation_time_ms?: number | null
+          created_at?: string
+          error_count?: number | null
+          error_details?: Json | null
+          id?: string
+          network_info?: Json | null
+          operation_count?: number | null
+          success_count?: number | null
+          sync_type: string
+          total_time_ms?: number | null
+          user_id: string
+        }
+        Update: {
+          avg_operation_time_ms?: number | null
+          created_at?: string
+          error_count?: number | null
+          error_details?: Json | null
+          id?: string
+          network_info?: Json | null
+          operation_count?: number | null
+          success_count?: number | null
+          sync_type?: string
+          total_time_ms?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       sync_conflicts: {
         Row: {
           client_data: Json
@@ -779,10 +821,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_metadata: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          id: string
+          last_successful_sync_at: string | null
+          last_sync_at: string | null
+          sync_frequency: unknown | null
+          sync_preferences: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          last_successful_sync_at?: string | null
+          last_sync_at?: string | null
+          sync_frequency?: unknown | null
+          sync_preferences?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          last_successful_sync_at?: string | null
+          last_sync_at?: string | null
+          sync_frequency?: unknown | null
+          sync_preferences?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sync_queue: {
         Row: {
           attempt_count: number | null
           client_generated_id: string | null
+          compressed_data: string | null
+          compression_algorithm: string | null
           created_at: string | null
           data: Json
           error_details: Json | null
@@ -803,6 +883,8 @@ export type Database = {
         Insert: {
           attempt_count?: number | null
           client_generated_id?: string | null
+          compressed_data?: string | null
+          compression_algorithm?: string | null
           created_at?: string | null
           data: Json
           error_details?: Json | null
@@ -823,6 +905,8 @@ export type Database = {
         Update: {
           attempt_count?: number | null
           client_generated_id?: string | null
+          compressed_data?: string | null
+          compression_algorithm?: string | null
           created_at?: string | null
           data?: Json
           error_details?: Json | null
@@ -925,6 +1009,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analyze_sync_performance: {
+        Args: {
+          p_user_id: string
+          p_time_window?: unknown
+        }
+        Returns: {
+          total_operations: number
+          success_rate: number
+          avg_sync_time: number
+          error_rate: number
+          most_common_error: string
+        }[]
+      }
       generate_smart_actions: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOffline } from '@/contexts/OfflineContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -23,11 +22,16 @@ import {
 import ConflictResolutionDialog from './ConflictResolutionDialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { syncMetadataService } from '@/services/syncMetadataService';
+import { SyncPerformance } from '@/types/sync';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 const SyncQueueDashboard = () => {
   const { queueItems, syncStats, forceSyncNow, isSyncing, retryOperation } = useOffline();
   const [selectedConflict, setSelectedConflict] = useState(null);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [performance, setPerformance] = useState<SyncPerformance | null>(null);
+  const [timeWindow, setTimeWindow] = useState('24 hours');
 
   const { data: conflicts, refetch: refetchConflicts } = useQuery({
     queryKey: ['sync-conflicts'],
@@ -42,6 +46,22 @@ const SyncQueueDashboard = () => {
       return data;
     },
   });
+
+  useEffect(() => {
+    const loadPerformance = async () => {
+      try {
+        const data = await syncMetadataService.getSyncPerformance(timeWindow);
+        setPerformance(data);
+      } catch (error) {
+        console.error('Error loading sync performance:', error);
+      }
+    };
+
+    loadPerformance();
+    const interval = setInterval(loadPerformance, 60000); // Refresh every minute
+
+    return () => clearInterval(interval);
+  }, [timeWindow]);
 
   const getErrorStatusColor = (errorType?: string) => {
     switch (errorType) {
@@ -250,6 +270,57 @@ const SyncQueueDashboard = () => {
           )}
         </TableBody>
       </Table>
+
+      {performance && (
+        <Card className="p-4">
+          <CardHeader>
+            <CardTitle>Sync Performance</CardTitle>
+            <CardDescription>Performance metrics for sync operations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full h-64">
+              <BarChart
+                width={600}
+                height={200}
+                data={[
+                  {
+                    name: 'Success Rate',
+                    value: performance.successRate
+                  },
+                  {
+                    name: 'Error Rate',
+                    value: performance.errorRate
+                  }
+                ]}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#8884d8" />
+              </BarChart>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-semibold">Average Sync Time</h4>
+                <p>{performance.avgSyncTime.toFixed(2)}ms</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Total Operations</h4>
+                <p>{performance.totalOperations}</p>
+              </div>
+              {performance.mostCommonError && (
+                <div className="col-span-2">
+                  <h4 className="font-semibold">Most Common Error</h4>
+                  <p className="text-destructive">{performance.mostCommonError}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <ConflictResolutionDialog
         open={conflictDialogOpen}

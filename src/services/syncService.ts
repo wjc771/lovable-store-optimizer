@@ -3,6 +3,8 @@ import { indexedDB } from './indexedDB';
 import { v4 as uuidv4 } from 'uuid';
 import validationService from './validationService';
 import { schemas } from './validationService';
+import { syncMetadataService } from './syncMetadataService';
+import pako from 'pako';
 
 type TableName = keyof typeof schemas | 'positions' | 'staff';
 type ValidatedTableName = keyof typeof schemas;
@@ -23,10 +25,13 @@ export interface SyncQueueItem {
   createdAt: Date;
   updatedAt: Date;
   lastRetryAt?: Date;
+  compressedData?: Uint8Array;
+  compressionAlgorithm?: string;
 }
 
 const MAX_RETRY_ATTEMPTS = 3;
-const RETRY_DELAY_BASE = 2000; // Base delay in milliseconds
+const RETRY_DELAY_BASE = 2000;
+const COMPRESSION_THRESHOLD = 1024; // 1KB
 
 class SyncService {
   private isOnline: boolean = navigator.onLine;
@@ -49,6 +54,25 @@ class SyncService {
 
   private calculateRetryDelay(attemptCount: number): number {
     return Math.min(RETRY_DELAY_BASE * Math.pow(2, attemptCount), 30000);
+  }
+
+  private async compressData(data: any): Promise<{ compressedData: Uint8Array; algorithm: string }> {
+    const jsonString = JSON.stringify(data);
+    if (jsonString.length < COMPRESSION_THRESHOLD) {
+      return { compressedData: new Uint8Array(), algorithm: 'none' };
+    }
+
+    const compressed = pako.deflate(jsonString);
+    return { compressedData: compressed, algorithm: 'deflate' };
+  }
+
+  private async decompressData(compressedData: Uint8Array, algorithm: string): Promise<any> {
+    if (algorithm === 'none' || !compressedData.length) {
+      return null;
+    }
+
+    const decompressed = pako.inflate(compressedData, { to: 'string' });
+    return JSON.parse(decompressed);
   }
 
   private async validateOperation(item: SyncQueueItem): Promise<boolean> {
@@ -158,21 +182,39 @@ class SyncService {
   }
 
   async queueOperation(operation: Omit<SyncQueueItem, 'clientId' | 'status' | 'attemptCount' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    const startTime = Date.now();
+    const { compressedData, algorithm } = await this.compressData(operation.data);
+
     const syncItem: SyncQueueItem = {
       ...operation,
       clientId: uuidv4(),
       status: 'pending',
       attemptCount: 0,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      compressedData,
+      compressionAlgorithm: algorithm
     };
 
     try {
-      // Validate the operation before queueing
       await this.validateOperation(syncItem);
-
       await indexedDB.add('syncQueue', syncItem);
-      await this.logSyncEvent(syncItem, 'operation_queued', 'pending');
+      
+      const endTime = Date.now();
+      await syncMetadataService.recordSyncAnalytics({
+        syncType: 'queue',
+        operationCount: 1,
+        successCount: 1,
+        errorCount: 0,
+        totalTimeMs: endTime - startTime,
+        avgOperationTimeMs: endTime - startTime,
+        networkInfo: {
+          type: navigator.connection?.type || 'unknown',
+          downlink: navigator.connection?.downlink || 0,
+          rtt: navigator.connection?.rtt || 0
+        },
+        errorDetails: {}
+      });
 
       if (this.isOnline) {
         this.syncPendingItems();
