@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { indexedDB } from '../indexedDB';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,7 +5,6 @@ import { SyncQueueItem, ErrorType, ValidTableName } from './types';
 import { CompressionService } from './compressionService';
 import { networkMonitor } from './networkMonitor';
 import { syncMetadataService } from './syncMetadataService';
-import { Database } from '@/integrations/supabase/types';
 
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_BASE = 2000;

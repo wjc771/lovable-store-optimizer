@@ -1,19 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { DeviceInfo, SyncPreferences } from '@/types/sync';
-import { Json } from './types';
-
-export interface SyncMetadata {
-  id: string;
-  user_id: string;
-  last_sync_at: string | null;
-  last_successful_sync_at: string | null;
-  sync_frequency: string | null;
-  sync_preferences: Json;
-  device_info: Json;
-  created_at: string;
-  updated_at: string;
-}
+import { Json, SyncMetadata } from './types';
 
 class SyncMetadataService {
   async getSyncMetadata(): Promise<SyncMetadata | null> {
@@ -40,8 +28,8 @@ class SyncMetadataService {
         ...metadata,
         user_id: user.user.id,
         updated_at: new Date().toISOString(),
-        sync_preferences: metadata.sync_preferences as Json,
-        device_info: metadata.device_info as Json
+        sync_preferences: JSON.stringify(metadata.sync_preferences),
+        device_info: JSON.stringify(metadata.device_info)
       });
 
     if (error) throw error;
