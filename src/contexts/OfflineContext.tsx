@@ -18,6 +18,7 @@ interface OfflineContextType {
   };
   queueItems: SyncQueueItem[];
   forceSyncNow: () => Promise<void>;
+  retryOperation: (clientId: string) => Promise<void>;
 }
 
 const OfflineContext = createContext<OfflineContextType>({
@@ -31,7 +32,8 @@ const OfflineContext = createContext<OfflineContextType>({
     processing: 0,
   },
   queueItems: [],
-  forceSyncNow: async () => {}
+  forceSyncNow: async () => {},
+  retryOperation: async () => {}
 });
 
 export const useOffline = () => useContext(OfflineContext);
@@ -42,6 +44,23 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error'>('idle');
   const { toast } = useToast();
   const { queueItems, stats } = useSyncQueue();
+
+  const retryOperation = async (clientId: string) => {
+    try {
+      await syncService.retryFailedOperation(clientId);
+      toast({
+        title: "Retry initiated",
+        description: "The operation will be retried shortly.",
+      });
+    } catch (error) {
+      console.error('Retry error:', error);
+      toast({
+        title: "Retry failed",
+        description: "Failed to initiate retry. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const forceSyncNow = async () => {
     if (!isOnline) {
@@ -105,16 +124,6 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initialize IndexedDB
-    indexedDB.initDB().catch(error => {
-      console.error('Failed to initialize IndexedDB:', error);
-      toast({
-        title: "Error",
-        description: "Failed to initialize offline storage",
-        variant: "destructive"
-      });
-    });
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -128,7 +137,8 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     syncStatus,
     syncStats: stats,
     queueItems,
-    forceSyncNow
+    forceSyncNow,
+    retryOperation
   };
 
   return (

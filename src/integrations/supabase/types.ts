@@ -684,6 +684,47 @@ export type Database = {
           },
         ]
       }
+      sync_events: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          duration_ms: number | null
+          event_type: string
+          id: string
+          status: string
+          sync_queue_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          duration_ms?: number | null
+          event_type: string
+          id?: string
+          status: string
+          sync_queue_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          duration_ms?: number | null
+          event_type?: string
+          id?: string
+          status?: string
+          sync_queue_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_events_sync_queue_id_fkey"
+            columns: ["sync_queue_id"]
+            isOneToOne: false
+            referencedRelation: "sync_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_logs: {
         Row: {
           created_at: string | null
@@ -720,11 +761,15 @@ export type Database = {
           client_generated_id: string | null
           created_at: string | null
           data: Json
+          error_details: Json | null
           error_message: string | null
+          error_type: string | null
           id: string
+          last_retry_at: string | null
           operation_type: string
           processed_at: string | null
           record_id: string | null
+          retry_count: number | null
           status: string
           store_id: string | null
           table_name: string
@@ -736,11 +781,15 @@ export type Database = {
           client_generated_id?: string | null
           created_at?: string | null
           data: Json
+          error_details?: Json | null
           error_message?: string | null
+          error_type?: string | null
           id?: string
+          last_retry_at?: string | null
           operation_type: string
           processed_at?: string | null
           record_id?: string | null
+          retry_count?: number | null
           status?: string
           store_id?: string | null
           table_name: string
@@ -752,11 +801,15 @@ export type Database = {
           client_generated_id?: string | null
           created_at?: string | null
           data?: Json
+          error_details?: Json | null
           error_message?: string | null
+          error_type?: string | null
           id?: string
+          last_retry_at?: string | null
           operation_type?: string
           processed_at?: string | null
           record_id?: string | null
+          retry_count?: number | null
           status?: string
           store_id?: string | null
           table_name?: string
