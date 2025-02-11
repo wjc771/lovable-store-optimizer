@@ -1,9 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
-import type { Database } from '@/integrations/supabase/types';
-
-// Remove unused import
-// import { z } from 'zod';
 
 export async function validateSalesRelationships(data: any): Promise<ValidationResult> {
   if (data.product_id) {

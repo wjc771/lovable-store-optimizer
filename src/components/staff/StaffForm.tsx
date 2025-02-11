@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
-import { syncService } from "@/services/syncService";
 import { useToast } from "@/hooks/use-toast";
 
 interface Position {
@@ -25,7 +24,7 @@ interface Position {
 }
 
 interface StaffFormData {
-  id?: string;  // Adding optional id field
+  id?: string;
   name: string;
   status: "active" | "inactive";
   position_ids: string[];
@@ -74,21 +73,12 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
         position_ids: selectedPositions,
       };
 
-      // Queue the operation for sync
-      await syncService.queueOperation({
-        operationType: initialData ? 'update' : 'create',
-        tableName: 'staff',
-        recordId: initialData?.id,
-        data: formData,
-      });
-
-      toast({
-        title: `Staff member ${initialData ? 'updated' : 'added'}`,
-        description: "Changes will be synchronized when online.",
-      });
-
       onSubmit(formData);
       onOpenChange(false);
+      toast({
+        title: `Staff member ${initialData ? 'updated' : 'added'}`,
+        description: "Changes have been saved successfully.",
+      });
     } catch (error) {
       console.error('Error saving staff member:', error);
       toast({
@@ -99,12 +89,10 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
     }
   };
 
-  // Track selected positions
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>(
     initialData?.position_ids || []
   );
 
-  // Handle position toggle
   const togglePosition = (positionId: string) => {
     setSelectedPositions((current) => {
       const updated = current.includes(positionId)
