@@ -1,9 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { indexedDB } from './indexedDB';
 import { v4 as uuidv4 } from 'uuid';
-import { validationService } from './validationService';
+import { validationService, schemas } from './validationService';
 
-type TableName = 'sales' | 'customers' | 'orders' | 'tasks' | 'products' | 'positions' | 'staff';
+type TableName = keyof typeof schemas | 'positions' | 'staff';
+type ValidatedTableName = keyof typeof schemas;
 
 export type ErrorType = 'network' | 'validation' | 'authorization' | 'conflict' | 'unknown';
 
@@ -47,6 +48,50 @@ class SyncService {
 
   private calculateRetryDelay(attemptCount: number): number {
     return Math.min(RETRY_DELAY_BASE * Math.pow(2, attemptCount), 30000);
+  }
+
+  private async validateOperation(item: SyncQueueItem): Promise<boolean> {
+    if (item.operationType === 'delete') return true;
+
+    // Check if the table has a validation schema
+    if (!Object.keys(schemas).includes(item.tableName)) {
+      return true;
+    }
+
+    // Type assertion since we've verified the table name is valid
+    const validatedTableName = item.tableName as ValidatedTableName;
+
+    // Validate data structure
+    const validationResult = validationService.validateRecord(
+      validatedTableName,
+      item.data
+    );
+
+    if (!validationResult.success) {
+      throw new Error(`Validation failed: ${validationResult.errors?.toString()}`);
+    }
+
+    // Validate relationships
+    const relationshipResult = validationService.validateRelationships(
+      validatedTableName,
+      item.data
+    );
+
+    if (!relationshipResult.success) {
+      throw new Error(`Relationship validation failed: ${relationshipResult.errors?.toString()}`);
+    }
+
+    // Validate data integrity
+    const integrityResult = validationService.validateDataIntegrity(
+      validatedTableName,
+      item.data
+    );
+
+    if (!integrityResult.success) {
+      throw new Error(`Data integrity validation failed: ${integrityResult.errors?.toString()}`);
+    }
+
+    return true;
   }
 
   private async logSyncEvent(queueItem: SyncQueueItem, eventType: string, status: string, details: any = {}, durationMs?: number) {
@@ -111,47 +156,6 @@ class SyncService {
     return false;
   }
 
-  private async validateOperation(item: SyncQueueItem): Promise<boolean> {
-    if (item.operationType === 'delete') return true;
-
-    // Skip validation for tables without schemas
-    if (!['sales', 'customers', 'orders', 'tasks', 'products'].includes(item.tableName)) {
-      return true;
-    }
-
-    // Validate data structure
-    const validationResult = validationService.validateRecord(
-      item.tableName as keyof typeof schemas,
-      item.data
-    );
-
-    if (!validationResult.success) {
-      throw new Error(`Validation failed: ${validationResult.errors?.toString()}`);
-    }
-
-    // Validate relationships
-    const relationshipResult = validationService.validateRelationships(
-      item.tableName as keyof typeof schemas,
-      item.data
-    );
-
-    if (!relationshipResult.success) {
-      throw new Error(`Relationship validation failed: ${relationshipResult.errors?.toString()}`);
-    }
-
-    // Validate data integrity
-    const integrityResult = validationService.validateDataIntegrity(
-      item.tableName as keyof typeof schemas,
-      item.data
-    );
-
-    if (!integrityResult.success) {
-      throw new Error(`Data integrity validation failed: ${integrityResult.errors?.toString()}`);
-    }
-
-    return true;
-  }
-
   async queueOperation(operation: Omit<SyncQueueItem, 'clientId' | 'status' | 'attemptCount' | 'createdAt' | 'updatedAt'>): Promise<void> {
     const syncItem: SyncQueueItem = {
       ...operation,
@@ -175,6 +179,7 @@ class SyncService {
     } catch (error) {
       console.error('Validation error:', error);
       const validationError = {
+        ...operation,
         clientId: syncItem.clientId,
         status: 'failed' as const,
         attemptCount: 1,
@@ -186,7 +191,6 @@ class SyncService {
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        ...operation,
       };
 
       await indexedDB.add('syncQueue', validationError);
