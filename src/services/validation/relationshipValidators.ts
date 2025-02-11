@@ -2,7 +2,38 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 
-export async function validateSalesRelationships(data: any): Promise<ValidationResult> {
+// Define interface for data shape
+interface BaseValidationData {
+  store_id?: string;
+  [key: string]: any;
+}
+
+interface SalesData extends BaseValidationData {
+  product_id?: string;
+  quantity?: number;
+}
+
+interface OrdersData extends BaseValidationData {
+  customer_id?: string;
+}
+
+interface TasksData extends BaseValidationData {
+  staff_id?: string;
+  due_date?: string;
+}
+
+interface ProductsData extends BaseValidationData {
+  id?: string;
+  stock?: number;
+}
+
+interface CustomersData extends BaseValidationData {
+  id?: string;
+  total_purchases?: number;
+  last_purchase_date?: string;
+}
+
+export async function validateSalesRelationships(data: SalesData): Promise<ValidationResult> {
   if (data.product_id) {
     const { data: product } = await supabase
       .from('products')
@@ -14,7 +45,7 @@ export async function validateSalesRelationships(data: any): Promise<ValidationR
       throw new Error('Product not found');
     }
 
-    if (product.stock < data.quantity) {
+    if (product.stock < (data.quantity || 0)) {
       throw new Error(`Insufficient stock for product ${product.name}`);
     }
   }
@@ -34,7 +65,7 @@ export async function validateSalesRelationships(data: any): Promise<ValidationR
   return { success: true, data };
 }
 
-export async function validateOrdersRelationships(data: any): Promise<ValidationResult> {
+export async function validateOrdersRelationships(data: OrdersData): Promise<ValidationResult> {
   if (data.customer_id) {
     const { data: customer } = await supabase
       .from('customers')
@@ -66,7 +97,7 @@ export async function validateOrdersRelationships(data: any): Promise<Validation
   return { success: true, data };
 }
 
-export async function validateTasksRelationships(data: any): Promise<ValidationResult> {
+export async function validateTasksRelationships(data: TasksData): Promise<ValidationResult> {
   if (data.staff_id) {
     const { data: staff } = await supabase
       .from('staff')
@@ -102,7 +133,7 @@ export async function validateTasksRelationships(data: any): Promise<ValidationR
   return { success: true, data };
 }
 
-export async function validateProductsRelationships(data: any): Promise<ValidationResult> {
+export async function validateProductsRelationships(data: ProductsData): Promise<ValidationResult> {
   if (data.store_id) {
     const { data: store } = await supabase
       .from('stores')
@@ -122,7 +153,7 @@ export async function validateProductsRelationships(data: any): Promise<Validati
       .eq('product_id', data.id)
       .eq('status', 'pending');
 
-    const totalPendingQuantity = (pendingSales || []).reduce((sum, sale) => sum + sale.quantity, 0);
+    const totalPendingQuantity = (pendingSales || []).reduce((sum: number, sale: { quantity: number }) => sum + sale.quantity, 0);
     
     if (data.stock - totalPendingQuantity < 0) {
       throw new Error('Stock cannot be less than pending sales');
@@ -132,7 +163,7 @@ export async function validateProductsRelationships(data: any): Promise<Validati
   return { success: true, data };
 }
 
-export async function validateCustomersRelationships(data: any): Promise<ValidationResult> {
+export async function validateCustomersRelationships(data: CustomersData): Promise<ValidationResult> {
   if (data.store_id) {
     const { data: store } = await supabase
       .from('stores')
