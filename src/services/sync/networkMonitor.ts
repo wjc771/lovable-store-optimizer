@@ -1,6 +1,18 @@
 
 import { NetworkInfo } from './types';
 
+interface NetworkInformation {
+  type?: string;
+  downlink?: number;
+  rtt?: number;
+}
+
+declare global {
+  interface Navigator {
+    connection?: NetworkInformation;
+  }
+}
+
 export class NetworkMonitor {
   private isOnline: boolean;
   private listeners: Set<() => void>;
@@ -33,8 +45,7 @@ export class NetworkMonitor {
   }
 
   public getNetworkInfo(): NetworkInfo {
-    // Use optional chaining for NetworkInformation API
-    const connection = (navigator as any).connection;
+    const connection = navigator.connection;
     return {
       type: connection?.type || 'unknown',
       downlink: connection?.downlink || 0,
