@@ -8,6 +8,8 @@ import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
+import { syncService } from "@/services/syncService";
+import { useToast } from "@/hooks/use-toast";
 
 interface Position {
   id: string;
@@ -44,8 +46,8 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
       position_ids: [],
     },
   });
+  const { toast } = useToast();
 
-  // Update form values when initialData changes
   useEffect(() => {
     if (initialData) {
       form.reset({
@@ -64,12 +66,36 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
     }
   }, [initialData, form]);
 
-  const handleSubmit = (data: StaffFormData) => {
-    onSubmit({
-      ...data,
-      position_ids: selectedPositions,
-    });
-    onOpenChange(false);
+  const handleSubmit = async (data: StaffFormData) => {
+    try {
+      const formData = {
+        ...data,
+        position_ids: selectedPositions,
+      };
+
+      // Queue the operation for sync
+      await syncService.queueOperation({
+        operationType: initialData ? 'update' : 'create',
+        tableName: 'staff',
+        recordId: initialData?.id,
+        data: formData,
+      });
+
+      toast({
+        title: `Staff member ${initialData ? 'updated' : 'added'}`,
+        description: "Changes will be synchronized when online.",
+      });
+
+      onSubmit(formData);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving staff member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save staff member. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Track selected positions
@@ -84,7 +110,6 @@ export const StaffForm = ({ open, onOpenChange, onSubmit, initialData, positions
         ? current.filter((id) => id !== positionId)
         : [...current, positionId];
       
-      // Update form value
       form.setValue("position_ids", updated);
       return updated;
     });

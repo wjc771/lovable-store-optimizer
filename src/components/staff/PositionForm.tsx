@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { syncService } from "@/services/syncService";
+import { useToast } from "@/hooks/use-toast";
 
 interface PositionFormProps {
   open: boolean;
@@ -29,10 +31,33 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
       },
     },
   });
+  const { toast } = useToast();
 
-  const handleSubmit = (data: any) => {
-    onSubmit(data);
-    onOpenChange(false);
+  const handleSubmit = async (data: any) => {
+    try {
+      // Queue the operation for sync
+      await syncService.queueOperation({
+        operationType: initialData ? 'update' : 'create',
+        tableName: 'positions',
+        recordId: initialData?.id,
+        data: data,
+      });
+
+      toast({
+        title: `Position ${initialData ? 'updated' : 'added'}`,
+        description: "Changes will be synchronized when online.",
+      });
+
+      onSubmit(data);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving position:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save position. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
