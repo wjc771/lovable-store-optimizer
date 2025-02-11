@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
+import type { Database } from '@/integrations/supabase/types';
 
 // Remove unused import
 // import { z } from 'zod';
@@ -149,14 +149,12 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
   }
 
   if (data.id) {
-    type SalesRecord = { amount: number; created_at: string };
-    
     const { data: salesData } = await supabase
       .from('sales')
       .select('amount, created_at')
       .eq('customer_id', data.id);
 
-    const sales = (salesData || []) as SalesRecord[];
+    const sales = salesData || [];
     const actualTotalPurchases = sales.length;
 
     if (data.total_purchases !== undefined && data.total_purchases !== actualTotalPurchases) {
