@@ -25,6 +25,7 @@ interface Position {
 }
 
 interface StaffFormData {
+  id?: string;  // Adding optional id field
   name: string;
   status: "active" | "inactive";
   position_ids: string[];
