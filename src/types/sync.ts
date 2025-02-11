@@ -13,8 +13,7 @@ export interface SyncPreferences {
 }
 
 export interface SyncAnalytics {
-  id: string;
-  syncType: string;
+  sync_type: string;
   operationCount: number;
   successCount: number;
   errorCount: number;
@@ -26,13 +25,4 @@ export interface SyncAnalytics {
     rtt: number;
   };
   errorDetails: Record<string, any>;
-  createdAt: string;
-}
-
-export interface SyncPerformance {
-  totalOperations: number;
-  successRate: number;
-  avgSyncTime: number;
-  errorRate: number;
-  mostCommonError: string;
 }
