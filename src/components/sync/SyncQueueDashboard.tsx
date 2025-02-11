@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
-export const SyncQueueDashboard = () => {
+const SyncQueueDashboard = () => {
   const { queueItems, syncStats, forceSyncNow, isSyncing } = useOffline();
 
   return (
@@ -100,3 +100,5 @@ export const SyncQueueDashboard = () => {
     </Card>
   );
 };
+
+export default SyncQueueDashboard;

@@ -1,7 +1,7 @@
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import FileUpload from "@/components/upload/FileUpload";
-import { SyncQueueDashboard } from "@/components/sync/SyncQueueDashboard";
+import SyncQueueDashboard from "@/components/sync/SyncQueueDashboard";
 import { useTranslation } from "react-i18next";
 
 const UploadContent = () => {
