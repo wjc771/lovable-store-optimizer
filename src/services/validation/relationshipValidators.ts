@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 import { z } from 'zod';
@@ -147,11 +146,6 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
   }
 
   if (data.id) {
-    interface SaleRecord {
-      amount: number;
-      created_at: string;
-    }
-
     const { data: sales } = await supabase
       .from('sales')
       .select('amount, created_at')
@@ -164,7 +158,7 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
     }
 
     if (sales && sales.length > 0 && data.last_purchase_date) {
-      const lastSaleDate = new Date(Math.max(...(sales as SaleRecord[]).map(s => new Date(s.created_at).getTime())));
+      const lastSaleDate = new Date(Math.max(...sales.map(s => new Date(s.created_at).getTime())));
       const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
       if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
@@ -175,4 +169,3 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
 
   return { success: true, data };
 }
-
