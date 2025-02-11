@@ -52,6 +52,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          checksum: string | null
           created_at: string
           email: string | null
           id: string
@@ -65,6 +66,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          checksum?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -78,6 +80,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          checksum?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -222,6 +225,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          checksum: string | null
           created_at: string
           customer_id: string | null
           id: string
@@ -232,6 +236,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          checksum?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -242,6 +247,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          checksum?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -302,6 +308,7 @@ export type Database = {
       }
       products: {
         Row: {
+          checksum: string | null
           id: string
           metadata: Json | null
           name: string | null
@@ -310,6 +317,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          checksum?: string | null
           id: string
           metadata?: Json | null
           name?: string | null
@@ -318,6 +326,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          checksum?: string | null
           id?: string
           metadata?: Json | null
           name?: string | null
@@ -357,6 +366,7 @@ export type Database = {
       sales: {
         Row: {
           amount: number
+          checksum: string | null
           created_at: string
           id: string
           product_id: string | null
@@ -368,6 +378,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          checksum?: string | null
           created_at?: string
           id?: string
           product_id?: string | null
@@ -379,6 +390,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          checksum?: string | null
           created_at?: string
           id?: string
           product_id?: string | null
@@ -832,6 +844,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          checksum: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -845,6 +858,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          checksum?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -858,6 +872,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          checksum?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
