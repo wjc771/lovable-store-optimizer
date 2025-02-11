@@ -1,5 +1,5 @@
 
 export * from './validation/validationService';
-export * from './validation/types';
-export * from './validation/schemas';
+export { ValidationResult, TableNames } from './validation/types';
+export { schemas } from './validation/schemas';
 

@@ -57,6 +57,3 @@ export const schemas = {
   }),
 } as const;
 
-// Type helper to get table names
-export type TableNames = keyof typeof schemas;
-

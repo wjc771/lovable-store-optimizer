@@ -8,5 +8,6 @@ export type ValidationResult = {
   data?: any;
 };
 
+// Export TableNames type only here
 export type TableNames = keyof typeof schemas;
 

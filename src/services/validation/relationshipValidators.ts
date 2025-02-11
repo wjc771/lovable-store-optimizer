@@ -147,10 +147,10 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
   }
 
   if (data.id) {
-    type SaleRecord = {
+    interface SaleRecord {
       amount: number;
       created_at: string;
-    };
+    }
 
     const { data: sales } = await supabase
       .from('sales')
