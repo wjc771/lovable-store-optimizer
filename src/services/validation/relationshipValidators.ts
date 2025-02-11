@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 import { z } from 'zod';
 
-// Explicitly type the sales data to avoid recursion
-type SaleData = {
+// Define a strict interface for sales data to prevent type recursion
+interface SaleData {
   amount: number;
   created_at: string;
-};
+}
 
 export async function validateSalesRelationships(data: any): Promise<ValidationResult> {
   if (data.product_id) {
@@ -165,7 +165,9 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
     }
 
     if (sales && sales.length > 0 && data.last_purchase_date) {
+      // Explicitly cast the sales data to our interface
       const salesData = sales as SaleData[];
+      // Get the most recent sale date by comparing timestamps
       const lastSaleDate = new Date(Math.max(...salesData.map(s => new Date(s.created_at).getTime())));
       const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
