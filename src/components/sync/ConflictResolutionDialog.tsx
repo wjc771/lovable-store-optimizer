@@ -21,13 +21,16 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 
+type SyncTable = 'sales' | 'customers' | 'orders' | 'tasks' | 'products';
+
 interface ConflictData {
   id: string;
-  table_name: string;
+  table_name: SyncTable;
   client_data: any;
   server_data: any;
   created_at: string;
   resolution_status: string;
+  record_id: string;
 }
 
 interface ConflictResolutionDialogProps {
@@ -65,7 +68,7 @@ const ConflictResolutionDialog = ({
       const { error: updateError } = await supabase
         .from(conflict.table_name)
         .update(dataToUse)
-        .eq('id', dataToUse.id);
+        .eq('id', conflict.record_id);
 
       if (updateError) throw updateError;
 

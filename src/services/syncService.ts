@@ -86,8 +86,11 @@ class SyncService {
 
     if (!serverRecord) return false;
 
-    // Compare versions
-    if (serverRecord.version > (item.data.version || 1)) {
+    // Only check version if both records have version property
+    const clientVersion = item.data.version || 1;
+    const serverVersion = (serverRecord as any).version || 1;
+    
+    if (serverVersion > clientVersion) {
       const user = await supabase.auth.getUser();
       if (!user.data.user) return false;
 
