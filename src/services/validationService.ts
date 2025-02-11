@@ -51,9 +51,9 @@ export const schemas = {
     name: z.string().min(1),
     stock: z.number().int().min(0).default(0),
     store_id: z.string().uuid().optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.any()).optional(),
   }),
-};
+} as const;
 
 export type ValidationResult = {
   success: boolean;
@@ -61,8 +61,11 @@ export type ValidationResult = {
   data?: any;
 };
 
+// Type helper to get table names
+type TableNames = keyof typeof schemas;
+
 export class ValidationService {
-  validateRecord(tableName: keyof typeof schemas, data: any): ValidationResult {
+  validateRecord(tableName: TableNames, data: any): ValidationResult {
     const schema = schemas[tableName];
     if (!schema) {
       return {
@@ -92,7 +95,7 @@ export class ValidationService {
     }
   }
 
-  async validateRelationships(tableName: keyof typeof schemas, data: any): Promise<ValidationResult> {
+  async validateRelationships(tableName: TableNames, data: any): Promise<ValidationResult> {
     try {
       switch (tableName) {
         case 'sales':
@@ -264,6 +267,11 @@ export class ValidationService {
     }
 
     if (data.id) {
+      type SaleRecord = {
+        amount: number;
+        created_at: string;
+      };
+
       const { data: sales } = await supabase
         .from('sales')
         .select('amount, created_at')
@@ -276,7 +284,7 @@ export class ValidationService {
       }
 
       if (sales && sales.length > 0 && data.last_purchase_date) {
-        const lastSaleDate = new Date(Math.max(...sales.map(s => new Date(s.created_at).getTime())));
+        const lastSaleDate = new Date(Math.max(...(sales as SaleRecord[]).map(s => new Date(s.created_at).getTime())));
         const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
         if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
@@ -288,7 +296,7 @@ export class ValidationService {
     return { success: true, data };
   }
 
-  validateDataIntegrity(tableName: keyof typeof schemas, data: any): ValidationResult {
+  validateDataIntegrity(tableName: TableNames, data: any): ValidationResult {
     return { success: true, data };
   }
 }
