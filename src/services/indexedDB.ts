@@ -16,7 +16,7 @@ export class IndexedDBService {
 
   async initDB(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      const request = window.indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
         console.error("Error opening IndexedDB");

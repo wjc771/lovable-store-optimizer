@@ -3,10 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { indexedDB } from './indexedDB';
 import { v4 as uuidv4 } from 'uuid';
 
+type TableName = 'sales' | 'inventory' | 'customers' | 'orders' | 'tasks';
+
 export interface SyncQueueItem {
   clientId: string;
   operationType: 'create' | 'update' | 'delete';
-  tableName: string;
+  tableName: TableName;
   recordId?: string;
   data: any;
   status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -59,6 +61,11 @@ class SyncService {
     try {
       const pendingItems = await indexedDB.getAll<SyncQueueItem>('syncQueue');
       const itemsToSync = pendingItems.filter(item => item.status === 'pending');
+      const user = await supabase.auth.getUser();
+
+      if (!user.data.user) {
+        throw new Error('User not authenticated');
+      }
 
       for (const item of itemsToSync) {
         try {
@@ -77,6 +84,7 @@ class SyncService {
 
           // Log successful sync
           await supabase.from('sync_logs').insert({
+            user_id: user.data.user.id,
             sync_type: 'upload',
             status: 'success',
             details: { operation: item.operationType, table: item.tableName }
@@ -91,6 +99,7 @@ class SyncService {
 
           // Log failed sync
           await supabase.from('sync_logs').insert({
+            user_id: user.data.user.id,
             sync_type: 'upload',
             status: 'failed',
             details: { error: error.message, operation: item.operationType, table: item.tableName }
@@ -107,13 +116,13 @@ class SyncService {
 
     switch (operationType) {
       case 'create':
-        return await supabase.from(tableName).insert(data);
+        return await supabase.from(tableName as TableName).insert(data);
 
       case 'update':
-        return await supabase.from(tableName).update(data).eq('id', recordId);
+        return await supabase.from(tableName as TableName).update(data).eq('id', recordId as string);
 
       case 'delete':
-        return await supabase.from(tableName).delete().eq('id', recordId);
+        return await supabase.from(tableName as TableName).delete().eq('id', recordId as string);
 
       default:
         throw new Error(`Unknown operation type: ${operationType}`);

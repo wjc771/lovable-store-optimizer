@@ -1,8 +1,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { indexedDB } from '@/services/indexedDB';
-import { syncService } from '@/services/syncService';
-import { useToast } from '@/components/ui/use-toast';
+import { syncService, SyncQueueItem } from '@/services/syncService';
+import { useToast } from '@/hooks/use-toast';
 
 interface OfflineContextType {
   isOnline: boolean;
@@ -67,7 +67,7 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const checkPendingChanges = async () => {
       try {
-        const queue = await indexedDB.getAll('syncQueue');
+        const queue = await indexedDB.getAll<SyncQueueItem>('syncQueue');
         const pending = queue.filter(item => item.status === 'pending').length;
         setPendingChanges(pending);
       } catch (error) {
