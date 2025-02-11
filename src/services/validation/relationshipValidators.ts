@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 import { z } from 'zod';
@@ -154,7 +155,7 @@ export async function validateCustomersRelationships(data: any): Promise<Validat
   if (data.id) {
     const { data: sales } = await supabase
       .from('sales')
-      .select<'sales', SimpleSale>('amount, created_at')
+      .select('amount, created_at')
       .eq('customer_id', data.id);
 
     const actualTotalPurchases = (sales || []).length;
