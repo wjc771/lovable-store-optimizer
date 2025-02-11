@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { indexedDB } from './indexedDB';
 import { v4 as uuidv4 } from 'uuid';
 
-type TableName = 'sales' | 'inventory' | 'customers' | 'orders' | 'tasks';
+type TableName = 'sales' | 'customers' | 'orders' | 'tasks' | 'products';
 
 export interface SyncQueueItem {
   clientId: string;
