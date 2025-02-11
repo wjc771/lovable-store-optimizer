@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { DeviceInfo, SyncPreferences } from '@/types/sync';
-import { JsonValue, convertToJsonValue } from './types';
+import { JsonValue, SyncMetadata, convertToJsonValue } from './sync/types';
 
 class SyncMetadataService {
   async getSyncMetadata() {
