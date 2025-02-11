@@ -2,7 +2,7 @@
 import React from 'react';
 import { useOffline } from '@/contexts/OfflineContext';
 import { Button } from '@/components/ui/button';
-import { Cloud, CloudOff, Loader, AlertCircle } from 'lucide-react';
+import { Cloud, CloudOff, Loader, AlertCircle, RefreshCw } from 'lucide-react';
 import {
   HoverCard,
   HoverCardContent,
@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export const SyncStatus = () => {
-  const { isOnline, isSyncing, pendingChanges, syncStatus } = useOffline();
+  const { isOnline, isSyncing, pendingChanges, syncStatus, forceSyncNow } = useOffline();
 
   const getStatusIcon = () => {
     if (!isOnline) return <CloudOff className="h-4 w-4 text-destructive" />;
@@ -69,6 +69,18 @@ export const SyncStatus = () => {
             <div className="text-sm text-destructive">
               Some changes failed to sync. Please try again later.
             </div>
+          )}
+          {isOnline && (pendingChanges > 0 || syncStatus === 'error') && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={forceSyncNow}
+              disabled={isSyncing}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Sync Now
+            </Button>
           )}
         </div>
       </HoverCardContent>

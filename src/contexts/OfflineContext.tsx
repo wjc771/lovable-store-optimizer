@@ -3,19 +3,22 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { indexedDB } from '@/services/indexedDB';
 import { syncService, SyncQueueItem } from '@/services/syncService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OfflineContextType {
   isOnline: boolean;
   isSyncing: boolean;
   pendingChanges: number;
   syncStatus: 'idle' | 'syncing' | 'error';
+  forceSyncNow: () => Promise<void>;
 }
 
 const OfflineContext = createContext<OfflineContextType>({
   isOnline: true,
   isSyncing: false,
   pendingChanges: 0,
-  syncStatus: 'idle'
+  syncStatus: 'idle',
+  forceSyncNow: async () => {}
 });
 
 export const useOffline = () => useContext(OfflineContext);
@@ -27,6 +30,46 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error'>('idle');
   const { toast } = useToast();
 
+  const forceSyncNow = async () => {
+    if (!isOnline) {
+      toast({
+        title: "Cannot sync while offline",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isSyncing) {
+      toast({
+        title: "Sync in progress",
+        description: "Please wait for the current sync to complete.",
+      });
+      return;
+    }
+
+    try {
+      setIsSyncing(true);
+      setSyncStatus('syncing');
+      await syncService.syncPendingItems();
+      setSyncStatus('idle');
+      toast({
+        title: "Sync completed",
+        description: "All changes have been synchronized successfully.",
+      });
+    } catch (error) {
+      console.error('Sync error:', error);
+      setSyncStatus('error');
+      toast({
+        title: "Sync failed",
+        description: "Some changes failed to sync. Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -34,6 +77,7 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
         title: "Back Online",
         description: "Your connection has been restored. Syncing changes...",
       });
+      forceSyncNow();
     };
 
     const handleOffline = () => {
@@ -85,7 +129,8 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     isOnline,
     isSyncing,
     pendingChanges,
-    syncStatus
+    syncStatus,
+    forceSyncNow
   };
 
   return (
