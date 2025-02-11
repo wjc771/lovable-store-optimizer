@@ -2,13 +2,16 @@
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 
-// Base schema for all records that support versioning
-const versionedRecord = z.object({
+// Define schema types explicitly to avoid deep recursion
+const baseSchema = {
   version: z.number().optional().default(1),
   id: z.string().uuid().optional(),
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional(),
-});
+} as const;
+
+// Base schema for all records that support versioning
+const versionedRecord = z.object(baseSchema);
 
 // Schema definitions for each table
 export const schemas = {
@@ -51,7 +54,7 @@ export const schemas = {
     name: z.string().min(1),
     stock: z.number().int().min(0).default(0),
     store_id: z.string().uuid().optional(),
-    metadata: z.record(z.any()).optional(),
+    metadata: z.record(z.unknown()).optional(),
   }),
 } as const;
 
@@ -61,8 +64,8 @@ export type ValidationResult = {
   data?: any;
 };
 
-// Type helper to get table names
-type TableNames = keyof typeof schemas;
+// Type helper to get table names using keyof
+export type TableNames = keyof typeof schemas;
 
 export class ValidationService {
   validateRecord(tableName: TableNames, data: any): ValidationResult {
@@ -267,10 +270,10 @@ export class ValidationService {
     }
 
     if (data.id) {
-      type SaleRecord = {
+      interface SaleRecord {
         amount: number;
         created_at: string;
-      };
+      }
 
       const { data: sales } = await supabase
         .from('sales')
@@ -284,7 +287,8 @@ export class ValidationService {
       }
 
       if (sales && sales.length > 0 && data.last_purchase_date) {
-        const lastSaleDate = new Date(Math.max(...(sales as SaleRecord[]).map(s => new Date(s.created_at).getTime())));
+        const typedSales = sales as SaleRecord[];
+        const lastSaleDate = new Date(Math.max(...typedSales.map(s => new Date(s.created_at).getTime())));
         const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
         if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
