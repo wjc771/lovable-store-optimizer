@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { indexedDB } from '../indexedDB';
 import { v4 as uuidv4 } from 'uuid';
-import { SyncQueueItem, ErrorType, ValidTableName } from './types';
+import { SyncQueueItem, ErrorType, ValidTableName, RecordData, isRecordData } from './types';
 import { CompressionService } from './compressionService';
 import { networkMonitor } from './networkMonitor';
 import { syncMetadataService } from './syncMetadataService';
@@ -43,7 +43,7 @@ class SyncService {
 
     if (!serverRecord) return false;
 
-    const clientVersion = item.data.version || 1;
+    const clientVersion = (item.data as RecordData).version || 1;
     const serverVersion = (serverRecord as any).version || 1;
     
     if (serverVersion > clientVersion) {

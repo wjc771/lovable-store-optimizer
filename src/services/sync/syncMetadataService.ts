@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { DeviceInfo, SyncPreferences } from '@/types/sync';
-import { Json, SyncMetadata, isJson } from './types';
+import { JsonValue, SyncMetadata, isJsonValue } from './types';
 
 class SyncMetadataService {
   async getSyncMetadata(): Promise<SyncMetadata | null> {
@@ -22,28 +22,14 @@ class SyncMetadataService {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 
-    // Convert device info and preferences to JSON
-    const deviceInfo = metadata.device_info ? 
-      JSON.stringify(metadata.device_info) : undefined;
-    const syncPreferences = metadata.sync_preferences ? 
-      JSON.stringify(metadata.sync_preferences) : undefined;
-
-    // Validate JSON data
-    if (deviceInfo && !isJson(JSON.parse(deviceInfo))) {
-      throw new Error('Invalid device info format');
-    }
-    if (syncPreferences && !isJson(JSON.parse(syncPreferences))) {
-      throw new Error('Invalid sync preferences format');
-    }
-
     const { error } = await supabase
       .from('sync_metadata')
       .upsert({
         ...metadata,
         user_id: user.user.id,
         updated_at: new Date().toISOString(),
-        device_info: deviceInfo as Json,
-        sync_preferences: syncPreferences as Json
+        device_info: metadata.device_info && JSON.stringify(metadata.device_info),
+        sync_preferences: metadata.sync_preferences && JSON.stringify(metadata.sync_preferences)
       });
 
     if (error) throw error;

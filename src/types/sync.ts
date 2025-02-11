@@ -26,3 +26,11 @@ export interface SyncAnalytics {
   };
   errorDetails: Record<string, any>;
 }
+
+export interface SyncPerformance {
+  totalOperations: number;
+  successRate: number;
+  avgSyncTime: number;
+  errorRate: number;
+  mostCommonError: string;
+}
