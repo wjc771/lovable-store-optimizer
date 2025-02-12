@@ -87,7 +87,20 @@ i18next
             uploadWebhookUrl: "Upload Webhook URL",
             chatWebhookUrl: "Chat Webhook URL",
             enterUploadWebhookUrl: "Enter upload webhook URL",
-            enterChatWebhookUrl: "Enter chat webhook URL"
+            enterChatWebhookUrl: "Enter chat webhook URL",
+            reconciliation: {
+              title: "Reconciliation",
+              description: "Configure reconciliation settings and preferences",
+              threshold: "Threshold",
+              thresholdDescription: "Set the percentage difference that triggers a reconciliation alert",
+              autoResolve: "Auto Resolve",
+              autoResolveDescription: "Automatically resolve discrepancies within threshold",
+              defaultResolution: "Default Resolution",
+              selectResolution: "Select resolution method",
+              systemValue: "Use System Value",
+              uploadedValue: "Use Uploaded Value",
+              manualReview: "Manual Review"
+            }
           },
           upload: {
             title: "Upload Files",
@@ -114,7 +127,8 @@ i18next
               salesInventory: "Sales & Inventory",
               customersOrders: "Customers & Orders",
               financial: "Financial",
-              team: "Team"
+              team: "Team",
+              reconciliation: "Reconciliation"
             },
             financial: {
               revenue: "Revenue (7 days)",
@@ -243,7 +257,20 @@ i18next
             uploadWebhookUrl: "URL do Webhook de Upload",
             chatWebhookUrl: "URL do Webhook de Chat",
             enterUploadWebhookUrl: "Digite a URL do webhook de upload",
-            enterChatWebhookUrl: "Digite a URL do webhook de chat"
+            enterChatWebhookUrl: "Digite a URL do webhook de chat",
+            reconciliation: {
+              title: "Reconciliação",
+              description: "Configure as configurações e preferências de reconciliação",
+              threshold: "Limiar",
+              thresholdDescription: "Defina a diferença percentual que aciona um alerta de reconciliação",
+              autoResolve: "Resolução Automática",
+              autoResolveDescription: "Resolver automaticamente discrepâncias dentro do limiar",
+              defaultResolution: "Resolução Padrão",
+              selectResolution: "Selecione o método de resolução",
+              systemValue: "Usar Valor do Sistema",
+              uploadedValue: "Usar Valor Carregado",
+              manualReview: "Revisão Manual"
+            }
           },
           upload: {
             title: "Upload de Arquivos",
@@ -270,7 +297,8 @@ i18next
               salesInventory: "Vendas & Estoque",
               customersOrders: "Clientes & Pedidos",
               financial: "Financeiro",
-              team: "Equipe"
+              team: "Equipe",
+              reconciliation: "Reconciliação"
             },
             financial: {
               revenue: "Receita (7 dias)",
@@ -399,7 +427,20 @@ i18next
             uploadWebhookUrl: "URL del Webhook de Upload",
             chatWebhookUrl: "URL del Webhook de Chat",
             enterUploadWebhookUrl: "Ingrese la URL del webhook de upload",
-            enterChatWebhookUrl: "Ingrese la URL del webhook de chat"
+            enterChatWebhookUrl: "Ingrese la URL del webhook de chat",
+            reconciliation: {
+              title: "Reconciliación",
+              description: "Configurar ajustes y preferencias de reconciliación",
+              threshold: "Umbral",
+              thresholdDescription: "Establecer la diferencia porcentual que activa una alerta de reconciliación",
+              autoResolve: "Resolución Automática",
+              autoResolveDescription: "Resolver automáticamente discrepancias dentro del umbral",
+              defaultResolution: "Resolución Predeterminada",
+              selectResolution: "Seleccione el método de resolución",
+              systemValue: "Usar Valor del Sistema",
+              uploadedValue: "Usar Valor Cargado",
+              manualReview: "Revisión Manual"
+            }
           },
           upload: {
             title: "Subir Archivos",
@@ -426,7 +467,8 @@ i18next
               salesInventory: "Ventas & Inventario",
               customersOrders: "Clientes & Pedidos",
               financial: "Financiero",
-              team: "Equipo"
+              team: "Equipo",
+              reconciliation: "Reconciliación"
             },
             financial: {
               revenue: "Ingresos (7 días)",

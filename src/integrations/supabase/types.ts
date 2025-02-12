@@ -766,6 +766,7 @@ export type Database = {
           created_at: string
           id: string
           notification_preferences: Json | null
+          reconciliation_settings: Json | null
           store_id: string | null
           updated_at: string
           upload_webhook_url: string | null
@@ -776,6 +777,7 @@ export type Database = {
           created_at?: string
           id?: string
           notification_preferences?: Json | null
+          reconciliation_settings?: Json | null
           store_id?: string | null
           updated_at?: string
           upload_webhook_url?: string | null
@@ -786,6 +788,7 @@ export type Database = {
           created_at?: string
           id?: string
           notification_preferences?: Json | null
+          reconciliation_settings?: Json | null
           store_id?: string | null
           updated_at?: string
           upload_webhook_url?: string | null
