@@ -36,7 +36,14 @@ export const BusinessReconciliationSettings = () => {
         .maybeSingle();
 
       if (storeSettings?.reconciliation_settings) {
-        setSettings(storeSettings.reconciliation_settings as ReconciliationSettings);
+        const reconciliationSettings = storeSettings.reconciliation_settings as unknown as ReconciliationSettings;
+        if (
+          typeof reconciliationSettings.threshold === 'number' &&
+          typeof reconciliationSettings.autoResolve === 'boolean' &&
+          ['system', 'uploaded', 'manual'].includes(reconciliationSettings.defaultResolution)
+        ) {
+          setSettings(reconciliationSettings);
+        }
       }
     };
 
