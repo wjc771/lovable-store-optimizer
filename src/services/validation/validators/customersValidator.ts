@@ -2,6 +2,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult, CustomersValidationData } from '../types';
 
+interface SalesRecord {
+  amount: number;
+  created_at: string;
+}
+
 export async function validateCustomersRelationships(
   data: CustomersValidationData
 ): Promise<ValidationResult<CustomersValidationData>> {
@@ -23,7 +28,7 @@ export async function validateCustomersRelationships(
       .select('amount, created_at')
       .eq('customer_id', data.id);
 
-    const sales = salesData || [];
+    const sales = (salesData || []) as SalesRecord[];
     const actualTotalPurchases = sales.length;
 
     if (data.total_purchases !== undefined && data.total_purchases !== actualTotalPurchases) {
