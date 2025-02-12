@@ -9,7 +9,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
 import { SettingsProvider } from "@/contexts/SettingsContext";
-import { ReconciliationManager } from "@/components/reconciliation/ReconciliationManager";
+import ReconciliationManager from "@/components/reconciliation/ReconciliationManager"; // Fixed import
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
