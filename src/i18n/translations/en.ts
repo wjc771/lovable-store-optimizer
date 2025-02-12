@@ -164,5 +164,33 @@ export const englishTranslations = {
   chat: {
     title: "Chat",
     description: "Chat with your documents and get instant answers."
+  },
+  reconciliation: {
+    tabs: {
+      overview: "Overview",
+      upload: "Upload"
+    },
+    dashboard: {
+      title: "Reconciliation Dashboard",
+      filter: "Filter",
+      filterByStatus: "Filter by Status",
+      noJobs: "No reconciliation jobs found"
+    },
+    status: {
+      all: "All",
+      pending: "Pending",
+      inProgress: "In Progress",
+      completed: "Completed",
+      failed: "Failed"
+    },
+    fields: {
+      type: "Type",
+      createdAt: "Created At",
+      status: "Status",
+      actions: "Actions"
+    },
+    errors: {
+      loadFailed: "Failed to load reconciliation jobs"
+    }
   }
 };

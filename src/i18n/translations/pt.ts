@@ -164,5 +164,33 @@ export const portugueseTranslations = {
   chat: {
     title: "Chat",
     description: "Chat com seus documentos e obtenha respostas instantâneas."
+  },
+  reconciliation: {
+    tabs: {
+      overview: "Visão Geral",
+      upload: "Upload"
+    },
+    dashboard: {
+      title: "Painel de Reconciliação",
+      filter: "Filtrar",
+      filterByStatus: "Filtrar por Status",
+      noJobs: "Nenhum trabalho de reconciliação encontrado"
+    },
+    status: {
+      all: "Todos",
+      pending: "Pendente",
+      inProgress: "Em Andamento",
+      completed: "Concluído",
+      failed: "Falhou"
+    },
+    fields: {
+      type: "Tipo",
+      createdAt: "Criado em",
+      status: "Status",
+      actions: "Ações"
+    },
+    errors: {
+      loadFailed: "Falha ao carregar trabalhos de reconciliação"
+    }
   }
 };
