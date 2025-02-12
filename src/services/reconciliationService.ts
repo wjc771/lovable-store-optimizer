@@ -4,8 +4,13 @@ import {
   ReconciliationJob, 
   ReconciliationType,
   ReconciliationItem,
-  ResolutionType
+  ResolutionType,
+  ReconciliationStatus
 } from '@/types/reconciliation';
+import { Database } from '@/integrations/supabase/types';
+
+type ReconciliationJobResponse = Database['public']['Tables']['reconciliation_jobs']['Row'];
+type ReconciliationItemResponse = Database['public']['Tables']['reconciliation_items']['Row'];
 
 export async function createReconciliationJob(
   type: ReconciliationType,
@@ -30,7 +35,7 @@ export async function createReconciliationJob(
     return null;
   }
 
-  return job;
+  return job ? mapReconciliationJob(job) : null;
 }
 
 export async function getReconciliationJobs(storeId: string): Promise<ReconciliationJob[]> {
@@ -45,7 +50,7 @@ export async function getReconciliationJobs(storeId: string): Promise<Reconcilia
     return [];
   }
 
-  return jobs;
+  return jobs?.map(mapReconciliationJob) || [];
 }
 
 export async function getReconciliationItems(jobId: string): Promise<ReconciliationItem[]> {
@@ -60,7 +65,7 @@ export async function getReconciliationItems(jobId: string): Promise<Reconciliat
     return [];
   }
 
-  return items;
+  return items?.map(mapReconciliationItem) || [];
 }
 
 export async function resolveReconciliationItem(
@@ -98,4 +103,37 @@ export async function processReconciliationFile(fileId: string): Promise<void> {
   }
 
   return result;
+}
+
+// Helper functions to map database types to our interfaces
+function mapReconciliationJob(job: ReconciliationJobResponse): ReconciliationJob {
+  return {
+    id: job.id,
+    type: job.type as ReconciliationType,
+    status: job.status as ReconciliationStatus,
+    file_upload_id: job.file_upload_id || '',
+    created_at: job.created_at,
+    completed_at: job.completed_at || undefined,
+    created_by: job.created_by || '',
+    store_id: job.store_id || '',
+    metadata: job.metadata as Record<string, any>,
+    version: job.version || 1
+  };
+}
+
+function mapReconciliationItem(item: ReconciliationItemResponse): ReconciliationItem {
+  return {
+    id: item.id,
+    job_id: item.job_id,
+    table_name: item.table_name,
+    record_id: item.record_id || undefined,
+    system_value: item.system_value as Record<string, any>,
+    uploaded_value: item.uploaded_value as Record<string, any>,
+    status: item.status as ReconciliationItemStatus,
+    resolution: item.resolution as ResolutionType | undefined,
+    resolved_at: item.resolved_at || undefined,
+    resolved_by: item.resolved_by || undefined,
+    notes: item.notes || undefined,
+    version: item.version || 1
+  };
 }
