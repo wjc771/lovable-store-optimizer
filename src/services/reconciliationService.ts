@@ -5,7 +5,8 @@ import {
   ReconciliationType,
   ReconciliationItem,
   ResolutionType,
-  ReconciliationStatus
+  ReconciliationStatus,
+  ReconciliationItemStatus
 } from '@/types/reconciliation';
 import { Database } from '@/integrations/supabase/types';
 
