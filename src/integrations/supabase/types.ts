@@ -363,6 +363,173 @@ export type Database = {
         }
         Relationships: []
       }
+      reconciliation_history: {
+        Row: {
+          action: string
+          checksum: string | null
+          id: string
+          item_id: string
+          new_value: Json | null
+          performed_at: string
+          performed_by: string | null
+          previous_value: Json | null
+          store_id: string | null
+          version: number | null
+        }
+        Insert: {
+          action: string
+          checksum?: string | null
+          id?: string
+          item_id: string
+          new_value?: Json | null
+          performed_at?: string
+          performed_by?: string | null
+          previous_value?: Json | null
+          store_id?: string | null
+          version?: number | null
+        }
+        Update: {
+          action?: string
+          checksum?: string | null
+          id?: string
+          item_id?: string
+          new_value?: Json | null
+          performed_at?: string
+          performed_by?: string | null
+          previous_value?: Json | null
+          store_id?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_history_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_history_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_items: {
+        Row: {
+          checksum: string | null
+          id: string
+          job_id: string
+          notes: string | null
+          record_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          system_value: Json
+          table_name: string
+          uploaded_value: Json
+          version: number | null
+        }
+        Insert: {
+          checksum?: string | null
+          id?: string
+          job_id: string
+          notes?: string | null
+          record_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          system_value: Json
+          table_name: string
+          uploaded_value: Json
+          version?: number | null
+        }
+        Update: {
+          checksum?: string | null
+          id?: string
+          job_id?: string
+          notes?: string | null
+          record_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          system_value?: Json
+          table_name?: string
+          uploaded_value?: Json
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_jobs: {
+        Row: {
+          checksum: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          file_upload_id: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          store_id: string | null
+          type: string
+          version: number | null
+        }
+        Insert: {
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_upload_id?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          store_id?: string | null
+          type: string
+          version?: number | null
+        }
+        Update: {
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_upload_id?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          store_id?: string | null
+          type?: string
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_jobs_file_upload_id_fkey"
+            columns: ["file_upload_id"]
+            isOneToOne: false
+            referencedRelation: "file_uploads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_jobs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           amount: number
