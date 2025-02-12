@@ -9,10 +9,34 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { ReconciliationManager } from "@/components/reconciliation/ReconciliationManager";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 const BusinessControl = () => {
   const { isManager, loading } = usePermissions();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [storeId, setStoreId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStoreId = async () => {
+      if (!user) return;
+
+      const { data: staff } = await supabase
+        .from('staff')
+        .select('store_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (staff?.store_id) {
+        setStoreId(staff.store_id);
+      }
+    };
+
+    fetchStoreId();
+  }, [user]);
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
@@ -46,6 +70,7 @@ const BusinessControl = () => {
               <TabsTrigger value="customers">{t('business.tabs.customersOrders')}</TabsTrigger>
               <TabsTrigger value="financial">{t('business.tabs.financial')}</TabsTrigger>
               <TabsTrigger value="team">{t('business.tabs.team')}</TabsTrigger>
+              <TabsTrigger value="reconciliation">{t('business.tabs.reconciliation')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="sales" className="space-y-4">
@@ -62,6 +87,10 @@ const BusinessControl = () => {
             
             <TabsContent value="team" className="space-y-4">
               <TeamTab />
+            </TabsContent>
+
+            <TabsContent value="reconciliation" className="space-y-4">
+              {storeId && <ReconciliationManager storeId={storeId} />}
             </TabsContent>
           </Tabs>
         </div>
