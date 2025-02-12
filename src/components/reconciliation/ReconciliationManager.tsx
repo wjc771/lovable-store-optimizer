@@ -16,11 +16,21 @@ export default function ReconciliationManager({ storeId }: Props) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="dashboard">{t('reconciliation.tabs.overview')}</TabsTrigger>
+      <Tabs defaultValue="upload" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
           <TabsTrigger value="upload">{t('reconciliation.tabs.upload')}</TabsTrigger>
+          <TabsTrigger value="dashboard">{t('reconciliation.tabs.overview')}</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="upload" className="space-y-4">
+          <ReconciliationUpload 
+            storeId={storeId} 
+            onUploadComplete={() => {
+              setSelectedJobId(null);
+            }} 
+          />
+        </TabsContent>
+
         <TabsContent value="dashboard" className="space-y-4">
           {selectedJobId ? (
             <ReconciliationDetails
@@ -33,14 +43,6 @@ export default function ReconciliationManager({ storeId }: Props) {
               onViewDetails={setSelectedJobId}
             />
           )}
-        </TabsContent>
-        <TabsContent value="upload" className="space-y-4">
-          <ReconciliationUpload 
-            storeId={storeId} 
-            onUploadComplete={() => {
-              setSelectedJobId(null);
-            }} 
-          />
         </TabsContent>
       </Tabs>
     </div>
