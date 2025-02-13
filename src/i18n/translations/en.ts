@@ -1,4 +1,3 @@
-
 export const englishTranslations = {
   common: {
     dashboard: "Dashboard",
@@ -220,5 +219,24 @@ export const englishTranslations = {
     errors: {
       loadFailed: "Failed to load reconciliation jobs"
     }
+  },
+  products: {
+    productThresholds: "Product Thresholds",
+    productThresholdsDescription: "Set custom stock thresholds for specific products",
+    selectCategory: "Select Category",
+    allCategories: "All Categories",
+    searchProducts: "Search products...",
+    productName: "Product Name",
+    category: "Category",
+    categoryThreshold: "Category Threshold",
+    customThreshold: "Custom Threshold",
+    noCategory: "No Category",
+    low: "Low",
+    critical: "Critical",
+    resetToCategory: "Reset to category values",
+    thresholdsReset: "Thresholds reset successfully",
+    errorResettingThresholds: "Error resetting thresholds",
+    errorLoadingData: "Error loading data",
+    thresholdsUpdated: "Thresholds updated successfully"
   }
 };
