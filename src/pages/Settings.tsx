@@ -23,6 +23,7 @@ const SettingsContent = () => {
   const [chatWebhookUrl, setChatWebhookUrl] = useState("");
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [storeId, setStoreId] = useState<string | null>(null);
   const { toast } = useToast();
   const { theme, setTheme, language, setLanguage } = useSettings();
   const { t } = useTranslation();
@@ -34,68 +35,81 @@ const SettingsContent = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('store_settings')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        if (settingsError) throw settingsError;
-
-        if (settingsData) {
-          setUploadWebhookUrl(settingsData.upload_webhook_url || "");
-          setChatWebhookUrl(settingsData.chat_webhook_url || "");
-        }
-
-        const { data: staffData, error: staffError } = await supabase
+        // Primeiro, obter o store_id do usuário atual
+        const { data: staffData } = await supabase
           .from('staff')
-          .select(`
-            id,
-            name,
-            status,
-            staff_positions (
-              position_id,
-              positions (name)
-            )
-          `);
+          .select('store_id')
+          .eq('user_id', session.user.id)
+          .single();
 
-        if (staffError) throw staffError;
+        if (staffData?.store_id) {
+          setStoreId(staffData.store_id);
 
-        if (staffData) {
-          const typedStaffMembers: StaffMember[] = staffData.map(staff => ({
-            id: staff.id,
-            name: staff.name,
-            status: staff.status as "active" | "inactive",
-            positions: staff.staff_positions.map((sp: any) => sp.positions.name),
-            position_ids: staff.staff_positions.map((sp: any) => sp.position_id)
-          }));
-          setStaffMembers(typedStaffMembers);
-        }
+          // Agora buscar as configurações usando tanto user_id quanto store_id
+          const { data: settingsData, error: settingsError } = await supabase
+            .from('store_settings')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .eq('store_id', staffData.store_id)
+            .maybeSingle();
 
-        const { data: positionsData, error: positionsError } = await supabase
-          .from('positions')
-          .select('*');
+          if (settingsError) throw settingsError;
 
-        if (positionsError) throw positionsError;
+          if (settingsData) {
+            setUploadWebhookUrl(settingsData.upload_webhook_url || "");
+            setChatWebhookUrl(settingsData.chat_webhook_url || "");
+          }
 
-        if (positionsData) {
-          const typedPositions: Position[] = positionsData.map(pos => {
-            const permissionsData = pos.permissions as { [key: string]: boolean } || {};
-            return {
-              id: pos.id,
-              name: pos.name || '',
-              is_managerial: pos.is_managerial || false,
-              permissions: {
-                sales: permissionsData.sales || false,
-                inventory: permissionsData.inventory || false,
-                financial: permissionsData.financial || false,
-                customers: permissionsData.customers || false,
-                staff: permissionsData.staff || false,
-                settings: permissionsData.settings || false
-              }
-            };
-          });
-          setPositions(typedPositions);
+          const { data: staffMembersData, error: staffError } = await supabase
+            .from('staff')
+            .select(`
+              id,
+              name,
+              status,
+              staff_positions (
+                position_id,
+                positions (name)
+              )
+            `);
+
+          if (staffError) throw staffError;
+
+          if (staffMembersData) {
+            const typedStaffMembers: StaffMember[] = staffMembersData.map(staff => ({
+              id: staff.id,
+              name: staff.name,
+              status: staff.status as "active" | "inactive",
+              positions: staff.staff_positions.map((sp: any) => sp.positions.name),
+              position_ids: staff.staff_positions.map((sp: any) => sp.position_id)
+            }));
+            setStaffMembers(typedStaffMembers);
+          }
+
+          const { data: positionsData, error: positionsError } = await supabase
+            .from('positions')
+            .select('*');
+
+          if (positionsError) throw positionsError;
+
+          if (positionsData) {
+            const typedPositions: Position[] = positionsData.map(pos => {
+              const permissionsData = pos.permissions as { [key: string]: boolean } || {};
+              return {
+                id: pos.id,
+                name: pos.name || '',
+                is_managerial: pos.is_managerial || false,
+                permissions: {
+                  sales: permissionsData.sales || false,
+                  inventory: permissionsData.inventory || false,
+                  financial: permissionsData.financial || false,
+                  customers: permissionsData.customers || false,
+                  staff: permissionsData.staff || false,
+                  settings: permissionsData.settings || false
+                }
+              };
+            });
+            setPositions(typedPositions);
+          }
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -113,10 +127,10 @@ const SettingsContent = () => {
   const handleSaveSettings = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      if (!session || !storeId) {
         toast({
           title: "Error",
-          description: "You must be logged in to save settings",
+          description: "You must be logged in and associated with a store to save settings",
           variant: "destructive",
         });
         return;
@@ -126,6 +140,7 @@ const SettingsContent = () => {
         .from('store_settings')
         .upsert({
           user_id: session.user.id,
+          store_id: storeId,
           upload_webhook_url: uploadWebhookUrl,
           chat_webhook_url: chatWebhookUrl,
         });

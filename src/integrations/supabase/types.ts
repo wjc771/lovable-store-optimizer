@@ -769,7 +769,7 @@ export type Database = {
           id: string
           notification_preferences: Json | null
           reconciliation_settings: Json | null
-          store_id: string | null
+          store_id: string
           updated_at: string
           upload_webhook_url: string | null
           user_id: string
@@ -782,7 +782,7 @@ export type Database = {
           id?: string
           notification_preferences?: Json | null
           reconciliation_settings?: Json | null
-          store_id?: string | null
+          store_id: string
           updated_at?: string
           upload_webhook_url?: string | null
           user_id: string
@@ -795,7 +795,7 @@ export type Database = {
           id?: string
           notification_preferences?: Json | null
           reconciliation_settings?: Json | null
-          store_id?: string | null
+          store_id?: string
           updated_at?: string
           upload_webhook_url?: string | null
           user_id?: string
