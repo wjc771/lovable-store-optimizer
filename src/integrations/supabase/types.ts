@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      category_thresholds: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          critical_threshold: number | null
+          id: string
+          low_threshold: number | null
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          critical_threshold?: number | null
+          id?: string
+          low_threshold?: number | null
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          critical_threshold?: number | null
+          id?: string
+          low_threshold?: number | null
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_thresholds_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_thresholds_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           created_at: string
@@ -306,9 +351,47 @@ export type Database = {
           },
         ]
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          store_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          store_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
+          category_id: string | null
           checksum: string | null
+          custom_critical_threshold: number | null
+          custom_low_threshold: number | null
           id: string
           metadata: Json | null
           name: string | null
@@ -317,7 +400,10 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          category_id?: string | null
           checksum?: string | null
+          custom_critical_threshold?: number | null
+          custom_low_threshold?: number | null
           id: string
           metadata?: Json | null
           name?: string | null
@@ -326,7 +412,10 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          category_id?: string | null
           checksum?: string | null
+          custom_critical_threshold?: number | null
+          custom_low_threshold?: number | null
           id?: string
           metadata?: Json | null
           name?: string | null
@@ -334,7 +423,15 @@ export type Database = {
           store_id?: string | null
           version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -991,6 +1088,15 @@ export type Database = {
       generate_smart_actions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_product_thresholds: {
+        Args: {
+          product_id: string
+        }
+        Returns: {
+          low_threshold: number
+          critical_threshold: number
+        }[]
       }
     }
     Enums: {
