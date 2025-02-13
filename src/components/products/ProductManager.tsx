@@ -40,7 +40,7 @@ const ProductManager = () => {
         .from('products')
         .select(`
           *,
-          product_categories (
+          product_categories:category_id (
             id,
             name,
             description
@@ -49,7 +49,7 @@ const ProductManager = () => {
         .order('name');
 
       if (error) throw error;
-      return data as ProductWithCategory[];
+      return data as unknown as ProductWithCategory[];
     },
   });
 
