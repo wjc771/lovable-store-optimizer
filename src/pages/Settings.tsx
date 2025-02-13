@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle } from "lucide-react";
+import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { NotificationSettings } from "@/components/settings/NotificationSettings
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { StaffSettings } from "@/components/settings/StaffSettings";
 import { SmartActionsSettings } from "@/components/settings/SmartActionsSettings";
+import { ProductThresholds } from "@/components/products/ProductThresholds";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -248,6 +249,10 @@ const SettingsContent = () => {
             <AlertTriangle className="h-4 w-4" />
             {t('settings.smartActions')}
           </TabsTrigger>
+          <TabsTrigger value="product-thresholds" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            {t('products.productThresholds')}
+          </TabsTrigger>
           <TabsTrigger value="integrations" className="flex items-center gap-2">
             <Link className="h-4 w-4" />
             {t('settings.integrations')}
@@ -277,6 +282,10 @@ const SettingsContent = () => {
 
         <TabsContent value="smart-actions">
           <SmartActionsSettings />
+        </TabsContent>
+
+        <TabsContent value="product-thresholds">
+          <ProductThresholds />
         </TabsContent>
 
         <TabsContent value="integrations">
