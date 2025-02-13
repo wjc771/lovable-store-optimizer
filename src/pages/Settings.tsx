@@ -12,6 +12,7 @@ import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { StaffSettings } from "@/components/settings/StaffSettings";
 import { SmartActionsSettings } from "@/components/settings/SmartActionsSettings";
 import { ProductThresholds } from "@/components/products/ProductThresholds";
+import { CategoryManager } from "@/components/products/CategoryManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -249,9 +250,9 @@ const SettingsContent = () => {
             <AlertTriangle className="h-4 w-4" />
             {t('settings.smartActions')}
           </TabsTrigger>
-          <TabsTrigger value="product-thresholds" className="flex items-center gap-2">
+          <TabsTrigger value="products" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
-            {t('products.productThresholds')}
+            {t('products.productSettings')}
           </TabsTrigger>
           <TabsTrigger value="integrations" className="flex items-center gap-2">
             <Link className="h-4 w-4" />
@@ -284,8 +285,11 @@ const SettingsContent = () => {
           <SmartActionsSettings />
         </TabsContent>
 
-        <TabsContent value="product-thresholds">
-          <ProductThresholds />
+        <TabsContent value="products">
+          <div className="space-y-6">
+            <CategoryManager />
+            <ProductThresholds />
+          </div>
         </TabsContent>
 
         <TabsContent value="integrations">

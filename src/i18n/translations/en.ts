@@ -16,7 +16,8 @@ export const englishTranslations = {
     back: "Back",
     business: "Business",
     chat: "Chat",
-    reset: "Reset Defaults"
+    reset: "Reset Defaults",
+    actions: "Actions"
   },
   dashboard: {
     totalSales: "Total Sales",

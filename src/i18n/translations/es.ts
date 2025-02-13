@@ -1,4 +1,3 @@
-
 export const spanishTranslations = {
   common: {
     dashboard: "Panel",
@@ -17,7 +16,8 @@ export const spanishTranslations = {
     back: "Volver",
     business: "Negocios",
     chat: "Chat",
-    reset: "Restaurar Valores"
+    reset: "Restaurar Valores",
+    actions: "Acciones"
   },
   dashboard: {
     totalSales: "Ventas Totales",
@@ -192,5 +192,35 @@ export const spanishTranslations = {
   chat: {
     title: "Chat",
     description: "Chat con tus documentos y obtén respuestas instantáneas."
+  },
+  products: {
+    productThresholds: "Umbrales de Productos",
+    productThresholdsDescription: "Configure los umbrales de stock para productos específicos",
+    selectCategory: "Seleccionar Categoría",
+    allCategories: "Todas las Categorías",
+    searchProducts: "Buscar productos...",
+    productName: "Nombre del Producto",
+    category: "Categoría",
+    categoryThreshold: "Umbral de Categoría",
+    customThreshold: "Umbral Personalizado",
+    noCategory: "Sin Categoría",
+    low: "Bajo",
+    critical: "Crítico",
+    resetToCategory: "Restablecer a valores de categoría",
+    thresholdsReset: "Umbrales restablecidos con éxito",
+    errorResettingThresholds: "Error al restablecer umbrales",
+    errorLoadingData: "Error al cargar datos",
+    thresholdsUpdated: "Umbrales actualizados con éxito",
+    productSettings: "Configuración de Productos",
+    categories: "Categorías",
+    categoriesDescription: "Gestionar categorías de productos",
+    categoryName: "Nombre de Categoría",
+    description: "Descripción",
+    categoryAdded: "Categoría agregada con éxito",
+    errorAddingCategory: "Error al agregar categoría",
+    categoryDeleted: "Categoría eliminada con éxito",
+    errorDeletingCategory: "Error al eliminar categoría",
+    errorLoadingCategories: "Error al cargar categorías",
+    errorUpdatingThresholds: "Error al actualizar umbrales"
   }
 };
