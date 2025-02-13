@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult, CustomersValidationData } from '../types';
+import { z } from 'zod';
 
 interface SalesRecord {
   amount: number;
@@ -20,7 +21,12 @@ export async function validateCustomersRelationships(
         .maybeSingle();
 
       if (!store) {
-        throw new Error('Store not found');
+        const zodError = new z.ZodError([{
+          code: z.ZodIssueCode.custom,
+          path: ['store_id'],
+          message: 'Store not found'
+        }]);
+        throw zodError;
       }
     }
 
@@ -36,7 +42,12 @@ export async function validateCustomersRelationships(
 
       // Validate total_purchases if provided
       if (data.total_purchases !== undefined && data.total_purchases !== actualTotalPurchases) {
-        throw new Error('Total purchases does not match sales history');
+        const zodError = new z.ZodError([{
+          code: z.ZodIssueCode.custom,
+          path: ['total_purchases'],
+          message: 'Total purchases does not match sales history'
+        }]);
+        throw zodError;
       }
 
       // Validate last_purchase_date if provided and sales exist
@@ -46,24 +57,33 @@ export async function validateCustomersRelationships(
         const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
         if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
-          throw new Error('Last purchase date does not match sales history');
+          const zodError = new z.ZodError([{
+            code: z.ZodIssueCode.custom,
+            path: ['last_purchase_date'],
+            message: 'Last purchase date does not match sales history'
+          }]);
+          throw zodError;
         }
       }
     }
 
     return { success: true, data };
   } catch (error) {
-    if (error instanceof Error) {
+    if (error instanceof z.ZodError) {
       return {
         success: false,
         data,
-        errors: new Error(error.message)
+        errors: error
       };
     }
     return {
       success: false,
       data,
-      errors: new Error('Unknown validation error')
+      errors: new z.ZodError([{
+        code: z.ZodIssueCode.custom,
+        path: [],
+        message: 'Unknown validation error'
+      }])
     };
   }
 }

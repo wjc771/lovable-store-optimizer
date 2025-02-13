@@ -30,4 +30,5 @@ export interface ProductWithCategory {
   custom_critical_threshold?: number | null;
   metadata?: Json | null;
   version?: number | null;
+  threshold_id?: string | null;
 }
