@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Position, StaffMember } from "@/types/settings";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import ProductsSettings from "@/components/settings/ProductsSettings";
 
 const SettingsContent = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
@@ -286,10 +286,7 @@ const SettingsContent = () => {
         </TabsContent>
 
         <TabsContent value="products">
-          <div className="space-y-6">
-            <CategoryManager />
-            <ProductThresholds />
-          </div>
+          <ProductsSettings />
         </TabsContent>
 
         <TabsContent value="integrations">

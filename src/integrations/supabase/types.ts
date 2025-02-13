@@ -433,37 +433,46 @@ export type Database = {
       }
       products: {
         Row: {
+          active: boolean | null
           category_id: string
           checksum: string | null
           custom_critical_threshold: number | null
           custom_low_threshold: number | null
+          description: string | null
           id: string
           metadata: Json | null
           name: string | null
+          price: number | null
           stock: number | null
           store_id: string | null
           version: number | null
         }
         Insert: {
+          active?: boolean | null
           category_id: string
           checksum?: string | null
           custom_critical_threshold?: number | null
           custom_low_threshold?: number | null
+          description?: string | null
           id: string
           metadata?: Json | null
           name?: string | null
+          price?: number | null
           stock?: number | null
           store_id?: string | null
           version?: number | null
         }
         Update: {
+          active?: boolean | null
           category_id?: string
           checksum?: string | null
           custom_critical_threshold?: number | null
           custom_low_threshold?: number | null
+          description?: string | null
           id?: string
           metadata?: Json | null
           name?: string | null
+          price?: number | null
           stock?: number | null
           store_id?: string | null
           version?: number | null
