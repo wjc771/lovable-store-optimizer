@@ -1,3 +1,4 @@
+
 export const englishTranslations = {
   common: {
     dashboard: "Dashboard",
@@ -15,7 +16,8 @@ export const englishTranslations = {
     confirm: "Confirm",
     back: "Back",
     business: "Business",
-    chat: "Chat"
+    chat: "Chat",
+    reset: "Reset Defaults"
   },
   dashboard: {
     totalSales: "Total Sales",
@@ -44,6 +46,7 @@ export const englishTranslations = {
     business: "Business",
     notifications: "Notifications",
     staff: "Staff & Permissions",
+    smartActions: "Smart Actions",
     integrations: "Integrations",
     theme: "Theme",
     language: "Language",
@@ -79,6 +82,31 @@ export const englishTranslations = {
     chatWebhookUrl: "Chat Webhook URL",
     enterUploadWebhookUrl: "Enter upload webhook URL",
     enterChatWebhookUrl: "Enter chat webhook URL",
+
+    // Smart Actions translations
+    revenueAlerts: "Revenue Alerts",
+    revenueAlertsDescription: "Configure thresholds for daily revenue alerts",
+    revenueThreshold: "Revenue Threshold",
+    revenueThresholdTooltip: "Minimum expected daily revenue value",
+    percentageChange: "Percentage Change",
+    percentageChangeTooltip: "Percentage variation that will trigger an alert",
+    
+    inventoryAlerts: "Inventory Alerts",
+    inventoryAlertsDescription: "Configure alert levels for low stock items",
+    lowThreshold: "Low Level",
+    lowThresholdTooltip: "Quantity that defines a low stock item",
+    criticalThreshold: "Critical Level",
+    criticalThresholdTooltip: "Quantity that defines a critical stock item",
+    
+    paymentReminders: "Payment Reminders",
+    paymentRemindersDescription: "Configure reminders for pending payments",
+    reminderDays: "Reminder Days",
+    reminderDaysTooltip: "Number of days after which a reminder will be sent",
+    
+    errorLoadingThresholds: "Error loading settings",
+    errorSavingThresholds: "Error saving settings",
+    thresholdsSaved: "Settings saved successfully",
+
     reconciliation: {
       title: "Reconciliation",
       description: "Configure reconciliation settings and preferences",
