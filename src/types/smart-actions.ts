@@ -28,4 +28,6 @@ export interface SmartAction {
   created_at: string;
   expires_at?: string;
   dismissed_at?: string;
+  store_id?: string;
 }
+

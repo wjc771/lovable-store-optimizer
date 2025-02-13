@@ -30,14 +30,14 @@ const getActionIcon = (type: ActionType) => {
   }
 };
 
-const getPriorityColor = (priority: ActionPriority, type: ActionType) => {
-  switch (type) {
-    case 'revenue_alert':
+const getPriorityColor = (priority: ActionPriority) => {
+  switch (priority) {
+    case 'high':
       return 'bg-red-50';
-    case 'inventory_alert':
+    case 'medium':
       return 'bg-yellow-50';
-    case 'payment_reminder':
-      return 'bg-red-50';
+    case 'low':
+      return 'bg-blue-50';
     default:
       return 'bg-gray-50';
   }
@@ -69,7 +69,7 @@ const SmartActionCard = ({
   return (
     <Card className={cn(
       "transition-all duration-300",
-      getPriorityColor(priority, type),
+      getPriorityColor(priority),
       "animate-in fade-in-0 slide-in-from-bottom-5"
     )}>
       <div className="p-6">
@@ -141,3 +141,4 @@ const SmartActionCard = ({
 };
 
 export default SmartActionCard;
+

@@ -57,44 +57,59 @@ const SmartActionsFeed = () => {
   }, [refetch]);
 
   const handleDismiss = async (id: string) => {
-    const { error } = await supabase
-      .from('smart_actions')
-      .update({ 
-        status: 'dismissed', 
-        dismissed_at: new Date().toISOString() 
-      })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('smart_actions')
+        .update({ 
+          status: 'dismissed', 
+          dismissed_at: new Date().toISOString() 
+        })
+        .eq('id', id);
 
-    if (error) {
-      toast({
-        title: "Error dismissing action",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+      if (error) throw error;
+
       toast({
         title: "Action dismissed",
         description: "The action has been removed from your feed",
+      });
+      
+      // Atualiza a lista de ações
+      refetch();
+    } catch (error) {
+      console.error('Error dismissing action:', error);
+      toast({
+        title: "Error dismissing action",
+        description: "Failed to dismiss the action. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
   const handleAction = async (action: SmartAction) => {
-    switch (action.type) {
-      case 'revenue_alert':
-        navigate('/reports/revenue');
-        break;
-      case 'inventory_alert':
-        navigate('/inventory/reorder');
-        break;
-      case 'payment_reminder':
-        navigate('/finance/payments');
-        break;
-      default:
-        toast({
-          title: "Action triggered",
-          description: "Processing your request",
-        });
+    try {
+      switch (action.type) {
+        case 'revenue_alert':
+          navigate('/reports/revenue');
+          break;
+        case 'inventory_alert':
+          navigate('/inventory/reorder');
+          break;
+        case 'payment_reminder':
+          navigate('/finance/payments');
+          break;
+        default:
+          toast({
+            title: "Action triggered",
+            description: "Processing your request",
+          });
+      }
+    } catch (error) {
+      console.error('Error handling action:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process the action. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -135,3 +150,4 @@ const SmartActionsFeed = () => {
 };
 
 export default SmartActionsFeed;
+

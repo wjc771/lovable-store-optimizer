@@ -584,6 +584,50 @@ export type Database = {
           },
         ]
       }
+      smart_action_thresholds: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_critical_threshold: number | null
+          inventory_low_threshold: number | null
+          payment_reminder_days: number | null
+          revenue_alert_percentage: number | null
+          revenue_alert_threshold: number | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_critical_threshold?: number | null
+          inventory_low_threshold?: number | null
+          payment_reminder_days?: number | null
+          revenue_alert_percentage?: number | null
+          revenue_alert_threshold?: number | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_critical_threshold?: number | null
+          inventory_low_threshold?: number | null
+          payment_reminder_days?: number | null
+          revenue_alert_percentage?: number | null
+          revenue_alert_threshold?: number | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_action_thresholds_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smart_actions: {
         Row: {
           action_data: Json | null
