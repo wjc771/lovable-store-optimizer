@@ -23,28 +23,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useStore } from "@/contexts/StoreContext"; // Importando o contexto da loja
+import { useStore } from "@/contexts/StoreContext";
 import type { ProductWithCategory } from "@/types/products";
 
 const ProductManager = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { store } = useStore(); // Obtendo o store do contexto
+  const { store } = useStore();
   const [editingProduct, setEditingProduct] = useState<ProductWithCategory | null>(null);
   const [newProduct, setNewProduct] = useState(false);
 
   // Fetch products with categories
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', store?.id],
     queryFn: async () => {
       if (!store?.id) return [];
       
       const { data, error } = await supabase
         .from('products')
         .select(`
-          *,
-          product_categories:category_id (
+          id,
+          name,
+          description,
+          category_id,
+          stock,
+          price,
+          active,
+          category:product_categories!products_category_id_fkey (
             id,
             name,
             description
@@ -56,12 +62,12 @@ const ProductManager = () => {
       if (error) throw error;
       return data as unknown as ProductWithCategory[];
     },
-    enabled: !!store?.id, // Só executa se houver um store.id
+    enabled: !!store?.id,
   });
 
   // Fetch categories for the select input
   const { data: categories } = useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', store?.id],
     queryFn: async () => {
       if (!store?.id) return [];
 
@@ -91,7 +97,7 @@ const ProductManager = () => {
           category_id: product.category_id,
           stock: product.stock || 0,
           price: product.price || 0,
-          store_id: store.id, // Incluindo o store_id
+          store_id: store.id,
           active: true,
         })
         .select()
@@ -221,7 +227,7 @@ const ProductManager = () => {
               {products?.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.product_categories?.name || t('products.noCategory')}</TableCell>
+                  <TableCell>{product.category?.name || t('products.noCategory')}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <Button

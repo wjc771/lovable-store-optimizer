@@ -479,13 +479,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_products_category"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "product_categories"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
