@@ -386,6 +386,51 @@ export type Database = {
           },
         ]
       }
+      product_thresholds: {
+        Row: {
+          created_at: string
+          critical_threshold: number
+          id: string
+          low_threshold: number
+          product_id: string | null
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          critical_threshold?: number
+          id?: string
+          low_threshold?: number
+          product_id?: string | null
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          critical_threshold?: number
+          id?: string
+          low_threshold?: number
+          product_id?: string | null
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_thresholds_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_thresholds_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string | null
