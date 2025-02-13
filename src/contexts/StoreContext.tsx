@@ -153,6 +153,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session found');
 
+      // Primeiro, vamos verificar se já existe um registro
+      const { data: existingSettings } = await supabase
+        .from('store_settings')
+        .select('id')
+        .eq('store_id', store.id)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
       const updateData = {
         store_id: store.id,
         user_id: session.user.id,
@@ -161,9 +169,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...(settings.notification_preferences && { notification_preferences: settings.notification_preferences })
       };
 
-      const { error } = await supabase
-        .from('store_settings')
-        .upsert(updateData);
+      let error;
+
+      if (existingSettings?.id) {
+        // Se existe, atualizamos o registro existente
+        const result = await supabase
+          .from('store_settings')
+          .update(updateData)
+          .eq('id', existingSettings.id);
+        error = result.error;
+      } else {
+        // Se não existe, inserimos um novo registro
+        const result = await supabase
+          .from('store_settings')
+          .insert(updateData);
+        error = result.error;
+      }
 
       if (error) throw error;
 
