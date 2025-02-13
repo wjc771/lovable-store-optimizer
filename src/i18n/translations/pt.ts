@@ -1,3 +1,4 @@
+
 export const portugueseTranslations = {
   common: {
     dashboard: "Painel",
@@ -15,7 +16,8 @@ export const portugueseTranslations = {
     confirm: "Confirmar",
     back: "Voltar",
     business: "Negócios",
-    chat: "Chat"
+    chat: "Chat",
+    reset: "Restaurar Padrões"
   },
   dashboard: {
     totalSales: "Vendas Totais",
@@ -79,6 +81,32 @@ export const portugueseTranslations = {
     chatWebhookUrl: "URL do Webhook de Chat",
     enterUploadWebhookUrl: "Digite a URL do webhook de upload",
     enterChatWebhookUrl: "Digite a URL do webhook de chat",
+
+    // Novas traduções para Smart Actions
+    smartActions: "Ações Inteligentes",
+    revenueAlerts: "Alertas de Receita",
+    revenueAlertsDescription: "Configure os limites para alertas de receita diária",
+    revenueThreshold: "Limite de Receita",
+    revenueThresholdTooltip: "Valor mínimo de receita diária esperada",
+    percentageChange: "Variação Percentual",
+    percentageChangeTooltip: "Porcentagem de variação que acionará um alerta",
+    
+    inventoryAlerts: "Alertas de Estoque",
+    inventoryAlertsDescription: "Configure os níveis de alerta para itens com baixo estoque",
+    lowThreshold: "Nível Baixo",
+    lowThresholdTooltip: "Quantidade que define um item com estoque baixo",
+    criticalThreshold: "Nível Crítico",
+    criticalThresholdTooltip: "Quantidade que define um item com estoque crítico",
+    
+    paymentReminders: "Lembretes de Pagamento",
+    paymentRemindersDescription: "Configure os lembretes para pagamentos pendentes",
+    reminderDays: "Dias para Lembrete",
+    reminderDaysTooltip: "Número de dias após o qual um lembrete será enviado",
+    
+    errorLoadingThresholds: "Erro ao carregar as configurações",
+    errorSavingThresholds: "Erro ao salvar as configurações",
+    thresholdsSaved: "Configurações salvas com sucesso",
+    
     reconciliation: {
       title: "Reconciliação",
       description: "Configure as configurações e preferências de reconciliação",
