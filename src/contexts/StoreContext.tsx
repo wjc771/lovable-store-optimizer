@@ -68,20 +68,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             .from('store_settings')
             .select('*')
             .eq('store_id', staffData.store_id)
-            .single();
+            .maybeSingle();
 
           if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
 
           if (storeData) {
+            const defaultSettings: StoreSettings = {
+              general_preferences: { timezone: 'UTC' },
+              business_preferences: { inventoryAlert: 10, salesThreshold: 1000 },
+              notification_preferences: { emailFrequency: 'daily', pushNotifications: 'important' }
+            };
+
+            let parsedSettings: StoreSettings = defaultSettings;
+
+            if (settingsData) {
+              // Parse the JSON fields from the database
+              parsedSettings = {
+                general_preferences: typeof settingsData.general_preferences === 'object' ? 
+                  settingsData.general_preferences as StoreSettings['general_preferences'] : 
+                  defaultSettings.general_preferences,
+                business_preferences: typeof settingsData.business_preferences === 'object' ? 
+                  settingsData.business_preferences as StoreSettings['business_preferences'] : 
+                  defaultSettings.business_preferences,
+                notification_preferences: typeof settingsData.notification_preferences === 'object' ? 
+                  settingsData.notification_preferences as StoreSettings['notification_preferences'] : 
+                  defaultSettings.notification_preferences,
+              };
+            }
+
             setStore({
               id: storeData.id,
               businessName: storeData.business_name || 'My Store',
               settings: storeData.settings,
-              storeSettings: settingsData || {
-                general_preferences: { timezone: 'UTC' },
-                business_preferences: { inventoryAlert: 10, salesThreshold: 1000 },
-                notification_preferences: { emailFrequency: 'daily', pushNotifications: 'important' }
-              }
+              storeSettings: parsedSettings
             });
           }
         }
@@ -131,12 +150,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!store) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session found');
+
+      const updateData = {
+        store_id: store.id,
+        user_id: session.user.id,
+        ...(settings.general_preferences && { general_preferences: settings.general_preferences }),
+        ...(settings.business_preferences && { business_preferences: settings.business_preferences }),
+        ...(settings.notification_preferences && { notification_preferences: settings.notification_preferences })
+      };
+
       const { error } = await supabase
         .from('store_settings')
-        .upsert({
-          store_id: store.id,
-          ...settings
-        });
+        .upsert(updateData);
 
       if (error) throw error;
 
