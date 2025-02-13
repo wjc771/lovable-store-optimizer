@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Store {
   id: string;
   businessName: string;
-  settings: Record<string, any>;
+  settings: Json | null; // Changed from Record<string, any> to Json | null to match Supabase types
 }
 
 interface StoreContextType {
@@ -51,7 +51,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setStore({
               id: storeData.id,
               businessName: storeData.business_name || 'My Store',
-              settings: storeData.settings || {}
+              settings: storeData.settings
             });
           }
         }
