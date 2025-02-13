@@ -79,6 +79,11 @@ export function ProductThresholds() {
             .from('products')
             .select(`
               *,
+              product_categories (
+                id,
+                name,
+                description
+              ),
               product_thresholds (
                 id,
                 low_threshold,
@@ -120,7 +125,7 @@ export function ProductThresholds() {
       if (!product) return;
 
       const thresholdData: ThresholdData = {
-        id: product.threshold_id, // Include the existing ID if it exists
+        id: product.threshold_id,
         product_id: productId,
         store_id: storeId,
         low_threshold: lowThreshold,

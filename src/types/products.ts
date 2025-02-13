@@ -35,5 +35,10 @@ export interface ProductWithCategory {
   version?: number | null;
   checksum?: string | null;
   product_categories?: ProductCategory | null;
+  threshold_id?: string | null;
+  product_thresholds?: Array<{
+    id: string;
+    low_threshold: number;
+    critical_threshold: number;
+  }> | null;
 }
-
