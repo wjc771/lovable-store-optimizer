@@ -18,6 +18,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Position, StaffMember } from "@/types/settings";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 const SettingsContent = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
@@ -295,7 +296,9 @@ const SettingsContent = () => {
 const Settings = () => {
   return (
     <DashboardLayout>
-      <SettingsContent />
+      <SettingsProvider>
+        <SettingsContent />
+      </SettingsProvider>
     </DashboardLayout>
   );
 };
