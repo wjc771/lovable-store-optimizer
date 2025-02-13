@@ -3,13 +3,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStore } from "@/contexts/StoreContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "@/hooks/usePermissions";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const [storeName] = useState("My Store");
+  const { store } = useStore();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -41,7 +42,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-foreground">{storeName}</h1>
+              <h1 className="text-xl font-semibold text-foreground">
+                {store?.businessName || t('common.loading')}
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" onClick={handleLogout}>

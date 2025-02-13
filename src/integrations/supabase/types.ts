@@ -812,16 +812,19 @@ export type Database = {
       }
       stores: {
         Row: {
+          business_name: string
           id: string
           name: string
           settings: Json | null
         }
         Insert: {
+          business_name?: string
           id?: string
           name?: string
           settings?: Json | null
         }
         Update: {
+          business_name?: string
           id?: string
           name?: string
           settings?: Json | null
