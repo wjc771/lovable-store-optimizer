@@ -433,7 +433,7 @@ export type Database = {
       }
       products: {
         Row: {
-          category_id: string | null
+          category_id: string
           checksum: string | null
           custom_critical_threshold: number | null
           custom_low_threshold: number | null
@@ -445,7 +445,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
-          category_id?: string | null
+          category_id: string
           checksum?: string | null
           custom_critical_threshold?: number | null
           custom_low_threshold?: number | null
@@ -457,7 +457,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
-          category_id?: string | null
+          category_id?: string
           checksum?: string | null
           custom_critical_threshold?: number | null
           custom_low_threshold?: number | null
@@ -469,6 +469,13 @@ export type Database = {
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_products_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
