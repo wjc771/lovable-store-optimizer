@@ -4,16 +4,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Json } from '@/integrations/supabase/types';
 
+interface StoreSettings {
+  general_preferences: {
+    timezone: string;
+  };
+  business_preferences: {
+    inventoryAlert: number;
+    salesThreshold: number;
+  };
+  notification_preferences: {
+    emailFrequency: 'instant' | 'daily' | 'weekly';
+    pushNotifications: 'all' | 'important' | 'none';
+  };
+}
+
 interface Store {
   id: string;
   businessName: string;
-  settings: Json | null; // Changed from Record<string, any> to Json | null to match Supabase types
+  settings: Json | null;
+  storeSettings?: StoreSettings;
 }
 
 interface StoreContextType {
   store: Store | null;
   setStore: (store: Store | null) => void;
   updateStoreName: (name: string) => Promise<void>;
+  updateStoreSettings: (settings: Partial<StoreSettings>) => Promise<void>;
   loading: boolean;
 }
 
@@ -40,19 +56,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .single();
 
         if (staffData?.store_id) {
-          const { data: storeData, error } = await supabase
+          const { data: storeData, error: storeError } = await supabase
             .from('stores')
             .select('*')
             .eq('id', staffData.store_id)
             .single();
 
-          if (error) throw error;
+          if (storeError) throw storeError;
+
+          const { data: settingsData, error: settingsError } = await supabase
+            .from('store_settings')
+            .select('*')
+            .eq('store_id', staffData.store_id)
+            .single();
+
+          if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
 
           if (storeData) {
             setStore({
               id: storeData.id,
               businessName: storeData.business_name || 'My Store',
-              settings: storeData.settings
+              settings: storeData.settings,
+              storeSettings: settingsData || {
+                general_preferences: { timezone: 'UTC' },
+                business_preferences: { inventoryAlert: 10, salesThreshold: 1000 },
+                notification_preferences: { emailFrequency: 'daily', pushNotifications: 'important' }
+              }
             });
           }
         }
@@ -98,8 +127,46 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const updateStoreSettings = async (settings: Partial<StoreSettings>) => {
+    if (!store) return;
+
+    try {
+      const { error } = await supabase
+        .from('store_settings')
+        .upsert({
+          store_id: store.id,
+          ...settings
+        });
+
+      if (error) throw error;
+
+      setStore(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          storeSettings: {
+            ...prev.storeSettings,
+            ...settings
+          } as StoreSettings
+        };
+      });
+
+      toast({
+        title: "Success",
+        description: "Settings updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating store settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update settings",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <StoreContext.Provider value={{ store, setStore, updateStoreName, loading }}>
+    <StoreContext.Provider value={{ store, setStore, updateStoreName, updateStoreSettings, loading }}>
       {children}
     </StoreContext.Provider>
   );
