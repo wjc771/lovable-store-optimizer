@@ -222,10 +222,9 @@ export const portugueseTranslations = {
     }
   },
   products: {
-    productThresholds: "Limites de Produtos",
-    productThresholdsDescription: "Defina limites de estoque personalizados para produtos específicos",
-    products: "Produtos",
+    productSettings: "Configurações de Produtos",
     manageProducts: "Gerenciar produtos e estoque",
+    products: "Produtos",
     productName: "Nome do produto",
     stock: "Estoque",
     selectCategory: "Selecionar categoria",
@@ -252,6 +251,10 @@ export const portugueseTranslations = {
     thresholdsReset: "Limites resetados com sucesso",
     errorResettingThresholds: "Erro ao resetar limites",
     noCategory: "Sem categoria",
-    productSettings: "Configurações de Produtos"
+    productThresholds: "Limites de Produtos",
+    productThresholdsDescription: "Defina limites de estoque personalizados para produtos específicos",
+    low: "Baixo",
+    critical: "Crítico",
+    resetToCategory: "Restaurar valores da categoria"
   }
 };
