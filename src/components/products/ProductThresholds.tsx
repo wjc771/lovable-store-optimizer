@@ -59,7 +59,7 @@ export function ProductThresholds() {
           .from('staff')
           .select('store_id')
           .eq('user_id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (staffData?.store_id) {
           setStoreId(staffData.store_id);
@@ -91,7 +91,8 @@ export function ProductThresholds() {
             setProducts(productsData.map((product: any) => ({
               ...product,
               custom_low_threshold: product.product_thresholds?.[0]?.low_threshold,
-              custom_critical_threshold: product.product_thresholds?.[0]?.critical_threshold
+              custom_critical_threshold: product.product_thresholds?.[0]?.critical_threshold,
+              threshold_id: product.product_thresholds?.[0]?.id
             })));
           }
         }
@@ -114,7 +115,12 @@ export function ProductThresholds() {
     if (!storeId) return;
 
     try {
+      // Get the current product to check if it already has a threshold
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
       const thresholdData: ThresholdData = {
+        id: product.threshold_id, // Include the existing ID if it exists
         product_id: productId,
         store_id: storeId,
         low_threshold: lowThreshold,
@@ -123,19 +129,21 @@ export function ProductThresholds() {
 
       const { error } = await supabase
         .from('product_thresholds')
-        .upsert(thresholdData);
+        .upsert(thresholdData, {
+          onConflict: 'product_id,store_id'
+        });
 
       if (error) throw error;
 
-      setProducts(products.map(product => {
-        if (product.id === productId) {
+      setProducts(products.map(p => {
+        if (p.id === productId) {
           return {
-            ...product,
+            ...p,
             custom_low_threshold: lowThreshold,
             custom_critical_threshold: criticalThreshold
           };
         }
-        return product;
+        return p;
       }));
 
       toast({
@@ -166,7 +174,8 @@ export function ProductThresholds() {
           return {
             ...product,
             custom_low_threshold: null,
-            custom_critical_threshold: null
+            custom_critical_threshold: null,
+            threshold_id: null
           };
         }
         return product;
