@@ -21,12 +21,15 @@ export async function validateCustomersRelationships(
         .maybeSingle();
 
       if (!store) {
-        const zodError = new z.ZodError([{
-          code: z.ZodIssueCode.custom,
-          path: ['store_id'],
-          message: 'Store not found'
-        }]);
-        throw zodError;
+        return {
+          success: false,
+          data,
+          errors: new z.ZodError([{
+            code: z.ZodIssueCode.custom,
+            path: ['store_id'],
+            message: 'Store not found'
+          }])
+        };
       }
     }
 
@@ -42,12 +45,15 @@ export async function validateCustomersRelationships(
 
       // Validate total_purchases if provided
       if (data.total_purchases !== undefined && data.total_purchases !== actualTotalPurchases) {
-        const zodError = new z.ZodError([{
-          code: z.ZodIssueCode.custom,
-          path: ['total_purchases'],
-          message: 'Total purchases does not match sales history'
-        }]);
-        throw zodError;
+        return {
+          success: false,
+          data,
+          errors: new z.ZodError([{
+            code: z.ZodIssueCode.custom,
+            path: ['total_purchases'],
+            message: 'Total purchases does not match sales history'
+          }])
+        };
       }
 
       // Validate last_purchase_date if provided and sales exist
@@ -57,12 +63,15 @@ export async function validateCustomersRelationships(
         const providedLastPurchaseDate = new Date(data.last_purchase_date);
 
         if (lastSaleDate.getTime() !== providedLastPurchaseDate.getTime()) {
-          const zodError = new z.ZodError([{
-            code: z.ZodIssueCode.custom,
-            path: ['last_purchase_date'],
-            message: 'Last purchase date does not match sales history'
-          }]);
-          throw zodError;
+          return {
+            success: false,
+            data,
+            errors: new z.ZodError([{
+              code: z.ZodIssueCode.custom,
+              path: ['last_purchase_date'],
+              message: 'Last purchase date does not match sales history'
+            }])
+          };
         }
       }
     }

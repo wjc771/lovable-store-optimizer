@@ -34,7 +34,7 @@ export interface ProductWithCategory {
   metadata?: Json | null;
   version?: number | null;
   checksum?: string | null;
-  product_categories?: ProductCategory | null;
+  category?: ProductCategory | null;
   threshold_id?: string | null;
   product_thresholds?: Array<{
     id: string;
@@ -42,3 +42,4 @@ export interface ProductWithCategory {
     critical_threshold: number;
   }> | null;
 }
+
