@@ -23,12 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useStore } from "@/contexts/StoreContext"; // Importando o contexto da loja
 import type { ProductWithCategory } from "@/types/products";
 
 const ProductManager = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { store } = useStore(); // Obtendo o store do contexto
   const [editingProduct, setEditingProduct] = useState<ProductWithCategory | null>(null);
   const [newProduct, setNewProduct] = useState(false);
 
@@ -36,6 +38,8 @@ const ProductManager = () => {
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
+      if (!store?.id) return [];
+      
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -46,30 +50,38 @@ const ProductManager = () => {
             description
           )
         `)
+        .eq('store_id', store.id)
         .order('name');
 
       if (error) throw error;
       return data as unknown as ProductWithCategory[];
     },
+    enabled: !!store?.id, // Só executa se houver um store.id
   });
 
   // Fetch categories for the select input
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
+      if (!store?.id) return [];
+
       const { data, error } = await supabase
         .from('product_categories')
         .select('*')
+        .eq('store_id', store.id)
         .order('name');
 
       if (error) throw error;
       return data;
     },
+    enabled: !!store?.id,
   });
 
   // Mutation for creating/updating products
   const productMutation = useMutation({
     mutationFn: async (product: Partial<ProductWithCategory>) => {
+      if (!store?.id) throw new Error('No store selected');
+
       const { data, error } = await supabase
         .from('products')
         .upsert({
@@ -79,6 +91,7 @@ const ProductManager = () => {
           category_id: product.category_id,
           stock: product.stock || 0,
           price: product.price || 0,
+          store_id: store.id, // Incluindo o store_id
           active: true,
         })
         .select()
