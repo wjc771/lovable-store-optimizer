@@ -1,10 +1,12 @@
 
+import type { Json } from "@/integrations/supabase/types";
+
 export interface ProductCategory {
   id: string;
   name: string;
   description?: string;
   store_id?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Json;
   created_at?: string;
 }
 
@@ -26,6 +28,6 @@ export interface ProductWithCategory {
   store_id?: string | null;
   custom_low_threshold?: number | null;
   custom_critical_threshold?: number | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: Json | null;
   version?: number | null;
 }
