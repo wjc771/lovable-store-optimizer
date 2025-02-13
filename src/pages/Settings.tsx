@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages } from "lucide-react";
+import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { BusinessSettings } from "@/components/settings/BusinessSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { StaffSettings } from "@/components/settings/StaffSettings";
+import { SmartActionsSettings } from "@/components/settings/SmartActionsSettings";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -242,6 +243,10 @@ const SettingsContent = () => {
             <Users className="h-4 w-4" />
             {t('settings.staff')}
           </TabsTrigger>
+          <TabsTrigger value="smart-actions" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {t('settings.smartActions')}
+          </TabsTrigger>
           <TabsTrigger value="integrations" className="flex items-center gap-2">
             <Link className="h-4 w-4" />
             {t('settings.integrations')}
@@ -269,6 +274,10 @@ const SettingsContent = () => {
           />
         </TabsContent>
 
+        <TabsContent value="smart-actions">
+          <SmartActionsSettings />
+        </TabsContent>
+
         <TabsContent value="integrations">
           <IntegrationSettings
             uploadWebhookUrl={uploadWebhookUrl}
@@ -292,4 +301,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
