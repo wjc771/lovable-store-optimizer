@@ -1,4 +1,3 @@
-
 export const portugueseTranslations = {
   common: {
     dashboard: "Painel",
@@ -17,7 +16,8 @@ export const portugueseTranslations = {
     back: "Voltar",
     business: "Negócios",
     chat: "Chat",
-    reset: "Restaurar Padrões"
+    reset: "Restaurar Padrões",
+    actions: "Ações"
   },
   dashboard: {
     totalSales: "Vendas Totais",
@@ -220,5 +220,24 @@ export const portugueseTranslations = {
     errors: {
       loadFailed: "Falha ao carregar trabalhos de reconciliação"
     }
+  },
+  products: {
+    productThresholds: "Limites por Produto",
+    productThresholdsDescription: "Defina limites de estoque personalizados para produtos específicos",
+    selectCategory: "Selecionar Categoria",
+    allCategories: "Todas as Categorias",
+    searchProducts: "Buscar produtos...",
+    productName: "Nome do Produto",
+    category: "Categoria",
+    categoryThreshold: "Limite da Categoria",
+    customThreshold: "Limite Personalizado",
+    noCategory: "Sem Categoria",
+    low: "Baixo",
+    critical: "Crítico",
+    resetToCategory: "Resetar para valores da categoria",
+    thresholdsReset: "Limites resetados com sucesso",
+    errorResettingThresholds: "Erro ao resetar limites",
+    errorLoadingData: "Erro ao carregar dados",
+    thresholdsUpdated: "Limites atualizados com sucesso"
   }
 };
