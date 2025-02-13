@@ -64,7 +64,7 @@ const BusinessControl = () => {
             <h2 className="text-3xl font-bold tracking-tight">{t('business.title')}</h2>
           </div>
           
-          <Tabs defaultValue="reconciliation" className="space-y-4">
+          <Tabs defaultValue="sales" className="space-y-4">
             <TabsList className="flex flex-wrap">
               <TabsTrigger value="sales">{t('business.tabs.salesInventory')}</TabsTrigger>
               <TabsTrigger value="customers">{t('business.tabs.customersOrders')}</TabsTrigger>

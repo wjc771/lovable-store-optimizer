@@ -762,8 +762,10 @@ export type Database = {
       }
       store_settings: {
         Row: {
+          business_preferences: Json | null
           chat_webhook_url: string | null
           created_at: string
+          general_preferences: Json | null
           id: string
           notification_preferences: Json | null
           reconciliation_settings: Json | null
@@ -773,8 +775,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_preferences?: Json | null
           chat_webhook_url?: string | null
           created_at?: string
+          general_preferences?: Json | null
           id?: string
           notification_preferences?: Json | null
           reconciliation_settings?: Json | null
@@ -784,8 +788,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_preferences?: Json | null
           chat_webhook_url?: string | null
           created_at?: string
+          general_preferences?: Json | null
           id?: string
           notification_preferences?: Json | null
           reconciliation_settings?: Json | null
@@ -812,7 +818,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          name: string
+          name?: string
           settings?: Json | null
         }
         Update: {
