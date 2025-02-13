@@ -23,6 +23,8 @@ export interface CategoryThreshold {
 export interface ProductWithCategory {
   id: string;
   name: string | null;
+  description?: string | null;
+  price?: number | null;
   stock: number | null;
   category_id?: string | null;
   store_id?: string | null;
@@ -31,4 +33,6 @@ export interface ProductWithCategory {
   metadata?: Json | null;
   version?: number | null;
   threshold_id?: string | null;
+  product_categories?: ProductCategory;
 }
+
