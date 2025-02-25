@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +34,10 @@ interface StoreData {
 interface StaffMember {
   id: string;
   name: string;
-  email: string;
-  role: string;
+  user_id: string;
   status: string;
+  email?: string;
+  role?: string;
 }
 
 const StoreDetails = () => {
@@ -63,7 +63,7 @@ const StoreDetails = () => {
     },
   });
 
-  // Fetch staff members
+  // Fetch staff members with profiles
   const { data: staff, isLoading: isLoadingStaff } = useQuery({
     queryKey: ["store-staff", id],
     queryFn: async () => {
@@ -73,12 +73,24 @@ const StoreDetails = () => {
           id,
           name,
           user_id,
-          status
+          status,
+          profiles:user_id (
+            email
+          )
         `)
         .eq("store_id", id);
 
       if (error) throw error;
-      return data as StaffMember[];
+
+      // Transform the data to match StaffMember interface
+      return (data || []).map(staff => ({
+        id: staff.id,
+        name: staff.name,
+        user_id: staff.user_id,
+        status: staff.status,
+        email: staff.profiles?.email,
+        role: 'staff' // Default role
+      })) as StaffMember[];
     },
   });
 

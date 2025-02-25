@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import { StoreProvider } from "@/contexts/StoreContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
+import { supabase } from "@/lib/supabase";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Settings from "./pages/Settings";
