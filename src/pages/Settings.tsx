@@ -21,6 +21,7 @@ import { Position, StaffMember } from "@/types/settings";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import ProductsSettings from "@/components/settings/ProductsSettings";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const SettingsContent = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
@@ -32,6 +33,7 @@ const SettingsContent = () => {
   const { theme, setTheme, language, setLanguage } = useSettings();
   const { t } = useTranslation();
   const { isManager, loading } = usePermissions();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const loadData = async () => {
@@ -39,7 +41,6 @@ const SettingsContent = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        // Primeiro, obter o store_id do usuário atual
         const { data: staffData } = await supabase
           .from('staff')
           .select('store_id')
@@ -49,7 +50,6 @@ const SettingsContent = () => {
         if (staffData?.store_id) {
           setStoreId(staffData.store_id);
 
-          // Agora buscar as configurações usando tanto user_id quanto store_id
           const { data: settingsData, error: settingsError } = await supabase
             .from('store_settings')
             .select('*')
@@ -188,7 +188,7 @@ const SettingsContent = () => {
       </div>
       
       <div className="space-y-4">
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <Select value={theme} onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder={t('settings.theme')} />
@@ -229,36 +229,38 @@ const SettingsContent = () => {
       </div>
       
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" />
-            {t('settings.general')}
-          </TabsTrigger>
-          <TabsTrigger value="business" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            {t('settings.business')}
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            {t('settings.notifications')}
-          </TabsTrigger>
-          <TabsTrigger value="staff" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            {t('settings.staff')}
-          </TabsTrigger>
-          <TabsTrigger value="smart-actions" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            {t('settings.smartActions')}
-          </TabsTrigger>
-          <TabsTrigger value="products" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            {t('products.productSettings')}
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="flex items-center gap-2">
-            <Link className="h-4 w-4" />
-            {t('settings.integrations')}
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 px-4 overflow-x-auto scrollbar-none touch-pan-x">
+          <TabsList className="inline-flex w-full md:w-auto border-b border-border pb-px mb-4">
+            <TabsTrigger value="general" className="flex items-center gap-2 whitespace-nowrap">
+              <SettingsIcon className="h-4 w-4" />
+              {!isMobile && t('settings.general')}
+            </TabsTrigger>
+            <TabsTrigger value="business" className="flex items-center gap-2 whitespace-nowrap">
+              <BarChart3 className="h-4 w-4" />
+              {!isMobile && t('settings.business')}
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2 whitespace-nowrap">
+              <Bell className="h-4 w-4" />
+              {!isMobile && t('settings.notifications')}
+            </TabsTrigger>
+            <TabsTrigger value="staff" className="flex items-center gap-2 whitespace-nowrap">
+              <Users className="h-4 w-4" />
+              {!isMobile && t('settings.staff')}
+            </TabsTrigger>
+            <TabsTrigger value="smart-actions" className="flex items-center gap-2 whitespace-nowrap">
+              <AlertTriangle className="h-4 w-4" />
+              {!isMobile && t('settings.smartActions')}
+            </TabsTrigger>
+            <TabsTrigger value="products" className="flex items-center gap-2 whitespace-nowrap">
+              <Package className="h-4 w-4" />
+              {!isMobile && t('products.productSettings')}
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2 whitespace-nowrap">
+              <Link className="h-4 w-4" />
+              {!isMobile && t('settings.integrations')}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="general">
           <GeneralSettings />
