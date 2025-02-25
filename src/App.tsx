@@ -16,6 +16,52 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import BusinessControl from "./pages/BusinessControl";
 import Chat from "./pages/Chat";
+import StoreManagement from "./pages/admin/StoreManagement";
+import StoreDetails from "./pages/admin/StoreDetails";
+
+// Protected route component that also checks admin status
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth" />;
+  }
+
+  // Check if user is admin
+  const checkAdmin = async () => {
+    const { data, error } = await supabase
+      .from('system_admins')
+      .select('status')
+      .eq('id', user.id)
+      .single();
+
+    return data?.status === 'active';
+  };
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    checkAdmin().then(result => {
+      setIsAdmin(result);
+      setChecking(false);
+    });
+  }, [user]);
+
+  if (checking) {
+    return <div>Checking permissions...</div>;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -42,7 +88,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/" />;
   }
 
-  return <>{children}</>;
+  return children;
 };
 
 const AppRoutes = () => {
@@ -86,6 +132,22 @@ const AppRoutes = () => {
           <PrivateRoute>
             <Chat />
           </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/stores"
+        element={
+          <AdminRoute>
+            <StoreManagement />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/stores/:id"
+        element={
+          <AdminRoute>
+            <StoreDetails />
+          </AdminRoute>
         }
       />
       <Route
