@@ -955,6 +955,53 @@ export type Database = {
           },
         ]
       }
+      store_invites: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          metadata: Json | null
+          role: string
+          status: string | null
+          store_id: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          status?: string | null
+          store_id?: string | null
+          token: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          status?: string | null
+          store_id?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_invites_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_settings: {
         Row: {
           business_preferences: Json | null
@@ -1008,21 +1055,36 @@ export type Database = {
       stores: {
         Row: {
           business_name: string
+          created_at: string | null
+          created_by: string | null
           id: string
+          metadata: Json | null
           name: string
+          owner_id: string | null
           settings: Json | null
+          status: string | null
         }
         Insert: {
           business_name?: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
+          metadata?: Json | null
           name?: string
+          owner_id?: string | null
           settings?: Json | null
+          status?: string | null
         }
         Update: {
           business_name?: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
+          metadata?: Json | null
           name?: string
+          owner_id?: string | null
           settings?: Json | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -1053,6 +1115,24 @@ export type Database = {
           store_id?: string | null
           sync_type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      system_admins: {
+        Row: {
+          created_at: string
+          id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string | null
         }
         Relationships: []
       }
@@ -1152,9 +1232,22 @@ export type Database = {
           critical_threshold: number
         }[]
       }
+      is_saas_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
+      is_store_owner: {
+        Args: {
+          user_id: string
+          store_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      system_role: "saas_admin" | "store_admin" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never

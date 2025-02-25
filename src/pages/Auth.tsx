@@ -12,16 +12,24 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [inviteToken, setInviteToken] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Check if we have an invite token in the URL
+  useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      setInviteToken(token);
+    }
+  }, []);
+
   const validateEmail = (email: string) => {
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return "Please enter a valid email address";
     }
-    // Prevent test@example.com which Supabase rejects
     if (email.toLowerCase().includes("example.com")) {
       return "Please use a real email address (example.com is not allowed)";
     }
@@ -31,7 +39,6 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate email before making the request
     const emailError = validateEmail(email);
     if (emailError) {
       toast({
@@ -43,7 +50,8 @@ const Auth = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Start a transaction to handle signup and role assignment
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -53,15 +61,16 @@ const Auth = () => {
         },
       });
       
-      if (error) {
-        let errorMessage = error.message;
-        // Handle specific error cases
-        if (error.message.includes("email_address_invalid")) {
-          errorMessage = "Please enter a valid email address";
-        } else if (error.message.includes("over_email_send_rate_limit")) {
-          errorMessage = "Please wait a minute before trying to sign up again";
-        }
-        throw new Error(errorMessage);
+      if (signUpError) throw signUpError;
+
+      if (inviteToken) {
+        // Handle store invite signup
+        const { error: inviteError } = await supabase.from('store_invites')
+          .update({ status: 'accepted' })
+          .eq('token', inviteToken)
+          .single();
+
+        if (inviteError) throw inviteError;
       }
       
       toast({
@@ -80,7 +89,6 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate email before making the request
     const emailError = validateEmail(email);
     if (emailError) {
       toast({
@@ -92,13 +100,46 @@ const Auth = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (error) throw error;
       
-      navigate("/");
+      if (error) throw error;
+
+      // Check user roles and redirect accordingly
+      const { data: adminData } = await supabase
+        .from('system_admins')
+        .select('status')
+        .eq('id', user?.id)
+        .single();
+
+      if (adminData?.status === 'active') {
+        navigate("/admin/stores");
+      } else {
+        const { data: staffData } = await supabase
+          .from('staff')
+          .select('store_id, status')
+          .eq('user_id', user?.id)
+          .single();
+
+        if (staffData) {
+          navigate("/");
+        } else {
+          const { data: ownerData } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('owner_id', user?.id)
+            .single();
+
+          if (ownerData) {
+            navigate("/store/dashboard");
+          } else {
+            navigate("/");
+          }
+        }
+      }
+
       toast({
         title: "Success",
         description: "Successfully logged in",
@@ -116,17 +157,23 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Welcome
+          {inviteToken ? "Accept Invitation" : "Welcome"}
         </h2>
+        {inviteToken && (
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            You've been invited to join a store. Please sign up to accept the invitation.
+          </p>
+        )}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue={inviteToken ? "signup" : "signin"} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-md">
               <TabsTrigger 
                 value="signin"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:shadow-md"
+                disabled={!!inviteToken}
               >
                 Sign In
               </TabsTrigger>
@@ -134,7 +181,7 @@ const Auth = () => {
                 value="signup"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:shadow-md"
               >
-                Sign Up
+                {inviteToken ? "Accept Invite" : "Sign Up"}
               </TabsTrigger>
             </TabsList>
             
@@ -225,7 +272,7 @@ const Auth = () => {
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
                 >
-                  Sign Up
+                  {inviteToken ? "Accept Invitation" : "Sign Up"}
                 </Button>
               </form>
             </TabsContent>
