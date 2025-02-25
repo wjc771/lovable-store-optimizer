@@ -49,10 +49,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId)
         .single();
 
-      if (staffError) throw staffError;
+      if (staffError && staffError.code !== 'PGRST116') throw staffError;
       return !!staffData;
     } catch (error) {
       console.error("Error checking admin status:", error);
+      return false;
+    }
+  };
+
+  const handleUserSession = async (currentSession: Session | null) => {
+    try {
+      if (!currentSession?.user) {
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsSuperAdmin(false);
+        return false;
+      }
+
+      setSession(currentSession);
+      setUser(currentSession.user);
+
+      const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
+      if (superAdminStatus) {
+        setIsSuperAdmin(true);
+        setIsAdmin(true);
+        return true;
+      }
+
+      const adminStatus = await checkAdminStatus(currentSession.user.id);
+      setIsAdmin(adminStatus);
+      return true;
+
+    } catch (error) {
+      console.error("Session handling error:", error);
       return false;
     }
   };
@@ -61,33 +91,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initialize = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (!currentSession?.user) {
-          setSession(null);
-          setUser(null);
-          setIsAdmin(false);
-          setIsSuperAdmin(false);
+        const isAuthenticated = await handleUserSession(currentSession);
+
+        if (!isAuthenticated) {
           navigate('/auth');
-          return;
-        }
-
-        setSession(currentSession);
-        setUser(currentSession.user);
-        
-        const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
-        const adminStatus = await checkAdminStatus(currentSession.user.id);
-        
-        setIsSuperAdmin(superAdminStatus);
-        setIsAdmin(adminStatus || superAdminStatus);
-
-        if (superAdminStatus) {
+        } else if (isSuperAdmin) {
           navigate('/admin/stores');
-        } else if (adminStatus) {
+        } else if (isAdmin) {
           navigate('/');
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
-        toast.error("Authentication error. Please try logging in again.");
+        navigate('/auth');
       } finally {
         setIsLoading(false);
       }
@@ -98,42 +113,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event);
-        
-        setIsLoading(true);
 
-        try {
-          if (event === 'SIGNED_OUT' || !currentSession?.user) {
-            setSession(null);
-            setUser(null);
-            setIsAdmin(false);
-            setIsSuperAdmin(false);
-            navigate('/auth');
-            return;
-          }
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setIsAdmin(false);
+          setIsSuperAdmin(false);
+          setIsLoading(false);
+          navigate('/auth');
+          return;
+        }
 
-          if (currentSession?.user) {
-            setSession(currentSession);
-            setUser(currentSession.user);
-            
-            if (event === 'SIGNED_IN') {
-              const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
-              const adminStatus = await checkAdminStatus(currentSession.user.id);
-              
-              setIsSuperAdmin(superAdminStatus);
-              setIsAdmin(adminStatus || superAdminStatus);
+        if (event === 'SIGNED_IN' && currentSession) {
+          setIsLoading(true);
+          const isAuthenticated = await handleUserSession(currentSession);
+          setIsLoading(false);
 
-              if (superAdminStatus) {
-                navigate('/admin/stores');
-              } else if (adminStatus) {
-                navigate('/');
-              }
+          if (isAuthenticated) {
+            if (isSuperAdmin) {
+              navigate('/admin/stores');
+            } else if (isAdmin) {
+              navigate('/');
             }
           }
-        } catch (error) {
-          console.error("Auth state change error:", error);
-          toast.error("Authentication error occurred");
-        } finally {
-          setIsLoading(false);
         }
       }
     );
@@ -141,18 +143,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, isAdmin, isSuperAdmin]);
 
   const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to sign in");
@@ -163,9 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -173,9 +174,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setIsAdmin(false);
       setIsSuperAdmin(false);
-      
-      toast.success("Successfully signed out");
       navigate('/auth');
+      
     } catch (error) {
       console.error("Sign out error:", error);
       toast.error("Failed to sign out");
@@ -185,19 +185,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      signIn, 
-      signOut, 
-      isLoading, 
-      isAdmin,
-      isSuperAdmin
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    session,
+    signIn,
+    signOut,
+    isLoading,
+    isAdmin,
+    isSuperAdmin,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
