@@ -1,166 +1,36 @@
 
-import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { StoreProvider } from "@/contexts/StoreContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
-import Index from "./pages/Index";
-import Upload from "./pages/Upload";
-import Settings from "./pages/Settings";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import BusinessControl from "./pages/BusinessControl";
-import Chat from "./pages/Chat";
-import StoreManagement from "./pages/admin/StoreManagement";
-import StoreDetails from "./pages/admin/StoreDetails";
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading, isAdmin } = useAuth();
-  const location = useLocation();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
-
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  const location = useLocation();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  return children;
-};
-
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading, isAdmin } = useAuth();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (user) {
-    // Redirect admins to admin dashboard, regular users to home
-    return <Navigate to={isAdmin ? "/admin/stores" : "/"} replace />;
-  }
-
-  return children;
-};
-
-const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <Index />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/upload"
-        element={
-          <PrivateRoute>
-            <Upload />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <Settings />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/business"
-        element={
-          <PrivateRoute>
-            <BusinessControl />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/chat"
-        element={
-          <PrivateRoute>
-            <Chat />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/admin/stores"
-        element={
-          <AdminRoute>
-            <StoreManagement />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/stores/:id"
-        element={
-          <AdminRoute>
-            <StoreDetails />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/auth"
-        element={
-          <PublicRoute>
-            <Auth />
-          </PublicRoute>
-        }
-      />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
+import AppRoutes from "./routes";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <StoreProvider>
-          <SettingsProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+  <BrowserRouter>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <StoreProvider>
+            <SettingsProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
                 <AppRoutes />
-              </BrowserRouter>
-            </TooltipProvider>
-          </SettingsProvider>
-        </StoreProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+              </TooltipProvider>
+            </SettingsProvider>
+          </StoreProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </BrowserRouter>
 );
 
 export default App;
+
