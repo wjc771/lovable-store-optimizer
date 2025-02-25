@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { StoreProvider } from "@/contexts/StoreContext";
@@ -21,16 +21,17 @@ import Chat from "./pages/Chat";
 import StoreManagement from "./pages/admin/StoreManagement";
 import StoreDetails from "./pages/admin/StoreDetails";
 
-// Protected route component that also checks admin status
+// Protected route component that checks admin status and redirects if necessary
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
   
   if (isLoading) {
     return <div>Loading...</div>;
   }
   
   if (!user) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Check if user is admin
@@ -51,8 +52,13 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     checkAdmin().then(result => {
       setIsAdmin(result);
       setChecking(false);
+      
+      // If not admin and trying to access settings, redirect to admin stores
+      if (result && location.pathname === '/settings') {
+        window.location.href = '/admin/stores';
+      }
     });
-  }, [user]);
+  }, [user, location]);
 
   if (checking) {
     return <div>Checking permissions...</div>;
@@ -67,13 +73,14 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
   
   if (isLoading) {
     return <div>Loading...</div>;
   }
   
   if (!user) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   return children;

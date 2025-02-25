@@ -19,13 +19,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
     const initializeAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (currentSession) {
           setSession(currentSession);
           setUser(currentSession.user);
+
+          // Check if user is SAAS admin
+          const { data: adminData } = await supabase
+            .from('system_admins')
+            .select('status')
+            .eq('id', currentSession.user.id)
+            .single();
+
+          if (adminData?.status === 'active') {
+            // If on settings page, redirect to admin stores
+            if (window.location.pathname === '/settings') {
+              window.location.href = '/admin/stores';
+            }
+          }
         }
       } catch (error) {
         console.error("Error checking auth session:", error);
@@ -36,11 +49,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Listen for changes on auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log("Auth state changed:", event);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
+      
+      if (event === 'SIGNED_IN' && currentSession?.user) {
+        try {
+          // Check if user is SAAS admin
+          const { data: adminData } = await supabase
+            .from('system_admins')
+            .select('status')
+            .eq('id', currentSession.user.id)
+            .single();
+
+          if (adminData?.status === 'active') {
+            window.location.href = '/admin/stores';
+          }
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+        }
+      }
       setIsLoading(false);
     });
 
