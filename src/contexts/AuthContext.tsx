@@ -9,6 +9,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +18,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data: adminData } = await supabase
+        .from('system_admins')
+        .select('status')
+        .eq('id', userId)
+        .single();
+      
+      return adminData?.status === 'active';
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -25,20 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (currentSession) {
           setSession(currentSession);
           setUser(currentSession.user);
-
-          // Check if user is SAAS admin
-          const { data: adminData } = await supabase
-            .from('system_admins')
-            .select('status')
-            .eq('id', currentSession.user.id)
-            .single();
-
-          if (adminData?.status === 'active') {
-            // If on settings page, redirect to admin stores
-            if (window.location.pathname === '/settings') {
-              window.location.href = '/admin/stores';
-            }
-          }
+          
+          // Check admin status
+          const adminStatus = await checkAdminStatus(currentSession.user.id);
+          setIsAdmin(adminStatus);
         }
       } catch (error) {
         console.error("Error checking auth session:", error);
@@ -51,25 +58,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log("Auth state changed:", event);
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
       
-      if (event === 'SIGNED_IN' && currentSession?.user) {
-        try {
-          // Check if user is SAAS admin
-          const { data: adminData } = await supabase
-            .from('system_admins')
-            .select('status')
-            .eq('id', currentSession.user.id)
-            .single();
-
-          if (adminData?.status === 'active') {
-            window.location.href = '/admin/stores';
-          }
-        } catch (error) {
-          console.error("Error checking admin status:", error);
-        }
+      if (currentSession?.user) {
+        setSession(currentSession);
+        setUser(currentSession.user);
+        
+        // Check admin status on auth state change
+        const adminStatus = await checkAdminStatus(currentSession.user.id);
+        setIsAdmin(adminStatus);
+      } else {
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
       }
+      
       setIsLoading(false);
     });
 
@@ -97,9 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      // Clear session and user state after sign out
+      // Clear all auth state
       setSession(null);
       setUser(null);
+      setIsAdmin(false);
     } catch (error) {
       console.error("Error signing out:", error);
       throw error;
@@ -107,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signOut, isLoading }}>
+    <AuthContext.Provider value={{ user, session, signIn, signOut, isLoading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

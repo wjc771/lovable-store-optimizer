@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +10,6 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import { StoreProvider } from "@/contexts/StoreContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
-import { supabase } from "@/lib/supabase";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import Settings from "./pages/Settings";
@@ -21,9 +20,8 @@ import Chat from "./pages/Chat";
 import StoreManagement from "./pages/admin/StoreManagement";
 import StoreDetails from "./pages/admin/StoreDetails";
 
-// Protected route component that checks admin status and redirects if necessary
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
   
   if (isLoading) {
@@ -34,38 +32,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Check if user is admin
-  const checkAdmin = async () => {
-    const { data, error } = await supabase
-      .from('system_admins')
-      .select('status')
-      .eq('id', user.id)
-      .single();
-
-    return data?.status === 'active';
-  };
-
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    checkAdmin().then(result => {
-      setIsAdmin(result);
-      setChecking(false);
-      
-      // If not admin and trying to access settings, redirect to admin stores
-      if (result && location.pathname === '/settings') {
-        window.location.href = '/admin/stores';
-      }
-    });
-  }, [user, location]);
-
-  if (checking) {
-    return <div>Checking permissions...</div>;
-  }
-
   if (!isAdmin) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -87,14 +55,15 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   
   if (isLoading) {
     return <div>Loading...</div>;
   }
   
   if (user) {
-    return <Navigate to="/" />;
+    // Redirect admins to admin dashboard, regular users to home
+    return <Navigate to={isAdmin ? "/admin/stores" : "/"} replace />;
   }
 
   return children;
