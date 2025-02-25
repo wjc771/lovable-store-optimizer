@@ -43,12 +43,12 @@ interface StaffMember {
 
 interface StaffQueryResult {
   id: string;
-  name: string;
-  user_id: string;
-  status: string;
+  name: string | null;
+  user_id: string | null;
+  status: string | null;
   profiles: {
-    email: string;
-  } | null;
+    email: string | null;
+  }[];
 }
 
 const StoreDetails = () => {
@@ -94,12 +94,12 @@ const StoreDetails = () => {
       if (error) throw error;
 
       // Transform the data to match StaffMember interface
-      return (data as StaffQueryResult[]).map(staff => ({
+      return ((data as unknown) as StaffQueryResult[]).map(staff => ({
         id: staff.id,
-        name: staff.name,
-        user_id: staff.user_id,
-        status: staff.status,
-        email: staff.profiles?.email,
+        name: staff.name || '',
+        user_id: staff.user_id || '',
+        status: staff.status || 'unknown',
+        email: staff.profiles?.[0]?.email || undefined,
         role: 'staff' // Default role
       })) as StaffMember[];
     },
