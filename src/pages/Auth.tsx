@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,16 +13,16 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [inviteToken, setInviteToken] = useState("");
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
-  // Check if we have an invite token in the URL
-  useEffect(() => {
+  // Check for invite token in URL
+  useState(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) {
       setInviteToken(token);
     }
-  }, []);
+  });
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -50,7 +49,6 @@ const Auth = () => {
     }
 
     try {
-      // Start a transaction to handle signup and role assignment
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -64,7 +62,6 @@ const Auth = () => {
       if (signUpError) throw signUpError;
 
       if (inviteToken) {
-        // Handle store invite signup
         const { error: inviteError } = await supabase.from('store_invites')
           .update({ status: 'accepted' })
           .eq('token', inviteToken)
@@ -100,46 +97,9 @@ const Auth = () => {
     }
 
     try {
-      const { data: { user }, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Use the signIn function from AuthContext instead of direct Supabase calls
+      await signIn(email, password);
       
-      if (error) throw error;
-
-      // Check user roles and redirect accordingly
-      const { data: adminData } = await supabase
-        .from('system_admins')
-        .select('status')
-        .eq('id', user?.id)
-        .single();
-
-      if (adminData?.status === 'active') {
-        navigate("/admin/stores");
-      } else {
-        const { data: staffData } = await supabase
-          .from('staff')
-          .select('store_id, status')
-          .eq('user_id', user?.id)
-          .single();
-
-        if (staffData) {
-          navigate("/");
-        } else {
-          const { data: ownerData } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('owner_id', user?.id)
-            .single();
-
-          if (ownerData) {
-            navigate("/store/dashboard");
-          } else {
-            navigate("/");
-          }
-        }
-      }
-
       toast({
         title: "Success",
         description: "Successfully logged in",
