@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,16 @@ interface StaffMember {
   status: string;
   email?: string;
   role?: string;
+}
+
+interface StaffQueryResult {
+  id: string;
+  name: string;
+  user_id: string;
+  status: string;
+  profiles: {
+    email: string;
+  } | null;
 }
 
 const StoreDetails = () => {
@@ -83,7 +94,7 @@ const StoreDetails = () => {
       if (error) throw error;
 
       // Transform the data to match StaffMember interface
-      return (data || []).map(staff => ({
+      return (data as StaffQueryResult[]).map(staff => ({
         id: staff.id,
         name: staff.name,
         user_id: staff.user_id,
