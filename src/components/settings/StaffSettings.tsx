@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Shield } from "lucide-react";
+import { UserPlus, Shield, MoreVertical } from "lucide-react";
 import { StaffTable } from "@/components/settings/StaffTable";
 import { PositionsTable } from "@/components/settings/PositionsTable";
 import { StaffForm } from "@/components/staff/StaffForm";
@@ -11,6 +11,13 @@ import { Position, StaffMember } from "@/types/settings";
 import { useStaffManagement } from "@/hooks/useStaffManagement";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { TableSkeleton } from "@/components/settings/TableSkeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface StaffSettingsProps {
   staffMembers: StaffMember[];
@@ -45,6 +52,8 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
     isLoading,
   } = useStaffManagement(initialStaffMembers, initialPositions);
 
+  const isMobile = useIsMobile();
+
   // Update parent state when local state changes
   React.useEffect(() => {
     updateParentStaffMembers(staffMembers);
@@ -62,14 +71,14 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
           <CardDescription>Manage staff members and their permissions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 className="text-lg font-medium">Staff Members</h3>
             <Button
               onClick={() => {
                 setSelectedStaff(null);
                 setStaffFormOpen(true);
               }}
-              className="flex items-center gap-2"
+              className="w-full sm:w-auto flex items-center gap-2"
             >
               <UserPlus className="h-4 w-4" />
               Add Staff Member
@@ -86,18 +95,19 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
                 setStaffFormOpen(true);
               }}
               onDelete={handleDeleteStaff}
+              isMobile={isMobile}
             />
           )}
 
           <div className="mt-8">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
               <h3 className="text-lg font-medium">Position Management</h3>
               <Button
                 onClick={() => {
                   setSelectedPosition(null);
                   setPositionFormOpen(true);
                 }}
-                className="flex items-center gap-2"
+                className="w-full sm:w-auto flex items-center gap-2"
               >
                 <Shield className="h-4 w-4" />
                 Add Position
@@ -113,6 +123,7 @@ export const StaffSettings: React.FC<StaffSettingsProps> = ({
                   setPositionFormOpen(true);
                 }}
                 onDelete={handleDeletePosition}
+                isMobile={isMobile}
               />
             )}
           </div>

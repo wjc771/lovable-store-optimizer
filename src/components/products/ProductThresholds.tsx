@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
@@ -27,8 +26,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, Package } from "lucide-react";
+import { Loader2, Package, MoreVertical } from "lucide-react";
 import { ProductCategory, ProductWithCategory } from '@/types/products';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ThresholdData {
   id?: string;
@@ -47,6 +53,7 @@ export function ProductThresholds() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [storeId, setStoreId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -54,7 +61,6 @@ export function ProductThresholds() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        // Get store_id from staff table
         const { data: staffData } = await supabase
           .from('staff')
           .select('store_id')
@@ -64,7 +70,6 @@ export function ProductThresholds() {
         if (staffData?.store_id) {
           setStoreId(staffData.store_id);
 
-          // Load categories
           const { data: categoriesData } = await supabase
             .from('product_categories')
             .select('*')
@@ -74,7 +79,6 @@ export function ProductThresholds() {
             setCategories(categoriesData);
           }
 
-          // Load products with their thresholds
           const { data: productsData } = await supabase
             .from('products')
             .select(`
@@ -120,7 +124,6 @@ export function ProductThresholds() {
     if (!storeId) return;
 
     try {
-      // Get the current product to check if it already has a threshold
       const product = products.find(p => p.id === productId);
       if (!product) return;
 
@@ -206,6 +209,73 @@ export function ProductThresholds() {
     return matchesCategory && matchesSearch;
   });
 
+  const renderMobileCard = (product: ProductWithCategory) => (
+    <Card key={product.id} className="mb-4">
+      <CardContent className="pt-4 space-y-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="font-medium">{product.name}</h4>
+            <p className="text-sm text-muted-foreground">
+              {categories.find(c => c.id === product.category_id)?.name || t('products.noCategory')}
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleResetThresholds(product.id)}>
+                {t('products.resetToCategory')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-1 block">{t('products.low')}</label>
+            <Input
+              type="number"
+              min={0}
+              value={product.custom_low_threshold || ''}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                if (!isNaN(value) && value >= 0) {
+                  handleUpdateThreshold(
+                    product.id,
+                    value,
+                    product.custom_critical_threshold || 5
+                  );
+                }
+              }}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">{t('products.critical')}</label>
+            <Input
+              type="number"
+              min={0}
+              value={product.custom_critical_threshold || ''}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                if (!isNaN(value) && value >= 0) {
+                  handleUpdateThreshold(
+                    product.id,
+                    product.custom_low_threshold || 10,
+                    value
+                  );
+                }
+              }}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   if (loading) {
     return (
       <Card>
@@ -227,12 +297,12 @@ export function ProductThresholds() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Select
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder={t('products.selectCategory')} />
               </SelectTrigger>
               <SelectContent>
@@ -249,78 +319,84 @@ export function ProductThresholds() {
               placeholder={t('products.searchProducts')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+              className="w-full sm:max-w-sm"
             />
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('products.productName')}</TableHead>
-                  <TableHead>{t('products.category')}</TableHead>
-                  <TableHead>{t('products.low')}</TableHead>
-                  <TableHead>{t('products.critical')}</TableHead>
-                  <TableHead className="text-right">{t('common.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>
-                      {categories.find(c => c.id === product.category_id)?.name || t('products.noCategory')}
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={product.custom_low_threshold || ''}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (!isNaN(value) && value >= 0) {
-                            handleUpdateThreshold(
-                              product.id,
-                              value,
-                              product.custom_critical_threshold || 5
-                            );
-                          }
-                        }}
-                        className="w-20"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={product.custom_critical_threshold || ''}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (!isNaN(value) && value >= 0) {
-                            handleUpdateThreshold(
-                              product.id,
-                              product.custom_low_threshold || 10,
-                              value
-                            );
-                          }
-                        }}
-                        className="w-20"
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleResetThresholds(product.id)}
-                      >
-                        {t('products.resetToCategory')}
-                      </Button>
-                    </TableCell>
+          {isMobile ? (
+            <div className="space-y-4">
+              {filteredProducts.map(renderMobileCard)}
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('products.productName')}</TableHead>
+                    <TableHead>{t('products.category')}</TableHead>
+                    <TableHead>{t('products.low')}</TableHead>
+                    <TableHead>{t('products.critical')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>
+                        {categories.find(c => c.id === product.category_id)?.name || t('products.noCategory')}
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={product.custom_low_threshold || ''}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (!isNaN(value) && value >= 0) {
+                              handleUpdateThreshold(
+                                product.id,
+                                value,
+                                product.custom_critical_threshold || 5
+                              );
+                            }
+                          }}
+                          className="w-20"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={product.custom_critical_threshold || ''}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (!isNaN(value) && value >= 0) {
+                              handleUpdateThreshold(
+                                product.id,
+                                product.custom_low_threshold || 10,
+                                value
+                              );
+                            }
+                          }}
+                          className="w-20"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleResetThresholds(product.id)}
+                        >
+                          {t('products.resetToCategory')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
