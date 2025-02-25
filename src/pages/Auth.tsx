@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ const Auth = () => {
   const navigate = useNavigate();
 
   // Check if we have an invite token in the URL
-  useState(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) {
