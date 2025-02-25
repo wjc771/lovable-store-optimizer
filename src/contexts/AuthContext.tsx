@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
@@ -11,6 +12,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,10 +22,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [initializationTimeout, setInitializationTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const navigate = useNavigate();
 
-  const checkAdminStatus = async (userId: string): Promise<boolean> => {
+  const checkSuperAdminStatus = async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('system_admins')
@@ -34,34 +36,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       return data?.status === 'active';
     } catch (error) {
+      console.error("Error checking superadmin status:", error);
+      return false;
+    }
+  };
+
+  const checkAdminStatus = async (userId: string): Promise<boolean> => {
+    try {
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      if (staffError) throw staffError;
+      return !!staffData;
+    } catch (error) {
       console.error("Error checking admin status:", error);
       return false;
     }
   };
 
-  const setLoadingSafetyTimeout = () => {
-    if (initializationTimeout) {
-      clearTimeout(initializationTimeout);
-    }
-    const timeout = setTimeout(() => {
-      console.warn("Auth initialization timeout reached");
-      setIsLoading(false);
-    }, 5000); // 5 second timeout
-    setInitializationTimeout(timeout);
-  };
-
   useEffect(() => {
     const initialize = async () => {
       try {
-        setLoadingSafetyTimeout();
-        
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (!currentSession?.user) {
           setSession(null);
           setUser(null);
           setIsAdmin(false);
-          setIsLoading(false);
+          setIsSuperAdmin(false);
           navigate('/auth');
           return;
         }
@@ -69,17 +74,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(currentSession);
         setUser(currentSession.user);
         
+        const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
         const adminStatus = await checkAdminStatus(currentSession.user.id);
-        setIsAdmin(adminStatus);
+        
+        setIsSuperAdmin(superAdminStatus);
+        setIsAdmin(adminStatus || superAdminStatus);
+
+        if (superAdminStatus) {
+          navigate('/admin/stores');
+        } else if (adminStatus) {
+          navigate('/');
+        }
       } catch (error) {
         console.error("Auth initialization error:", error);
         toast.error("Authentication error. Please try logging in again.");
-        navigate('/auth');
       } finally {
         setIsLoading(false);
-        if (initializationTimeout) {
-          clearTimeout(initializationTimeout);
-        }
       }
     };
 
@@ -90,13 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Auth state changed:", event);
         
         setIsLoading(true);
-        setLoadingSafetyTimeout();
 
         try {
           if (event === 'SIGNED_OUT' || !currentSession?.user) {
             setSession(null);
             setUser(null);
             setIsAdmin(false);
+            setIsSuperAdmin(false);
             navigate('/auth');
             return;
           }
@@ -106,36 +116,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(currentSession.user);
             
             if (event === 'SIGNED_IN') {
+              const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
               const adminStatus = await checkAdminStatus(currentSession.user.id);
-              setIsAdmin(adminStatus);
-              navigate('/');
+              
+              setIsSuperAdmin(superAdminStatus);
+              setIsAdmin(adminStatus || superAdminStatus);
+
+              if (superAdminStatus) {
+                navigate('/admin/stores');
+              } else if (adminStatus) {
+                navigate('/');
+              }
             }
           }
         } catch (error) {
           console.error("Auth state change error:", error);
           toast.error("Authentication error occurred");
-          navigate('/auth');
         } finally {
           setIsLoading(false);
-          if (initializationTimeout) {
-            clearTimeout(initializationTimeout);
-          }
         }
       }
     );
 
     return () => {
       subscription.unsubscribe();
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-      }
     };
   }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      setLoadingSafetyTimeout();
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -143,32 +153,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) throw error;
-      
-      navigate('/');
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to sign in");
       throw error;
     } finally {
       setIsLoading(false);
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-      }
     }
   };
 
   const signOut = async () => {
     try {
       setIsLoading(true);
-      setLoadingSafetyTimeout();
       
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // Clear all auth state
       setSession(null);
       setUser(null);
       setIsAdmin(false);
+      setIsSuperAdmin(false);
       
       toast.success("Successfully signed out");
       navigate('/auth');
@@ -178,9 +182,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     } finally {
       setIsLoading(false);
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-      }
     }
   };
 
@@ -191,7 +192,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn, 
       signOut, 
       isLoading, 
-      isAdmin 
+      isAdmin,
+      isSuperAdmin
     }}>
       {children}
     </AuthContext.Provider>

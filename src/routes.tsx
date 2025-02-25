@@ -12,14 +12,14 @@ import StoreManagement from "./pages/admin/StoreManagement";
 import StoreDetails from "./pages/admin/StoreDetails";
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
   const location = useLocation();
   
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isSuperAdmin) {
     return <Navigate to="/" replace />;
   }
 
@@ -38,16 +38,29 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
   
   if (user) {
-    return <Navigate to={isAdmin ? "/admin/stores" : "/"} replace />;
+    if (isSuperAdmin) {
+      return <Navigate to="/admin/stores" replace />;
+    }
+    return <Navigate to={isAdmin ? "/" : "/"} replace />;
   }
 
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route
