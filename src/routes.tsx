@@ -12,12 +12,8 @@ import StoreManagement from "./pages/admin/StoreManagement";
 import StoreDetails from "./pages/admin/StoreDetails";
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading, isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const location = useLocation();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
   
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
@@ -31,12 +27,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
   
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
@@ -46,11 +38,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading, isAdmin } = useAuth();
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const { user, isAdmin } = useAuth();
   
   if (user) {
     // Redirect admins to admin dashboard, regular users to home
