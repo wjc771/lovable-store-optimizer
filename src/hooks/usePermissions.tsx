@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Permissions {
   isManager: boolean;
+  isSaasAdmin: boolean;
   permissions: {
     sales: boolean;
     inventory: boolean;
@@ -20,6 +21,7 @@ export const usePermissions = () => {
   const { user } = useAuth();
   const [permissions, setPermissions] = useState<Permissions>({
     isManager: false,
+    isSaasAdmin: false,
     permissions: {
       sales: false,
       inventory: false,
@@ -39,7 +41,33 @@ export const usePermissions = () => {
       }
 
       try {
-        // Get staff record for the user using maybeSingle() instead of single()
+        // First check if user is a SAAS admin
+        const { data: saasAdminData } = await supabase
+          .from('system_admins')
+          .select('status')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const isSaasAdmin = saasAdminData?.status === 'active';
+
+        if (isSaasAdmin) {
+          setPermissions({
+            isManager: true,
+            isSaasAdmin: true,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: true,
+              customers: true,
+              staff: true,
+              settings: true,
+            },
+            loading: false,
+          });
+          return;
+        }
+
+        // If not SAAS admin, check staff permissions
         const { data: staffData } = await supabase
           .from('staff')
           .select('id')
@@ -83,6 +111,7 @@ export const usePermissions = () => {
           },
           {
             isManager: false,
+            isSaasAdmin: false,
             permissions: {
               sales: false,
               inventory: false,

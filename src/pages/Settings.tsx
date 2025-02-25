@@ -32,7 +32,7 @@ const SettingsContent = () => {
   const { toast } = useToast();
   const { theme, setTheme, language, setLanguage } = useSettings();
   const { t } = useTranslation();
-  const { isManager, loading } = usePermissions();
+  const { isManager, isSaasAdmin, loading } = usePermissions();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -169,7 +169,7 @@ const SettingsContent = () => {
     return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
-  if (!isManager) {
+  if (!isManager && !isSaasAdmin) {
     return (
       <div className="p-4">
         <Alert variant="destructive">

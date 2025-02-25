@@ -24,7 +24,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isManager } = usePermissions();
+  const { isManager, isSaasAdmin } = usePermissions();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -57,7 +57,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       icon: PieChart,
       label: t('common.business'),
       path: "/business",
-      show: isManager
+      show: isManager || isSaasAdmin
     },
     {
       icon: Upload,
@@ -75,7 +75,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       icon: Settings,
       label: t('common.settings'),
       path: "/settings",
-      show: true
+      show: isManager || isSaasAdmin
     }
   ];
 
