@@ -1,13 +1,14 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, CreditCard, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { DollarSign, CreditCard, TrendingDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const FinancialTab = () => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   const { data: financialOverview } = useQuery({
     queryKey: ['financial-overview'],
@@ -51,6 +52,27 @@ const FinancialTab = () => {
   const averageOrderValue = financialOverview && financialOverview.length > 0
     ? totalRevenue / financialOverview.length
     : 0;
+
+  const renderChart = () => (
+    <div className={`h-[${isMobile ? '200px' : '300px'}]`}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={financialOverview}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="date" 
+            tick={{ fontSize: isMobile ? 10 : 12 }}
+            interval={isMobile ? "preserveStartEnd" : 0}
+          />
+          <YAxis
+            tick={{ fontSize: isMobile ? 10 : 12 }}
+            width={isMobile ? 35 : 60}
+          />
+          <Tooltip />
+          <Bar dataKey="amount" fill="#8884d8" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -97,17 +119,7 @@ const FinancialTab = () => {
           <CardTitle>{t('business.financial.weeklyRevenue')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={financialOverview}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="amount" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {renderChart()}
         </CardContent>
       </Card>
     </div>
@@ -115,4 +127,3 @@ const FinancialTab = () => {
 };
 
 export default FinancialTab;
-

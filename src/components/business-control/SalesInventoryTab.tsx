@@ -1,13 +1,14 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Package, TrendingUp, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const SalesInventoryTab = () => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   const { data: salesData } = useQuery({
     queryKey: ['sales-overview'],
@@ -38,6 +39,27 @@ const SalesInventoryTab = () => {
       return data || [];
     }
   });
+
+  const renderChart = () => (
+    <div className={`h-[${isMobile ? '200px' : '300px'}]`}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={salesData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="date" 
+            tick={{ fontSize: isMobile ? 10 : 12 }}
+            interval={isMobile ? "preserveStartEnd" : 0}
+          />
+          <YAxis
+            tick={{ fontSize: isMobile ? 10 : 12 }}
+            width={isMobile ? 35 : 60}
+          />
+          <Tooltip />
+          <Line type="monotone" dataKey="amount" stroke="#8884d8" />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -82,17 +104,7 @@ const SalesInventoryTab = () => {
           <CardTitle>{t('business.sales.salesTrend')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="amount" stroke="#8884d8" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {renderChart()}
         </CardContent>
       </Card>
 
@@ -104,9 +116,11 @@ const SalesInventoryTab = () => {
           <CardContent>
             <div className="space-y-2">
               {lowStockProducts.map((product) => (
-                <div key={product.name} className="flex justify-between items-center">
-                  <span>{product.name}</span>
-                  <span className="text-red-500">{t('common.only')} {product.stock} {t('business.sales.itemsLeft')}</span>
+                <div key={product.name} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-2 rounded-md hover:bg-muted/50">
+                  <span className="font-medium">{product.name}</span>
+                  <span className="text-red-500 text-sm">
+                    {t('common.only')} {product.stock} {t('business.sales.itemsLeft')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -118,4 +132,3 @@ const SalesInventoryTab = () => {
 };
 
 export default SalesInventoryTab;
-

@@ -13,12 +13,16 @@ import ReconciliationManager from "@/components/reconciliation/ReconciliationMan
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { BarChart3, Users, DollarSign, Users2, FileCheck2 } from "lucide-react";
 
 const BusinessControl = () => {
   const { isManager, loading } = usePermissions();
   const { t } = useTranslation();
   const { user } = useAuth();
   const [storeId, setStoreId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchStoreId = async () => {
@@ -56,6 +60,39 @@ const BusinessControl = () => {
     );
   }
 
+  const tabItems = [
+    {
+      value: "sales",
+      label: t('business.tabs.salesInventory'),
+      icon: <BarChart3 className="h-4 w-4" />,
+      content: <SalesInventoryTab />
+    },
+    {
+      value: "customers",
+      label: t('business.tabs.customersOrders'),
+      icon: <Users className="h-4 w-4" />,
+      content: <CustomersOrdersTab />
+    },
+    {
+      value: "financial",
+      label: t('business.tabs.financial'),
+      icon: <DollarSign className="h-4 w-4" />,
+      content: <FinancialTab />
+    },
+    {
+      value: "team",
+      label: t('business.tabs.team'),
+      icon: <Users2 className="h-4 w-4" />,
+      content: <TeamTab />
+    },
+    {
+      value: "reconciliation",
+      label: t('business.tabs.reconciliation'),
+      icon: <FileCheck2 className="h-4 w-4" />,
+      content: storeId ? <ReconciliationManager storeId={storeId} /> : null
+    }
+  ];
+
   return (
     <SettingsProvider>
       <DashboardLayout>
@@ -65,33 +102,27 @@ const BusinessControl = () => {
           </div>
           
           <Tabs defaultValue="sales" className="space-y-4">
-            <TabsList className="flex flex-wrap">
-              <TabsTrigger value="sales">{t('business.tabs.salesInventory')}</TabsTrigger>
-              <TabsTrigger value="customers">{t('business.tabs.customersOrders')}</TabsTrigger>
-              <TabsTrigger value="financial">{t('business.tabs.financial')}</TabsTrigger>
-              <TabsTrigger value="team">{t('business.tabs.team')}</TabsTrigger>
-              <TabsTrigger value="reconciliation">{t('business.tabs.reconciliation')}</TabsTrigger>
-            </TabsList>
+            <ScrollArea className="w-full whitespace-nowrap">
+              <TabsList className="inline-flex w-full md:w-auto">
+                {tabItems.map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="min-w-24 flex items-center gap-2 px-4"
+                  >
+                    {tab.icon}
+                    {!isMobile && <span>{tab.label}</span>}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
             
-            <TabsContent value="sales" className="space-y-4">
-              <SalesInventoryTab />
-            </TabsContent>
-            
-            <TabsContent value="customers" className="space-y-4">
-              <CustomersOrdersTab />
-            </TabsContent>
-            
-            <TabsContent value="financial" className="space-y-4">
-              <FinancialTab />
-            </TabsContent>
-            
-            <TabsContent value="team" className="space-y-4">
-              <TeamTab />
-            </TabsContent>
-
-            <TabsContent value="reconciliation" className="space-y-4">
-              {storeId && <ReconciliationManager storeId={storeId} />}
-            </TabsContent>
+            {tabItems.map((tab) => (
+              <TabsContent key={tab.value} value={tab.value} className="space-y-4">
+                {tab.content}
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
       </DashboardLayout>
