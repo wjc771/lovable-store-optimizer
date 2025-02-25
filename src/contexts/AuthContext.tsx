@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: User | null;
@@ -21,8 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [initializationTimeout, setInitializationTimeout] = useState<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
 
-  // Simplified admin check
   const checkAdminStatus = async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
@@ -39,7 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Safety timeout to prevent infinite loading
   const setLoadingSafetyTimeout = () => {
     if (initializationTimeout) {
       clearTimeout(initializationTimeout);
@@ -51,13 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setInitializationTimeout(timeout);
   };
 
-  // Initialize auth state
   useEffect(() => {
     const initialize = async () => {
       try {
         setLoadingSafetyTimeout();
         
-        // Get current session
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (!currentSession?.user) {
@@ -65,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
           setIsAdmin(false);
           setIsLoading(false);
+          navigate('/auth');
           return;
         }
 
@@ -76,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error("Auth initialization error:", error);
         toast.error("Authentication error. Please try logging in again.");
+        navigate('/auth');
       } finally {
         setIsLoading(false);
         if (initializationTimeout) {
@@ -86,7 +85,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initialize();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event);
@@ -99,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(null);
             setUser(null);
             setIsAdmin(false);
+            navigate('/auth');
             return;
           }
 
@@ -109,11 +108,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (event === 'SIGNED_IN') {
               const adminStatus = await checkAdminStatus(currentSession.user.id);
               setIsAdmin(adminStatus);
+              navigate('/');
             }
           }
         } catch (error) {
           console.error("Auth state change error:", error);
           toast.error("Authentication error occurred");
+          navigate('/auth');
         } finally {
           setIsLoading(false);
           if (initializationTimeout) {
@@ -129,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(initializationTimeout);
       }
     };
-  }, []);
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -142,6 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) throw error;
+      
+      navigate('/');
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to sign in");
@@ -168,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false);
       
       toast.success("Successfully signed out");
+      navigate('/auth');
     } catch (error) {
       console.error("Sign out error:", error);
       toast.error("Failed to sign out");

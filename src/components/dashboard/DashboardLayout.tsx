@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/drawer";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const { store } = useStore();
-  const { signOut } = useAuth();
+  const { store, setStore } = useStore();
+  const { user, signOut, isLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,8 +28,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Redirect to auth if no user
+  if (!isLoading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   const handleLogout = async () => {
     try {
+      setStore(null); // Clear store state
       await signOut();
       toast({
         title: t('common.success'),
@@ -97,6 +103,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       ))}
     </nav>
   );
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
