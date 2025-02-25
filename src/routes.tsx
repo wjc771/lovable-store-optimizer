@@ -23,7 +23,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -34,18 +34,17 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isAdmin } = useAuth();
   
   if (user) {
-    // Redirect admins to admin dashboard, regular users to home
     return <Navigate to={isAdmin ? "/admin/stores" : "/"} replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 const AppRoutes = () => {

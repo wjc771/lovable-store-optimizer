@@ -1,36 +1,32 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { SettingsProvider } from "@/contexts/SettingsContext";
-import { StoreProvider } from "@/contexts/StoreContext";
-import { ThemeProvider } from "next-themes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import AppRoutes from "./routes";
+import { AuthProvider } from "./contexts/AuthContext";
+import { StoreProvider } from "./contexts/StoreContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <BrowserRouter>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+function App() {
+  return (
+    <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <StoreProvider>
-            <SettingsProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
+        <ThemeProvider>
+          <AuthProvider>
+            <StoreProvider>
+              <SettingsProvider>
                 <AppRoutes />
-              </TooltipProvider>
-            </SettingsProvider>
-          </StoreProvider>
-        </AuthProvider>
+                <Toaster />
+              </SettingsProvider>
+            </StoreProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </QueryClientProvider>
-    </ThemeProvider>
-  </BrowserRouter>
-);
+    </BrowserRouter>
+  );
+}
 
 export default App;
-
