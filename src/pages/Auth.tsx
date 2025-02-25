@@ -6,15 +6,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [inviteToken, setInviteToken] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const { signIn } = useAuth();
 
-  // Corrigido o uso de useState para useEffect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
@@ -88,6 +90,105 @@ const Auth = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const emailError = validateEmail(email);
+    if (emailError) {
+      toast.error(emailError);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?tab=reset`,
+      });
+      
+      if (error) throw error;
+      
+      setResetEmailSent(true);
+      toast.success("Password reset instructions have been sent to your email");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to send reset email");
+    }
+  };
+
+  const renderForgotPassword = () => {
+    if (resetEmailSent) {
+      return (
+        <div className="text-center mt-4">
+          <h3 className="text-lg font-semibold mb-2">Email Sent!</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Check your email for the password reset link.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsResettingPassword(false);
+              setResetEmailSent(false);
+            }}
+          >
+            Back to Sign In
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <form onSubmit={handleResetPassword} className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="reset-email">
+            Email
+          </label>
+          <Input
+            id="reset-email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full"
+          />
+        </div>
+
+        <Button type="submit" className="w-full">
+          Send Reset Instructions
+        </Button>
+
+        <p className="text-sm text-center">
+          <button
+            type="button"
+            onClick={() => setIsResettingPassword(false)}
+            className="text-primary hover:underline"
+          >
+            Back to Sign In
+          </button>
+        </p>
+      </form>
+    );
+  };
+
+  if (isResettingPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Reset Password
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            Enter your email address and we'll send you instructions to reset your password.
+          </p>
+        </div>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
+            {renderForgotPassword()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -126,9 +227,9 @@ const Auth = () => {
             </TabsList>
             
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-6">
-                <div>
-                  <label htmlFor="signin-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="signin-email">
                     Email
                   </label>
                   <Input
@@ -141,8 +242,8 @@ const Auth = () => {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="signin-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="signin-password">
                     Password
                   </label>
                   <Input
@@ -153,6 +254,16 @@ const Auth = () => {
                     required
                     className="bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-purple-500 focus:border-purple-500"
                   />
+                </div>
+
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsResettingPassword(true)}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
 
                 <Button 
