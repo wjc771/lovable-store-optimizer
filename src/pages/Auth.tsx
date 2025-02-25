@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
 const Auth = () => {
@@ -12,17 +12,16 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [inviteToken, setInviteToken] = useState("");
-  const { toast } = useToast();
   const { signIn } = useAuth();
 
-  // Check for invite token in URL
-  useState(() => {
+  // Corrigido o uso de useState para useEffect
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) {
       setInviteToken(token);
     }
-  });
+  }, []);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,11 +39,7 @@ const Auth = () => {
     
     const emailError = validateEmail(email);
     if (emailError) {
-      toast({
-        title: "Invalid Email",
-        description: emailError,
-        variant: "destructive",
-      });
+      toast.error(emailError);
       return;
     }
 
@@ -70,16 +65,9 @@ const Auth = () => {
         if (inviteError) throw inviteError;
       }
       
-      toast({
-        title: "Success",
-        description: "Please check your email to confirm your account",
-      });
+      toast.success("Please check your email to confirm your account");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to sign up",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to sign up");
     }
   };
 
@@ -88,28 +76,15 @@ const Auth = () => {
     
     const emailError = validateEmail(email);
     if (emailError) {
-      toast({
-        title: "Invalid Email",
-        description: emailError,
-        variant: "destructive",
-      });
+      toast.error(emailError);
       return;
     }
 
     try {
-      // Use the signIn function from AuthContext instead of direct Supabase calls
       await signIn(email, password);
-      
-      toast({
-        title: "Success",
-        description: "Successfully logged in",
-      });
+      toast.success("Successfully logged in");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to sign in",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to sign in");
     }
   };
 
@@ -122,6 +97,11 @@ const Auth = () => {
         {inviteToken && (
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             You've been invited to join a store. Please sign up to accept the invitation.
+          </p>
+        )}
+        {email === 'admin@saasadmin.com' && (
+          <p className="mt-2 text-center text-sm text-purple-600 dark:text-purple-400 font-semibold">
+            Logging in as SaaS Administrator
           </p>
         )}
       </div>
