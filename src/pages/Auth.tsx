@@ -25,57 +25,81 @@ const Auth = () => {
   const { signIn } = useAuth();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const tab = params.get('tab');
-    
-    console.log("URL params:", { token, tab });
-    console.log("Full URL:", window.location.href);
-    
-    // Check for invite token
-    if (token) {
-      setInviteToken(token);
-    }
-    
-    // Check for reset password tab
-    if (tab === 'reset') {
-      // Check if this is an update password flow (via email link)
+    const checkForPasswordResetFlow = () => {
+      // Log full URL to help with debugging
+      console.log("Full URL:", window.location.href);
+
+      // Check URL parameters
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const tab = params.get('tab');
       const type = params.get('type');
-      const accessToken = params.get('access_token');
       
-      console.log("Reset params:", { type, accessToken });
+      console.log("URL params:", { token, tab, type });
       
-      if (type === 'recovery' || accessToken) {
+      // Check for invite token
+      if (token) {
+        setInviteToken(token);
+      }
+      
+      // Handle Supabase recovery flow from URL parameters
+      // This is for newer Supabase redirects
+      if (tab === 'reset' || type === 'recovery') {
+        console.log("Setting up password reset flow from URL parameters");
+        setIsUpdatingPassword(true);
+        setActiveTab('reset');
+        
+        // Look for access token in various places
+        const accessToken = params.get('access_token');
         if (accessToken) {
-          console.log("Setting up password update with access token");
+          console.log("Access token found in URL parameters");
+          setResetToken(accessToken);
+        }
+      }
+      
+      // Handle Supabase recovery flow from URL hash
+      // This is for older Supabase redirects which use hash fragments
+      if (window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const tokenType = hashParams.get('type');
+        
+        console.log("Hash params:", { accessToken, tokenType });
+        
+        if (accessToken && (tokenType === 'recovery' || tokenType === 'passwordReset')) {
+          console.log("Setting up password update from hash with token:", accessToken.substring(0, 5) + "...");
           setIsUpdatingPassword(true);
           setResetToken(accessToken);
-          setActiveTab('reset'); // Set to our new reset tab
-        } else {
-          console.log("Setting up password reset request flow");
-          setIsResettingPassword(true);
+          setActiveTab('reset');
         }
-      } else {
-        console.log("Setting up general password reset flow");
-        setIsResettingPassword(true);
       }
-    }
+      
+      // Additional check for recovery flow using the special Supabase method
+      // This is the most reliable method if we have access to the hash fragment
+      if (window.location.hash) {
+        // Let Supabase handle extracting the token details
+        supabase.auth.getSessionFromUrl()
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("Error getting session from URL:", error);
+              return;
+            }
+            
+            if (data?.session) {
+              console.log("Successfully got session from URL!");
+              // This means we have a valid recovery session
+              setIsUpdatingPassword(true);
+              setResetToken(data.session.access_token);
+              setActiveTab('reset');
+            }
+          })
+          .catch(err => {
+            console.error("Exception getting session from URL:", err);
+          });
+      }
+    };
     
-    // Handle Supabase auth recovery links (password reset links in email)
-    if (window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const tokenType = hashParams.get('type');
-      
-      console.log("Hash params:", { accessToken, tokenType });
-      
-      if (accessToken && (tokenType === 'recovery' || tokenType === 'passwordReset')) {
-        console.log("Setting up password update from hash");
-        setIsUpdatingPassword(true);
-        setResetToken(accessToken);
-        setActiveTab('reset');
-      }
-    }
+    checkForPasswordResetFlow();
   }, []);
 
   const validateEmail = (email: string) => {
@@ -163,46 +187,13 @@ const Auth = () => {
     }
 
     try {
-      // Primeiro tentamos o fluxo padrão do Supabase
+      // Use the built-in Supabase reset password flow
+      // Important: Make sure your Supabase project has the correct site URL and redirect URLs configured
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?tab=reset&type=recovery`,
+        redirectTo: `${window.location.origin}/auth`,
       });
       
       if (error) throw error;
-      
-      // Se bem-sucedido, também enviamos um email personalizado através da nossa função
-      try {
-        const response = await supabase.functions.invoke("send-email", {
-          body: {
-            to: email,
-            subject: "Redefinição de Senha",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #7c3aed;">Redefinição de Senha</h2>
-                <p>Recebemos uma solicitação para redefinir sua senha. Se você não solicitou isso, por favor ignore este email.</p>
-                <p>Para redefinir sua senha, acesse o link abaixo:</p>
-                <a href="${window.location.origin}/auth?tab=reset&type=recovery" 
-                   style="display: inline-block; background-color: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 15px 0;">
-                  Redefinir Senha
-                </a>
-                <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                  Se o botão acima não funcionar, copie e cole o link a seguir em seu navegador:
-                  <br>
-                  ${window.location.origin}/auth?tab=reset&type=recovery
-                </p>
-              </div>
-            `,
-          },
-        });
-
-        if (response.error) {
-          console.warn("Erro ao enviar email personalizado:", response.error);
-          // Não bloqueamos o fluxo se o email personalizado falhar
-        }
-      } catch (emailError) {
-        console.warn("Erro ao chamar a função de email:", emailError);
-        // Continuamos mesmo se o email personalizado falhar
-      }
       
       setResetEmailSent(true);
       toast.success("Password reset instructions have been sent to your email");
@@ -232,12 +223,13 @@ const Auth = () => {
     }
 
     try {
-      console.log("Updating password with token:", resetToken ? "Token exists" : "No token");
+      console.log("Updating password, token exists:", !!resetToken);
       
-      // If we have a reset token, we need to use it for the update
       let error;
+      
       if (resetToken) {
-        // For Supabase reset tokens, we need to use the setSession method first
+        // Try to set the session first with the token
+        console.log("Setting session with token...");
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: resetToken,
           refresh_token: "",
@@ -248,17 +240,29 @@ const Auth = () => {
           throw sessionError;
         }
         
+        console.log("Session set successfully, updating password...");
         // Now update the password - the session is already set with the token
-        const result = await supabase.auth.updateUser({ password: newPassword });
+        const result = await supabase.auth.updateUser({ 
+          password: newPassword 
+        });
+        
         error = result.error;
       } else {
-        // Fall back to normal update if no token (user is already logged in)
-        const result = await supabase.auth.updateUser({ password: newPassword });
+        // User is already logged in, just update the password
+        console.log("No token, updating password directly...");
+        const result = await supabase.auth.updateUser({ 
+          password: newPassword 
+        });
+        
         error = result.error;
       }
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating password:", error);
+        throw error;
+      }
       
+      console.log("Password updated successfully!");
       toast.success("Your password has been updated successfully");
       
       // Redirect to sign in after a successful password update
