@@ -234,13 +234,22 @@ const Auth = () => {
     try {
       console.log("Updating password with token:", resetToken ? "Token exists" : "No token");
       
-      // If we have a reset token, we use that for the update
+      // If we have a reset token, we need to use it for the update
       let error;
       if (resetToken) {
-        const result = await supabase.auth.updateUser(
-          { password: newPassword },
-          { accessToken: resetToken }
-        );
+        // For Supabase reset tokens, we need to use the setSession method first
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: resetToken,
+          refresh_token: "",
+        });
+        
+        if (sessionError) {
+          console.error("Error setting session:", sessionError);
+          throw sessionError;
+        }
+        
+        // Now update the password - the session is already set with the token
+        const result = await supabase.auth.updateUser({ password: newPassword });
         error = result.error;
       } else {
         // Fall back to normal update if no token (user is already logged in)
