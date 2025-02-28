@@ -29,6 +29,9 @@ const Auth = () => {
     const token = params.get('token');
     const tab = params.get('tab');
     
+    console.log("URL params:", { token, tab });
+    console.log("Full URL:", window.location.href);
+    
     // Check for invite token
     if (token) {
       setInviteToken(token);
@@ -38,17 +41,39 @@ const Auth = () => {
     if (tab === 'reset') {
       // Check if this is an update password flow (via email link)
       const type = params.get('type');
-      if (type === 'recovery') {
-        const accessToken = params.get('access_token');
+      const accessToken = params.get('access_token');
+      
+      console.log("Reset params:", { type, accessToken });
+      
+      if (type === 'recovery' || accessToken) {
         if (accessToken) {
+          console.log("Setting up password update with access token");
           setIsUpdatingPassword(true);
           setResetToken(accessToken);
           setActiveTab('reset'); // Set to our new reset tab
         } else {
+          console.log("Setting up password reset request flow");
           setIsResettingPassword(true);
         }
       } else {
+        console.log("Setting up general password reset flow");
         setIsResettingPassword(true);
+      }
+    }
+    
+    // Handle Supabase auth recovery links (password reset links in email)
+    if (window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const tokenType = hashParams.get('type');
+      
+      console.log("Hash params:", { accessToken, tokenType });
+      
+      if (accessToken && (tokenType === 'recovery' || tokenType === 'passwordReset')) {
+        console.log("Setting up password update from hash");
+        setIsUpdatingPassword(true);
+        setResetToken(accessToken);
+        setActiveTab('reset');
       }
     }
   }, []);
@@ -207,8 +232,21 @@ const Auth = () => {
     }
 
     try {
-      // Use the resetToken from URL if available
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      console.log("Updating password with token:", resetToken ? "Token exists" : "No token");
+      
+      // If we have a reset token, we use that for the update
+      let error;
+      if (resetToken) {
+        const result = await supabase.auth.updateUser(
+          { password: newPassword },
+          { accessToken: resetToken }
+        );
+        error = result.error;
+      } else {
+        // Fall back to normal update if no token (user is already logged in)
+        const result = await supabase.auth.updateUser({ password: newPassword });
+        error = result.error;
+      }
       
       if (error) throw error;
       
