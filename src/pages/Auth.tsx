@@ -12,18 +12,44 @@ import { Label } from "@/components/ui/label";
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [inviteToken, setInviteToken] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("signin");
+  const [resetToken, setResetToken] = useState("");
   const { signIn } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const tab = params.get('tab');
+    
+    // Check for invite token
     if (token) {
       setInviteToken(token);
+    }
+    
+    // Check for reset password tab
+    if (tab === 'reset') {
+      // Check if this is an update password flow (via email link)
+      const type = params.get('type');
+      if (type === 'recovery') {
+        const accessToken = params.get('access_token');
+        if (accessToken) {
+          setIsUpdatingPassword(true);
+          setResetToken(accessToken);
+          setActiveTab('reset'); // Set to our new reset tab
+        } else {
+          setIsResettingPassword(true);
+        }
+      } else {
+        setIsResettingPassword(true);
+      }
     }
   }, []);
 
@@ -114,7 +140,7 @@ const Auth = () => {
     try {
       // Primeiro tentamos o fluxo padrão do Supabase
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?tab=reset`,
+        redirectTo: `${window.location.origin}/auth?tab=reset&type=recovery`,
       });
       
       if (error) throw error;
@@ -130,14 +156,14 @@ const Auth = () => {
                 <h2 style="color: #7c3aed;">Redefinição de Senha</h2>
                 <p>Recebemos uma solicitação para redefinir sua senha. Se você não solicitou isso, por favor ignore este email.</p>
                 <p>Para redefinir sua senha, acesse o link abaixo:</p>
-                <a href="${window.location.origin}/auth?tab=reset" 
+                <a href="${window.location.origin}/auth?tab=reset&type=recovery" 
                    style="display: inline-block; background-color: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 15px 0;">
                   Redefinir Senha
                 </a>
                 <p style="color: #666; font-size: 12px; margin-top: 20px;">
                   Se o botão acima não funcionar, copie e cole o link a seguir em seu navegador:
                   <br>
-                  ${window.location.origin}/auth?tab=reset
+                  ${window.location.origin}/auth?tab=reset&type=recovery
                 </p>
               </div>
             `,
@@ -159,6 +185,41 @@ const Auth = () => {
     } catch (error) {
       console.error("Reset password error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to send reset email");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    if (newPassword.length < 6) {
+      toast.error("Password should be at least 6 characters long");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Use the resetToken from URL if available
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) throw error;
+      
+      toast.success("Your password has been updated successfully");
+      
+      // Redirect to sign in after a successful password update
+      setIsUpdatingPassword(false);
+      setActiveTab("signin");
+    } catch (error) {
+      console.error("Update password error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update password");
     } finally {
       setIsSubmitting(false);
     }
@@ -224,6 +285,65 @@ const Auth = () => {
     );
   };
 
+  const renderUpdatePassword = () => {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Set New Password
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            Please enter your new password below.
+          </p>
+        </div>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
+            <form onSubmit={handleUpdatePassword} className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium" htmlFor="new-password">
+                  New Password
+                </Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  className="w-full"
+                  placeholder="Enter your new password"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium" htmlFor="confirm-password">
+                  Confirm Password
+                </Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full"
+                  placeholder="Confirm your new password"
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (isUpdatingPassword) {
+    return renderUpdatePassword();
+  }
+
   if (isResettingPassword) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -265,7 +385,12 @@ const Auth = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
-          <Tabs defaultValue={inviteToken ? "signup" : "signin"} className="w-full">
+          <Tabs 
+            defaultValue={inviteToken ? "signup" : "signin"} 
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-md">
               <TabsTrigger 
                 value="signin"
