@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ const Auth = () => {
   const [inviteToken, setInviteToken] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn } = useAuth();
 
   useEffect(() => {
@@ -38,10 +40,12 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     const emailError = validateEmail(email);
     if (emailError) {
       toast.error(emailError);
+      setIsSubmitting(false);
       return;
     }
 
@@ -70,15 +74,19 @@ const Auth = () => {
       toast.success("Please check your email to confirm your account");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to sign up");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     const emailError = validateEmail(email);
     if (emailError) {
       toast.error(emailError);
+      setIsSubmitting(false);
       return;
     }
 
@@ -87,15 +95,19 @@ const Auth = () => {
       toast.success("Successfully logged in");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to sign in");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     const emailError = validateEmail(email);
     if (emailError) {
       toast.error(emailError);
+      setIsSubmitting(false);
       return;
     }
 
@@ -108,8 +120,12 @@ const Auth = () => {
       
       setResetEmailSent(true);
       toast.success("Password reset instructions have been sent to your email");
+      console.log("Password reset email requested for:", email);
     } catch (error) {
+      console.error("Reset password error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to send reset email");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,8 +135,13 @@ const Auth = () => {
         <div className="text-center mt-4">
           <h3 className="text-lg font-semibold mb-2">Email Sent!</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Check your email for the password reset link.
+            Check your email for the password reset link. If you don't see it, please check your spam folder.
           </p>
+          <Alert className="mb-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <AlertDescription>
+              Due to email delivery settings, the password reset email might be delayed or go to your spam folder.
+            </AlertDescription>
+          </Alert>
           <Button
             variant="outline"
             onClick={() => {
@@ -137,9 +158,9 @@ const Auth = () => {
     return (
       <form onSubmit={handleResetPassword} className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="reset-email">
+          <Label className="text-sm font-medium" htmlFor="reset-email">
             Email
-          </label>
+          </Label>
           <Input
             id="reset-email"
             type="email"
@@ -151,8 +172,8 @@ const Auth = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full">
-          Send Reset Instructions
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Sending..." : "Send Reset Instructions"}
         </Button>
 
         <p className="text-sm text-center">
@@ -229,9 +250,9 @@ const Auth = () => {
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="signin-email">
+                  <Label className="text-sm font-medium" htmlFor="signin-email">
                     Email
-                  </label>
+                  </Label>
                   <Input
                     id="signin-email"
                     type="email"
@@ -243,9 +264,9 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="signin-password">
+                  <Label className="text-sm font-medium" htmlFor="signin-password">
                     Password
-                  </label>
+                  </Label>
                   <Input
                     id="signin-password"
                     type="password"
@@ -269,8 +290,9 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
+                  disabled={isSubmitting}
                 >
-                  Sign In
+                  {isSubmitting ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
             </TabsContent>
@@ -278,9 +300,9 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-6">
                 <div>
-                  <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <Label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Email
-                  </label>
+                  </Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -292,9 +314,9 @@ const Auth = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="full-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <Label htmlFor="full-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Full Name
-                  </label>
+                  </Label>
                   <Input
                     id="full-name"
                     type="text"
@@ -306,9 +328,9 @@ const Auth = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <Label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Password
-                  </label>
+                  </Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -322,8 +344,9 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
+                  disabled={isSubmitting}
                 >
-                  {inviteToken ? "Accept Invitation" : "Sign Up"}
+                  {isSubmitting ? "Signing Up..." : (inviteToken ? "Accept Invitation" : "Sign Up")}
                 </Button>
               </form>
             </TabsContent>
