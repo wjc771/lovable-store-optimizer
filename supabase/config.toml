@@ -59,6 +59,9 @@ enable_confirmations = true
 [functions.send-invite]
 verify_jwt = true
 
+[functions.send-email]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327

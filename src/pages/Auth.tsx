@@ -112,11 +112,46 @@ const Auth = () => {
     }
 
     try {
+      // Primeiro tentamos o fluxo padrão do Supabase
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth?tab=reset`,
       });
       
       if (error) throw error;
+      
+      // Se bem-sucedido, também enviamos um email personalizado através da nossa função
+      try {
+        const response = await supabase.functions.invoke("send-email", {
+          body: {
+            to: email,
+            subject: "Redefinição de Senha",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #7c3aed;">Redefinição de Senha</h2>
+                <p>Recebemos uma solicitação para redefinir sua senha. Se você não solicitou isso, por favor ignore este email.</p>
+                <p>Para redefinir sua senha, acesse o link abaixo:</p>
+                <a href="${window.location.origin}/auth?tab=reset" 
+                   style="display: inline-block; background-color: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 15px 0;">
+                  Redefinir Senha
+                </a>
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                  Se o botão acima não funcionar, copie e cole o link a seguir em seu navegador:
+                  <br>
+                  ${window.location.origin}/auth?tab=reset
+                </p>
+              </div>
+            `,
+          },
+        });
+
+        if (response.error) {
+          console.warn("Erro ao enviar email personalizado:", response.error);
+          // Não bloqueamos o fluxo se o email personalizado falhar
+        }
+      } catch (emailError) {
+        console.warn("Erro ao chamar a função de email:", emailError);
+        // Continuamos mesmo se o email personalizado falhar
+      }
       
       setResetEmailSent(true);
       toast.success("Password reset instructions have been sent to your email");
