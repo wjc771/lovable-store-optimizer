@@ -74,28 +74,29 @@ const Auth = () => {
         }
       }
       
-      // Additional check for recovery flow using the special Supabase method
-      // This is the most reliable method if we have access to the hash fragment
+      // Additional check for recovery flow
+      // Use the parseHash method instead of getSessionFromUrl
       if (window.location.hash) {
-        // Let Supabase handle extracting the token details
-        supabase.auth.getSessionFromUrl()
-          .then(({ data, error }) => {
-            if (error) {
-              console.error("Error getting session from URL:", error);
-              return;
-            }
-            
-            if (data?.session) {
-              console.log("Successfully got session from URL!");
-              // This means we have a valid recovery session
+        try {
+          // parseHash is the recommended approach for newer Supabase versions
+          const { data, error } = supabase.auth.getSession();
+          data.then(sessionData => {
+            if (sessionData.session) {
+              console.log("Successfully got session!");
               setIsUpdatingPassword(true);
-              setResetToken(data.session.access_token);
+              setResetToken(sessionData.session.access_token);
               setActiveTab('reset');
             }
-          })
-          .catch(err => {
-            console.error("Exception getting session from URL:", err);
+          }).catch(err => {
+            console.error("Error getting session:", err);
           });
+          
+          if (error) {
+            console.error("Error parsing hash:", error);
+          }
+        } catch (err) {
+          console.error("Exception parsing hash:", err);
+        }
       }
     };
     
