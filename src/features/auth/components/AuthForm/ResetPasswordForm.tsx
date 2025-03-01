@@ -22,6 +22,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("ResetPasswordForm: Atualizando senha", accessToken ? "com token" : "sem token");
 
     if (newPassword.length < 6) {
       toast.error("A senha deve ter pelo menos 6 caracteres");
@@ -43,7 +44,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         onSuccess();
       }
     } catch (error: any) {
-      console.error("Update password error:", error);
+      console.error("ResetPasswordForm: Erro na atualização de senha:", error);
       toast.error(error instanceof Error ? error.message : "Falha ao atualizar senha");
     } finally {
       setIsLoading(false);

@@ -16,12 +16,13 @@ export const LoginForm = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("LoginForm: Tentando login com", email);
     
     try {
       await authService.signIn(email, password);
       toast.success("Login realizado com sucesso");
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("LoginForm: Erro de login:", error);
       toast.error(error instanceof Error ? error.message : "Falha ao fazer login");
     } finally {
       setIsLoading(false);
@@ -31,13 +32,14 @@ export const LoginForm = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("LoginForm: Tentando redefinir senha para", email);
     
     try {
       await authService.resetPassword(email);
       toast.success("Instruções para redefinição de senha enviadas para seu email");
       setIsResetting(false);
     } catch (error: any) {
-      console.error("Reset password error:", error);
+      console.error("LoginForm: Erro na redefinição de senha:", error);
       toast.error(error instanceof Error ? error.message : "Falha ao redefinir senha");
     } finally {
       setIsLoading(false);

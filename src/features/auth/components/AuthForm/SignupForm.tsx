@@ -19,6 +19,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ inviteToken }) => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("SignupForm: Tentando cadastro para", email);
     
     // Validação básica
     if (!email || !password || !fullName) {
@@ -37,6 +38,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ inviteToken }) => {
       await authService.signUp(email, password, { full_name: fullName });
       
       if (inviteToken) {
+        console.log("SignupForm: Processando convite com token", inviteToken);
         // Atualiza o status do convite se existir um token
         const { supabase } = await import("@/lib/db/supabase");
         await supabase.from('store_invites')
@@ -47,7 +49,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ inviteToken }) => {
       
       toast.success("Registro realizado! Verifique seu email para confirmar a conta");
     } catch (error: any) {
-      console.error("Sign up error:", error);
+      console.error("SignupForm: Erro de cadastro:", error);
       toast.error(error instanceof Error ? error.message : "Falha ao criar conta");
     } finally {
       setIsLoading(false);
