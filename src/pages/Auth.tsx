@@ -26,7 +26,7 @@ const Auth = () => {
   const { signIn } = useAuth();
 
   useEffect(() => {
-    const checkForPasswordResetFlow = () => {
+    const checkForPasswordResetFlow = async () => {
       // Log full URL to help with debugging
       console.log("Full URL:", window.location.href);
 
@@ -81,24 +81,19 @@ const Auth = () => {
       }
       
       // Additional check for recovery flow
-      // Use the parseHash method instead of getSessionFromUrl
+      // Use the getSession method instead of parseHash
       if (window.location.hash) {
         try {
-          // parseHash is the recommended approach for newer Supabase versions
-          const { data, error } = supabase.auth.getSession();
-          data.then(sessionData => {
-            if (sessionData.session) {
-              console.log("Successfully got session!");
-              setIsUpdatingPassword(true);
-              setResetToken(sessionData.session.access_token);
-              setActiveTab('reset');
-            }
-          }).catch(err => {
-            console.error("Error getting session:", err);
-          });
+          // getSession is the recommended approach for newer Supabase versions
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
           
-          if (error) {
-            console.error("Error parsing hash:", error);
+          if (sessionError) {
+            console.error("Error getting session:", sessionError);
+          } else if (sessionData.session) {
+            console.log("Successfully got session!");
+            setIsUpdatingPassword(true);
+            setResetToken(sessionData.session.access_token);
+            setActiveTab('reset');
           }
         } catch (err) {
           console.error("Exception parsing hash:", err);
