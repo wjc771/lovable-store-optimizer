@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,14 +66,6 @@ const StoreManagement = () => {
         throw error;
       }
     },
-    onError: (error) => {
-      console.error("Query error fetching stores:", error);
-      toast({
-        title: "Error loading stores",
-        description: "There was an error loading the stores. Please try again.",
-        variant: "destructive",
-      });
-    }
   });
 
   // Create new store mutation with improved error reporting
@@ -140,7 +131,7 @@ const StoreManagement = () => {
           toast({
             title: "Store created but invite failed",
             description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
-            variant: "warning",
+            variant: "destructive",
           });
         } else {
           console.log("Store invite created successfully with token:", token);
