@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { authService } from "@/services/auth/auth.service";
+import { supabase } from "@/lib/supabase";
 
 interface SignupFormProps {
   inviteToken?: string;
@@ -35,16 +35,24 @@ export const SignupForm: React.FC<SignupFormProps> = ({ inviteToken }) => {
     }
 
     try {
-      await authService.signUp(email, password, { full_name: fullName });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+      
+      if (error) throw error;
       
       if (inviteToken) {
         console.log("SignupForm: Processando convite com token", inviteToken);
         // Atualiza o status do convite se existir um token
-        const { supabase } = await import("@/lib/db/supabase");
         await supabase.from('store_invites')
           .update({ status: 'accepted' })
-          .eq('token', inviteToken)
-          .single();
+          .eq('token', inviteToken);
       }
       
       toast.success("Registro realizado! Verifique seu email para confirmar a conta");
@@ -100,4 +108,4 @@ export const SignupForm: React.FC<SignupFormProps> = ({ inviteToken }) => {
       </Button>
     </form>
   );
-}
+};

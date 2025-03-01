@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { authService } from "@/services/auth/auth.service";
-import { SITE_URL } from "@/lib/db/supabase";
+import { supabase, SITE_URL } from "@/lib/supabase";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +18,12 @@ export const LoginForm = () => {
     console.log("LoginForm: Tentando login com", email);
     
     try {
-      await authService.signIn(email, password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
       toast.success("Login realizado com sucesso");
     } catch (error: any) {
       console.error("LoginForm: Erro de login:", error);
@@ -35,7 +39,13 @@ export const LoginForm = () => {
     console.log("LoginForm: Tentando redefinir senha para", email);
     
     try {
-      await authService.resetPassword(email);
+      // Usar o SITE_URL para garantir o redirecionamento correto
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${SITE_URL}/auth?tab=reset`,
+      });
+      
+      if (error) throw error;
+      
       toast.success("Instruções para redefinição de senha enviadas para seu email");
       setIsResetting(false);
     } catch (error: any) {

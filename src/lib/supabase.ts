@@ -5,9 +5,11 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = "https://abrofualuqiznoxmzetj.supabase.co";
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFicm9mdWFsdXFpem5veG16ZXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxOTU3ODUsImV4cCI6MjA1NDc3MTc4NX0.hvVxdtVpNRUZCmPi355_TxoDp4tRZ5Cjz0g1zlutEnI";
 
-// URL de redirecionamento para autenticação (atualizado para incluir a rota /auth)
-// Isso deve corresponder ao que está configurado no Console do Supabase
-const siteUrl = "https://katena.autonomme.com";
+// URL de redirecionamento para autenticação
+// Obtém a URL atual do navegador para desenvolvimento ou usa um valor fixo para produção
+const siteUrl = typeof window !== 'undefined' 
+  ? `${window.location.protocol}//${window.location.host}`
+  : "https://katena.autonomme.com";
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables");
@@ -26,6 +28,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     // Configurando URL de redirecionamento
     storageKey: 'supabase.auth.token',
+    persistSession: true,
+    detectSessionInUrl: true
   }
 });
 

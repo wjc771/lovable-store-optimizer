@@ -17,6 +17,8 @@ const Auth = () => {
     if (diagnostics === "true") {
       setShowDiagnostics(true);
     }
+    
+    console.log("Auth: Página carregada com URL:", window.location.href);
   }, [location]);
 
   const toggleDiagnostics = () => {

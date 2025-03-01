@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
 import { SignupForm } from "./SignupForm";
 import { ResetPasswordForm } from "./ResetPasswordForm";
-import { supabase } from "@/lib/db/supabase";
+import { supabase } from "@/lib/supabase";
 
 export const AuthForm = () => {
   console.log("AuthForm: Inicializando componente");

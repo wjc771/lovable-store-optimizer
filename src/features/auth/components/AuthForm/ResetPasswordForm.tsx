@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { authService } from "@/services/auth/auth.service";
+import { supabase } from "@/lib/supabase";
 
 interface ResetPasswordFormProps {
   accessToken?: string;
@@ -37,7 +37,21 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     }
 
     try {
-      await authService.updatePassword(newPassword, accessToken);
+      // Se temos um token de acesso, usamos para atualizar a senha
+      if (accessToken) {
+        const { error } = await supabase.auth.updateUser(
+          { password: newPassword },
+          { accessToken }
+        );
+        if (error) throw error;
+      } else {
+        // Caso contrário, tentamos usar a sessão atual
+        const { error } = await supabase.auth.updateUser({ 
+          password: newPassword 
+        });
+        if (error) throw error;
+      }
+
       toast.success("Sua senha foi atualizada com sucesso");
       
       if (onSuccess) {
