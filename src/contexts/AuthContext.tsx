@@ -31,20 +31,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("AuthContext: Verificando status de superadmin para", userId);
       
-      // Primeiro método: verificar se o ID do usuário corresponde diretamente a um ID na tabela system_admins
-      const { data: directMatch, error: directError } = await supabase
-        .from('system_admins')
-        .select('status')
-        .eq('id', userId)
-        .single();
-
-      if (!directError && directMatch?.status === 'active') {
-        console.log("AuthContext: Usuário é superadmin (correspondência direta de ID)");
+      // Verificação especial para o e-mail jotafieldsfirst@gmail.com (prioridade máxima)
+      const { data: userData } = await supabase.auth.getUser(userId);
+      if (userData?.user?.email === 'jotafieldsfirst@gmail.com') {
+        console.log("AuthContext: jotafieldsfirst@gmail.com é superadmin por verificação direta de email");
         return true;
       }
       
-      // Alternativamente, verificar pelo email do usuário
-      // Esta é uma solução temporária - o ideal seria ter um relacionamento bem definido
+      // Verificar pelo email do usuário na tabela system_admins
       const { data: userEmail } = await supabase
         .from('profiles')
         .select('email')
@@ -64,10 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      // Verificação especial para o e-mail jotafieldsfirst@gmail.com (hack temporário)
-      const { data: userData } = await supabase.auth.getUser(userId);
-      if (userData?.user?.email === 'jotafieldsfirst@gmail.com') {
-        console.log("AuthContext: jotafieldsfirst@gmail.com é superadmin");
+      // Último método: verificar se o ID do usuário corresponde diretamente a um ID na tabela system_admins
+      const { data: directMatch, error: directError } = await supabase
+        .from('system_admins')
+        .select('status')
+        .eq('id', userId)
+        .single();
+
+      if (!directError && directMatch?.status === 'active') {
+        console.log("AuthContext: Usuário é superadmin (correspondência direta de ID)");
         return true;
       }
       
@@ -114,6 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(currentSession.user);
 
       console.log("AuthContext: Verificando papéis do usuário");
+      
+      // Verificação prioritária para o email jotafieldsfirst@gmail.com
+      if (currentSession.user.email === 'jotafieldsfirst@gmail.com') {
+        console.log("AuthContext: jotafieldsfirst@gmail.com identificado, definindo como superadmin");
+        setIsSuperAdmin(true);
+        setIsAdmin(true);
+        return true;
+      }
+      
+      // Para outros usuários, verificar normalmente
       const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
       if (superAdminStatus) {
         console.log("AuthContext: Usuário é superadmin");
@@ -140,6 +149,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         console.log("AuthContext: Sessão obtida:", currentSession ? "Presente" : "Ausente");
         
+        if (!currentSession) {
+          console.log("AuthContext: Sem sessão ativa, redirecionando para /auth");
+          setSession(null);
+          setUser(null);
+          setIsAdmin(false);
+          setIsSuperAdmin(false);
+          navigate('/auth');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Verificação rápida para jotafieldsfirst@gmail.com
+        if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
+          console.log("AuthContext: jotafieldsfirst@gmail.com identificado, definindo como superadmin");
+          setSession(currentSession);
+          setUser(currentSession.user);
+          setIsSuperAdmin(true);
+          setIsAdmin(true);
+          setIsLoading(false);
+          navigate('/admin/stores');
+          return;
+        }
+        
+        // Para outros usuários, verificar normalmente
         const isAuthenticated = await handleUserSession(currentSession);
 
         if (!isAuthenticated) {
@@ -180,6 +213,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' && currentSession) {
           console.log("AuthContext: Usuário conectado:", currentSession.user?.email);
           setIsLoading(true);
+          
+          // Verificação rápida para jotafieldsfirst@gmail.com
+          if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
+            console.log("AuthContext: jotafieldsfirst@gmail.com identificado, definindo como superadmin");
+            setSession(currentSession);
+            setUser(currentSession.user);
+            setIsSuperAdmin(true);
+            setIsAdmin(true);
+            setIsLoading(false);
+            navigate('/admin/stores');
+            return;
+          }
+          
+          // Para outros usuários, verificar normalmente
           const isAuthenticated = await handleUserSession(currentSession);
           setIsLoading(false);
 
