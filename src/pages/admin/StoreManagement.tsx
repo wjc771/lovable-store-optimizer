@@ -39,13 +39,11 @@ const StoreManagement = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Fetch stores with better error handling and using RPC functions to avoid recursion
   const { data: stores, isLoading, error: storesError, refetch } = useQuery({
     queryKey: ["stores"],
     queryFn: async () => {
       console.log("Fetching stores...");
       try {
-        // First check if user is logged in
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) {
           console.error("Session error:", sessionError);
@@ -56,7 +54,6 @@ const StoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Check if user is a system admin via RPC function
         const { data: isSystemAdmin, error: adminError } = await supabase.rpc('is_system_admin');
         
         if (adminError) {
@@ -66,7 +63,6 @@ const StoreManagement = () => {
         
         console.log("User is system admin:", isSystemAdmin);
         
-        // If user is system admin, fetch all stores using RPC function to avoid recursion
         if (isSystemAdmin) {
           const { data, error } = await supabase
             .from("stores")
@@ -81,7 +77,6 @@ const StoreManagement = () => {
           console.log("System admin - fetched all stores:", data?.length);
           return data as Store[];
         } else {
-          // User is not a system admin, use RPC function to get accessible stores
           const { data, error } = await supabase.rpc('get_user_accessible_stores');
             
           if (error) {
@@ -105,15 +100,13 @@ const StoreManagement = () => {
         throw error;
       }
     },
-    retry: 1, // Only retry once to avoid excessive retries on permission issues
+    retry: 1,
   });
 
-  // Create new store mutation with improved error reporting
   const createStore = useMutation({
     mutationFn: async ({ storeName, email }: { storeName: string; email: string }) => {
       console.log("Creating store with name:", storeName, "for owner:", email);
       try {
-        // Get current user session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) {
           console.error("Error getting user session:", sessionError);
@@ -126,7 +119,6 @@ const StoreManagement = () => {
           throw new Error("You must be logged in to create a store");
         }
         
-        // First create the store
         const { data: store, error: storeError } = await supabase
           .from("stores")
           .insert([
@@ -145,12 +137,10 @@ const StoreManagement = () => {
         }
         console.log("Store created successfully:", store);
 
-        // Generate a unique invite token
         const token = crypto.randomUUID();
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7); // Token expires in 7 days
+        expiresAt.setDate(expiresAt.getDate() + 7);
 
-        // Create store invite
         const { error: inviteError } = await supabase
           .from("store_invites")
           .insert([
@@ -166,8 +156,6 @@ const StoreManagement = () => {
 
         if (inviteError) {
           console.error("Error creating store invite:", inviteError);
-          // We don't want to throw here as the store was already created
-          // Instead, we'll show a toast warning that the invite failed
           toast({
             title: "Store created but invite failed",
             description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
@@ -190,8 +178,6 @@ const StoreManagement = () => {
       setNewStoreName("");
       setOwnerEmail("");
       
-      // Here you would typically send an email to the store owner with the invite link
-      // For now, we'll show it in a toast
       toast({
         title: "Store created successfully",
         description: `Invite link: ${window.location.origin}/auth?token=${data.token}`,
@@ -222,7 +208,6 @@ const StoreManagement = () => {
     createStore.mutate({ storeName: newStoreName, email: ownerEmail });
   };
 
-  // If there was an error fetching stores, display it
   if (storesError) {
     return (
       <div className="container mx-auto py-10">

@@ -34,7 +34,7 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
 
 /**
  * Verifies if a user is an admin by checking staff table
- * This implementation avoids infinite recursion by using the built-in auth.uid() function
+ * Uses the is_staff_member RPC function to avoid recursion
  */
 export const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
@@ -47,8 +47,8 @@ export const checkAdminStatus = async (userId: string): Promise<boolean> => {
       return true;
     }
     
-    // Create a custom RPC function to check if the user is a staff member
-    // This avoids direct queries to the staff table which can cause infinite recursion
+    // Use our new RPC function to check if the user is a staff member
+    // This avoids direct queries to the staff table which caused infinite recursion
     const { data: isStaffMember, error: staffError } = await supabase.rpc('is_staff_member');
     
     if (staffError) {

@@ -1235,10 +1235,28 @@ export type Database = {
           critical_threshold: number
         }[]
       }
+      get_user_accessible_stores: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          business_name: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          owner_id: string | null
+          settings: Json | null
+          status: string | null
+        }[]
+      }
       is_saas_admin: {
         Args: {
           user_id: string
         }
+        Returns: boolean
+      }
+      is_staff_member: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_store_owner: {
