@@ -30,16 +30,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkSuperAdminStatus = async (userId: string): Promise<boolean> => {
     try {
       console.log("AuthContext: Verificando status de superadmin para", userId);
-      const { data, error } = await supabase
+      
+      // Primeiro método: verificar se o ID do usuário corresponde diretamente a um ID na tabela system_admins
+      const { data: directMatch, error: directError } = await supabase
         .from('system_admins')
         .select('status')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      const isSuperAdmin = data?.status === 'active';
-      console.log("AuthContext: Status de superadmin:", isSuperAdmin);
-      return isSuperAdmin;
+      if (!directError && directMatch?.status === 'active') {
+        console.log("AuthContext: Usuário é superadmin (correspondência direta de ID)");
+        return true;
+      }
+      
+      // Alternativamente, verificar pelo email do usuário
+      // Esta é uma solução temporária - o ideal seria ter um relacionamento bem definido
+      const { data: userEmail } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', userId)
+        .single();
+        
+      if (userEmail?.email) {
+        const { data: systemAdmin, error: emailError } = await supabase
+          .from('system_admins')
+          .select('status')
+          .eq('email', userEmail.email)
+          .maybeSingle();
+          
+        if (!emailError && systemAdmin?.status === 'active') {
+          console.log("AuthContext: Usuário é superadmin (correspondência por email)");
+          return true;
+        }
+      }
+      
+      // Verificação especial para o e-mail jotafieldsfirst@gmail.com (hack temporário)
+      const { data: userData } = await supabase.auth.getUser(userId);
+      if (userData?.user?.email === 'jotafieldsfirst@gmail.com') {
+        console.log("AuthContext: jotafieldsfirst@gmail.com é superadmin");
+        return true;
+      }
+      
+      console.log("AuthContext: Usuário não é superadmin");
+      return false;
     } catch (error) {
       console.error("AuthContext: Erro ao verificar status de superadmin:", error);
       return false;

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 interface Permissions {
   isManager: boolean;
@@ -18,7 +18,7 @@ interface Permissions {
 }
 
 export const usePermissions = () => {
-  const { user } = useAuth();
+  const { user, isSuperAdmin: authIsSuperAdmin } = useAuth();
   const [permissions, setPermissions] = useState<Permissions>({
     isManager: false,
     isSaasAdmin: false,
@@ -41,7 +41,28 @@ export const usePermissions = () => {
       }
 
       try {
-        // First check if user is a SAAS admin
+        // Use the superadmin status directly from AuthContext
+        // This ensures consistency across the application
+        if (authIsSuperAdmin) {
+          console.log("usePermissions: Usuário é superadmin via AuthContext");
+          setPermissions({
+            isManager: true,
+            isSaasAdmin: true,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: true,
+              customers: true,
+              staff: true,
+              settings: true,
+            },
+            loading: false,
+          });
+          return;
+        }
+
+        // If not a superadmin via AuthContext, double-check in the database
+        // This is a fallback in case the AuthContext needs refresh
         const { data: saasAdminData } = await supabase
           .from('system_admins')
           .select('status')
@@ -51,6 +72,7 @@ export const usePermissions = () => {
         const isSaasAdmin = saasAdminData?.status === 'active';
 
         if (isSaasAdmin) {
+          console.log("usePermissions: Usuário é superadmin via consulta direta");
           setPermissions({
             isManager: true,
             isSaasAdmin: true,
@@ -135,7 +157,7 @@ export const usePermissions = () => {
     };
 
     fetchPermissions();
-  }, [user]);
+  }, [user, authIsSuperAdmin]);
 
   return permissions;
 };

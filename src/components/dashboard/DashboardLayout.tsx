@@ -19,12 +19,12 @@ import {
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { store, setStore } = useStore();
-  const { user, signOut, isLoading } = useAuth();
+  const { user, signOut, isLoading, isSuperAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isManager, isSaasAdmin } = usePermissions();
+  const { isManager, isSaasAdmin, loading: permissionsLoading } = usePermissions();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -51,6 +51,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+  
+  // Determine if user has manager access - either they are a manager or superadmin
+  const hasManagerAccess = isManager || isSuperAdmin || isSaasAdmin;
 
   const navigationItems = [
     {
@@ -63,7 +66,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       icon: PieChart,
       label: t('common.business'),
       path: "/business",
-      show: isManager || isSaasAdmin
+      show: hasManagerAccess
     },
     {
       icon: Upload,
@@ -81,7 +84,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       icon: Settings,
       label: t('common.settings'),
       path: "/settings",
-      show: isManager || isSaasAdmin
+      show: hasManagerAccess
     }
   ];
 
