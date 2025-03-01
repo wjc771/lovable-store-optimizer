@@ -15,8 +15,8 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
       return true;
     }
     
-    // Use the is_system_admin RPC function without parameters
-    // This is safer and prevents recursion in RLS policies
+    // Use the is_system_admin RPC function which uses SECURITY DEFINER
+    // This completely avoids the RLS recursion issue
     const { data, error } = await supabase.rpc('is_system_admin');
     
     if (error) {
@@ -34,7 +34,7 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
 
 /**
  * Verifies if a user is an admin by checking staff table
- * Uses the is_staff_member RPC function to avoid recursion
+ * Uses the is_staff_member RPC function to completely avoid RLS recursion
  */
 export const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
@@ -47,8 +47,8 @@ export const checkAdminStatus = async (userId: string): Promise<boolean> => {
       return true;
     }
     
-    // Use our new RPC function to check if the user is a staff member
-    // This avoids direct queries to the staff table which caused infinite recursion
+    // Use our RPC function to check staff status
+    // This completely avoids the RLS recursion issue by using SECURITY DEFINER
     const { data: isStaffMember, error: staffError } = await supabase.rpc('is_staff_member');
     
     if (staffError) {

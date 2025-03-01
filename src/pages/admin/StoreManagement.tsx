@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,15 +55,17 @@ const StoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
+        // Verificar se o usuário é um admin do sistema usando RPC
         const { data: isSystemAdmin, error: adminError } = await supabase.rpc('is_system_admin');
         
         if (adminError) {
           console.error("Error checking system admin status:", adminError);
-          // Don't throw here, we'll check individual store access
+          // Não lançamos erro aqui, vamos verificar o acesso individual às lojas
         }
         
         console.log("User is system admin:", isSystemAdmin);
         
+        // Se for admin do sistema, buscar todas as lojas
         if (isSystemAdmin) {
           const { data, error } = await supabase
             .from("stores")
@@ -76,7 +79,9 @@ const StoreManagement = () => {
           
           console.log("System admin - fetched all stores:", data?.length);
           return data as Store[];
-        } else {
+        } 
+        // Se não for admin, usar a função RPC que evita problemas de recursão
+        else {
           const { data, error } = await supabase.rpc('get_user_accessible_stores');
             
           if (error) {
