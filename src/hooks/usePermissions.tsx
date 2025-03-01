@@ -121,9 +121,12 @@ export const usePermissions = () => {
           loading: false
         };
 
+        // Type assertion to handle the data structure correctly
+        const typedPositionsData = positionsData as unknown as StaffPositionData[];
+        
         // Combine permissions from all positions
-        const combinedPermissions = positionsData.reduce<Permissions>(
-          (acc: Permissions, curr: any) => {
+        const combinedPermissions = typedPositionsData.reduce<Permissions>(
+          (acc: Permissions, curr: StaffPositionData) => {
             // Access the positions object from the current staff position
             const position = curr.positions;
             
