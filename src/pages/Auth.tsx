@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
+import { EmailTester } from "@/components/auth/EmailTester";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +22,7 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("signin");
   const [resetToken, setResetToken] = useState("");
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const { signIn } = useAuth();
 
   useEffect(() => {
@@ -34,8 +35,13 @@ const Auth = () => {
       const token = params.get('token');
       const tab = params.get('tab');
       const type = params.get('type');
+      const diagnostics = params.get('diagnostics');
       
-      console.log("URL params:", { token, tab, type });
+      console.log("URL params:", { token, tab, type, diagnostics });
+      
+      if (diagnostics === "true") {
+        setShowDiagnostics(true);
+      }
       
       // Check for invite token
       if (token) {
@@ -392,6 +398,10 @@ const Auth = () => {
     );
   };
 
+  const toggleDiagnostics = () => {
+    setShowDiagnostics(!showDiagnostics);
+  };
+
   if (isUpdatingPassword) {
     return renderUpdatePassword();
   }
@@ -428,7 +438,7 @@ const Auth = () => {
             You've been invited to join a store. Please sign up to accept the invitation.
           </p>
         )}
-        {email === 'admin@saasadmin.com' && (
+        {email === 'wjc771@gmail.com' && (
           <p className="mt-2 text-center text-sm text-purple-600 dark:text-purple-400 font-semibold">
             Logging in as SaaS Administrator
           </p>
@@ -563,8 +573,23 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <div className="mt-6 text-center">
+            <button 
+              onClick={toggleDiagnostics}
+              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >
+              {showDiagnostics ? "Hide Diagnostics" : "Show Diagnostics"}
+            </button>
+          </div>
         </div>
       </div>
+      
+      {showDiagnostics && (
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <EmailTester />
+        </div>
+      )}
     </div>
   );
 };
