@@ -97,9 +97,13 @@ export const usePermissions = () => {
             if (position.is_managerial) acc.isManager = true;
             
             // Combine permissions
-            Object.keys(position.permissions).forEach((key) => {
-              if (position.permissions[key]) acc.permissions[key] = true;
-            });
+            if (position.permissions) {
+              Object.keys(position.permissions).forEach((key) => {
+                if (position.permissions[key]) {
+                  acc.permissions[key] = true;
+                }
+              });
+            }
             
             return acc;
           },
