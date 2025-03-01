@@ -49,7 +49,7 @@ export const useUserSession = (): UserSessionResult => {
         return true;
       }
       
-      // For other users, check normally using the updated functions
+      // For other users, check using the updated functions that use RPC
       const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
       if (superAdminStatus) {
         console.log("UserSession: Usuário é superadmin");

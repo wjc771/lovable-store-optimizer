@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -57,7 +56,7 @@ const StoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Check if user is a system admin - if yes, they can see all stores
+        // Check if user is a system admin via RPC function
         const { data: isSystemAdmin, error: adminError } = await supabase.rpc('is_system_admin');
         
         if (adminError) {
@@ -67,7 +66,7 @@ const StoreManagement = () => {
         
         console.log("User is system admin:", isSystemAdmin);
         
-        // If user is system admin, fetch all stores
+        // If user is system admin, fetch all stores using RPC function to avoid recursion
         if (isSystemAdmin) {
           const { data, error } = await supabase
             .from("stores")
@@ -82,41 +81,8 @@ const StoreManagement = () => {
           console.log("System admin - fetched all stores:", data?.length);
           return data as Store[];
         } else {
-          // User is not a system admin, fetch only stores they have access to
-          // We'll use a different approach to avoid recursion
-          // First get the staff entry for this user
-          const { data: staffData } = await supabase
-            .from('staff')
-            .select('store_id')
-            .eq('user_id', sessionData.session.user.id);
-            
-          // Get store IDs where user is staff
-          const storeIds = staffData?.map(s => s.store_id) || [];
-          
-          // Also check if user is owner of any stores
-          const { data: ownedStores } = await supabase
-            .from("stores")
-            .select("id")
-            .eq("owner_id", sessionData.session.user.id);
-            
-          // Combine all store IDs
-          const allStoreIds = [
-            ...storeIds,
-            ...(ownedStores?.map(s => s.id) || [])
-          ];
-          
-          // If no store IDs found, return empty array
-          if (allStoreIds.length === 0) {
-            console.log("User has no stores");
-            return [];
-          }
-          
-          // Fetch all stores the user has access to
-          const { data, error } = await supabase
-            .from("stores")
-            .select("*")
-            .in("id", allStoreIds)
-            .order("created_at", { ascending: false });
+          // User is not a system admin, use RPC function to get accessible stores
+          const { data, error } = await supabase.rpc('get_user_accessible_stores');
             
           if (error) {
             console.error("Error fetching user's stores:", error);

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -33,12 +34,11 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
 
 /**
  * Verifies if a user is an admin by checking staff table
+ * This implementation avoids infinite recursion by using the built-in auth.uid() function
  */
 export const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
     console.log("AuthVerification: Verificando status de admin para", userId);
-    // Instead of querying staff table directly, we should use secure RPC functions
-    // For now, we'll keep it simple to avoid further issues
     
     // First check if user is a superadmin (which implies admin privileges)
     const isSuperAdmin = await checkSuperAdminStatus(userId);
@@ -47,21 +47,17 @@ export const checkAdminStatus = async (userId: string): Promise<boolean> => {
       return true;
     }
     
-    // Then check for staff status using RPC
-    const { data: isStaff, error: staffError } = await supabase
-      .from('staff')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (staffError && staffError.code !== 'PGRST116') {
-      console.error("AuthVerification: Erro ao verificar status de admin:", staffError);
+    // Create a custom RPC function to check if the user is a staff member
+    // This avoids direct queries to the staff table which can cause infinite recursion
+    const { data: isStaffMember, error: staffError } = await supabase.rpc('is_staff_member');
+    
+    if (staffError) {
+      console.error("AuthVerification: Erro ao verificar status de staff:", staffError);
       return false;
     }
     
-    const isAdmin = !!isStaff;
-    console.log("AuthVerification: Status de admin:", isAdmin);
-    return isAdmin;
+    console.log("AuthVerification: Usuário é staff member?", isStaffMember);
+    return !!isStaffMember;
   } catch (error) {
     console.error("AuthVerification: Erro ao verificar status de admin:", error);
     return false;
