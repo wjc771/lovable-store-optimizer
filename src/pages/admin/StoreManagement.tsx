@@ -40,7 +40,7 @@ const StoreManagement = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Fetch stores with better error handling
+  // Fetch stores with better error handling and using RPC functions to avoid recursion
   const { data: stores, isLoading, error: storesError, refetch } = useQuery({
     queryKey: ["stores"],
     queryFn: async () => {
@@ -57,19 +57,75 @@ const StoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Then fetch stores
-        const { data, error } = await supabase
-          .from("stores")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Error fetching stores:", error);
-          throw new Error(error.message);
+        // Check if user is a system admin - if yes, they can see all stores
+        const { data: isSystemAdmin, error: adminError } = await supabase.rpc('is_system_admin');
+        
+        if (adminError) {
+          console.error("Error checking system admin status:", adminError);
+          // Don't throw here, we'll check individual store access
         }
         
-        console.log("Stores fetched successfully:", data);
-        return data as Store[];
+        console.log("User is system admin:", isSystemAdmin);
+        
+        // If user is system admin, fetch all stores
+        if (isSystemAdmin) {
+          const { data, error } = await supabase
+            .from("stores")
+            .select("*")
+            .order("created_at", { ascending: false });
+            
+          if (error) {
+            console.error("Error fetching stores:", error);
+            throw new Error(error.message);
+          }
+          
+          console.log("System admin - fetched all stores:", data?.length);
+          return data as Store[];
+        } else {
+          // User is not a system admin, fetch only stores they have access to
+          // We'll use a different approach to avoid recursion
+          // First get the staff entry for this user
+          const { data: staffData } = await supabase
+            .from('staff')
+            .select('store_id')
+            .eq('user_id', sessionData.session.user.id);
+            
+          // Get store IDs where user is staff
+          const storeIds = staffData?.map(s => s.store_id) || [];
+          
+          // Also check if user is owner of any stores
+          const { data: ownedStores } = await supabase
+            .from("stores")
+            .select("id")
+            .eq("owner_id", sessionData.session.user.id);
+            
+          // Combine all store IDs
+          const allStoreIds = [
+            ...storeIds,
+            ...(ownedStores?.map(s => s.id) || [])
+          ];
+          
+          // If no store IDs found, return empty array
+          if (allStoreIds.length === 0) {
+            console.log("User has no stores");
+            return [];
+          }
+          
+          // Fetch all stores the user has access to
+          const { data, error } = await supabase
+            .from("stores")
+            .select("*")
+            .in("id", allStoreIds)
+            .order("created_at", { ascending: false });
+            
+          if (error) {
+            console.error("Error fetching user's stores:", error);
+            throw new Error(error.message);
+          }
+          
+          console.log("Regular user - fetched accessible stores:", data?.length);
+          return data as Store[];
+        }
       } catch (error) {
         console.error("Failed to fetch stores:", error);
         const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
