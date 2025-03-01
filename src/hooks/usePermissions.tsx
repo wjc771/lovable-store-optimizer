@@ -51,6 +51,7 @@ export const usePermissions = () => {
 
   useEffect(() => {
     const fetchPermissions = async () => {
+      console.log("usePermissions: Fetching permissions for user:", user?.id);
       if (!user) {
         setPermissions(prev => ({ ...prev, loading: false }));
         return;
@@ -60,7 +61,7 @@ export const usePermissions = () => {
         // Use the superadmin status directly from AuthContext
         // This ensures consistency across the application
         if (authIsSuperAdmin) {
-          console.log("usePermissions: Usuário é superadmin via AuthContext");
+          console.log("usePermissions: User is superadmin via AuthContext");
           setPermissions({
             isManager: true,
             isSaasAdmin: true,
@@ -78,19 +79,26 @@ export const usePermissions = () => {
         }
 
         // If not a superadmin via AuthContext, check if they're a staff member with permissions
-        const { data: staffData } = await supabase
+        const { data: staffData, error: staffError } = await supabase
           .from('staff')
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle();
+          
+        if (staffError) {
+          console.error("usePermissions: Error fetching staff data:", staffError);
+        }
 
         if (!staffData) {
+          console.log("usePermissions: User is not a staff member");
           setPermissions(prev => ({ ...prev, loading: false }));
           return;
         }
 
+        console.log("usePermissions: User is a staff member with ID:", staffData.id);
+
         // Get positions for the staff member
-        const { data: positionsData } = await supabase
+        const { data: positionsData, error: positionsError } = await supabase
           .from('staff_positions')
           .select(`
             position_id,
@@ -100,11 +108,18 @@ export const usePermissions = () => {
             )
           `)
           .eq('staff_id', staffData.id);
+          
+        if (positionsError) {
+          console.error("usePermissions: Error fetching positions:", positionsError);
+        }
 
         if (!positionsData?.length) {
+          console.log("usePermissions: No positions found for staff member");
           setPermissions(prev => ({ ...prev, loading: false }));
           return;
         }
+
+        console.log("usePermissions: Found positions:", positionsData);
 
         // Initialize our combined permissions object
         const initialPermissions: Permissions = {
@@ -157,6 +172,7 @@ export const usePermissions = () => {
           initialPermissions
         );
 
+        console.log("usePermissions: Calculated permissions:", combinedPermissions);
         setPermissions(combinedPermissions);
 
       } catch (error) {

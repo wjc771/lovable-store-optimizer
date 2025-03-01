@@ -70,7 +70,7 @@ export const checkAdminStatus = async (userId: string): Promise<boolean> => {
 
     if (staffError && staffError.code !== 'PGRST116') throw staffError;
     const isAdmin = !!staffData;
-    console.log("AuthVerification: Status de admin:", isAdmin);
+    console.log("AuthContext: Status de admin:", isAdmin);
     return isAdmin;
   } catch (error) {
     console.error("AuthVerification: Erro ao verificar status de admin:", error);

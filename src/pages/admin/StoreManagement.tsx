@@ -44,56 +44,87 @@ const StoreManagement = () => {
   const { data: stores, isLoading } = useQuery({
     queryKey: ["stores"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stores")
-        .select("*")
-        .order("created_at", { ascending: false });
+      console.log("Fetching stores...");
+      try {
+        const { data, error } = await supabase
+          .from("stores")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data as Store[];
+        if (error) {
+          console.error("Error fetching stores:", error);
+          throw error;
+        }
+        console.log("Stores fetched successfully:", data);
+        return data as Store[];
+      } catch (error) {
+        console.error("Failed to fetch stores:", error);
+        throw error;
+      }
     },
   });
 
   // Create new store mutation
   const createStore = useMutation({
     mutationFn: async ({ storeName, email }: { storeName: string; email: string }) => {
-      // First create the store
-      const { data: store, error: storeError } = await supabase
-        .from("stores")
-        .insert([
-          {
-            business_name: storeName,
-            name: storeName,
-          },
-        ])
-        .select()
-        .single();
+      console.log("Creating store with name:", storeName, "for owner:", email);
+      try {
+        // Get current user session
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Current user session:", session?.user.email);
+        
+        // First create the store
+        const { data: store, error: storeError } = await supabase
+          .from("stores")
+          .insert([
+            {
+              business_name: storeName,
+              name: storeName,
+              created_by: session?.user.id
+            },
+          ])
+          .select()
+          .single();
 
-      if (storeError) throw storeError;
+        if (storeError) {
+          console.error("Error creating store:", storeError);
+          throw storeError;
+        }
+        console.log("Store created successfully:", store);
 
-      // Generate a unique invite token
-      const token = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // Token expires in 7 days
+        // Generate a unique invite token
+        const token = crypto.randomUUID();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // Token expires in 7 days
 
-      // Create store invite
-      const { error: inviteError } = await supabase
-        .from("store_invites")
-        .insert([
-          {
-            store_id: store.id,
-            email,
-            role: "admin",
-            token,
-            expires_at: expiresAt.toISOString(),
-          },
-        ]);
+        // Create store invite
+        const { error: inviteError } = await supabase
+          .from("store_invites")
+          .insert([
+            {
+              store_id: store.id,
+              email,
+              role: "admin",
+              token,
+              expires_at: expiresAt.toISOString(),
+              created_by: session?.user.id
+            },
+          ]);
 
-      if (inviteError) throw inviteError;
+        if (inviteError) {
+          console.error("Error creating store invite:", inviteError);
+          throw inviteError;
+        }
+        console.log("Store invite created successfully with token:", token);
 
-      return { store, token };
+        return { store, token };
+      } catch (error) {
+        console.error("Failed to create store:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("Store creation mutation completed successfully");
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       setIsDialogOpen(false);
       setNewStoreName("");
@@ -107,6 +138,7 @@ const StoreManagement = () => {
       });
     },
     onError: (error) => {
+      console.error("Store creation failed:", error);
       toast({
         title: "Error creating store",
         description: error instanceof Error ? error.message : "Something went wrong",
@@ -117,6 +149,7 @@ const StoreManagement = () => {
 
   const handleCreateStore = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Creating store...");
     if (!newStoreName || !ownerEmail) {
       toast({
         title: "Missing information",
