@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Store } from "lucide-react";
+import { Plus, Store, AlertCircle, RefreshCw } from "lucide-react";
 
 interface Store {
   id: string;
@@ -40,11 +41,23 @@ const StoreManagement = () => {
   const navigate = useNavigate();
 
   // Fetch stores with better error handling
-  const { data: stores, isLoading, error: storesError } = useQuery({
+  const { data: stores, isLoading, error: storesError, refetch } = useQuery({
     queryKey: ["stores"],
     queryFn: async () => {
       console.log("Fetching stores...");
       try {
+        // First check if user is logged in
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          throw new Error("Authentication error: " + sessionError.message);
+        }
+        
+        if (!sessionData.session) {
+          throw new Error("You must be logged in to view stores");
+        }
+        
+        // Then fetch stores
         const { data, error } = await supabase
           .from("stores")
           .select("*")
@@ -52,20 +65,25 @@ const StoreManagement = () => {
 
         if (error) {
           console.error("Error fetching stores:", error);
-          toast({
-            title: "Error loading stores",
-            description: error.message,
-            variant: "destructive",
-          });
-          throw error;
+          throw new Error(error.message);
         }
+        
         console.log("Stores fetched successfully:", data);
         return data as Store[];
       } catch (error) {
         console.error("Failed to fetch stores:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+        
+        toast({
+          title: "Error loading stores",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        
         throw error;
       }
     },
+    retry: 1, // Only retry once to avoid excessive retries on permission issues
   });
 
   // Create new store mutation with improved error reporting
@@ -187,10 +205,20 @@ const StoreManagement = () => {
     return (
       <div className="container mx-auto py-10">
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold">Error loading stores</h3>
-          <p>There was a problem loading the store list. Please try refreshing the page.</p>
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2 text-red-600" />
+            <h3 className="text-lg font-semibold">Error loading stores</h3>
+          </div>
+          <p className="mt-2">There was a problem loading the store list. Please try refreshing the page.</p>
+          <p className="text-sm mt-1 text-red-600">
+            {storesError instanceof Error ? storesError.message : "Unknown error"}
+          </p>
         </div>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["stores"] })}>
+        <Button 
+          onClick={() => refetch()} 
+          className="flex items-center"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
           Retry
         </Button>
       </div>
