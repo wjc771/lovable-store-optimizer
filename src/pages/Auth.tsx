@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { supabase, SITE_URL } from "@/lib/supabase";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { EmailTester } from "@/components/auth/EmailTester";
@@ -189,10 +190,9 @@ const Auth = () => {
     }
 
     try {
-      // Use the built-in Supabase reset password flow
-      // Important: Make sure your Supabase project has the correct site URL and redirect URLs configured
+      // Usar o SITE_URL em vez de window.location.origin
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${SITE_URL}/auth`,
       });
       
       if (error) throw error;

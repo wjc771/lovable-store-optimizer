@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/lib/supabase";
+import { supabase, SITE_URL } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const EmailTester = () => {
@@ -24,8 +24,8 @@ export const EmailTester = () => {
     setTestResult(null);
 
     try {
-      // Importante: use ?tab=reset para garantir que o usuário seja redirecionado para a tela correta
-      const redirectUrl = `${window.location.origin}/auth?tab=reset`;
+      // Usar o SITE_URL em vez de window.location.origin
+      const redirectUrl = `${SITE_URL}/auth?tab=reset`;
       console.log(`Redirecting to: ${redirectUrl}`);
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { supabase, SITE_URL } from "@/lib/supabase";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -37,9 +37,9 @@ export const LoginForm = () => {
     setIsLoading(true);
     
     try {
-      // Use tab=reset para garantir que o usuário seja direcionado para a página correta
+      // Usar o SITE_URL para garantir o redirecionamento correto
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?tab=reset`,
+        redirectTo: `${SITE_URL}/auth?tab=reset`,
       });
       
       if (error) throw error;
