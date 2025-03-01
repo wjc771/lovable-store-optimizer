@@ -15,7 +15,8 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
       return true;
     }
     
-    // Check by user email in system_admins table
+    // Check if user is in system_admins with active status
+    // We check both by user ID and by email to be thorough
     const { data: userEmail } = await supabase
       .from('profiles')
       .select('email')
@@ -23,26 +24,26 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
       .single();
       
     if (userEmail?.email) {
-      const { data: systemAdmin, error: emailError } = await supabase
+      const { data: systemAdmin } = await supabase
         .from('system_admins')
         .select('status')
         .eq('email', userEmail.email)
         .maybeSingle();
         
-      if (!emailError && systemAdmin?.status === 'active') {
+      if (systemAdmin?.status === 'active') {
         console.log("AuthVerification: Usuário é superadmin (correspondência por email)");
         return true;
       }
     }
     
-    // Final method: check if user ID directly matches an ID in system_admins
-    const { data: directMatch, error: directError } = await supabase
+    // Check by direct ID match
+    const { data: directMatch } = await supabase
       .from('system_admins')
       .select('status')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (!directError && directMatch?.status === 'active') {
+    if (directMatch?.status === 'active') {
       console.log("AuthVerification: Usuário é superadmin (correspondência direta de ID)");
       return true;
     }
@@ -65,7 +66,7 @@ export const checkAdminStatus = async (userId: string): Promise<boolean> => {
       .from('staff')
       .select('id')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (staffError && staffError.code !== 'PGRST116') throw staffError;
     const isAdmin = !!staffData;
