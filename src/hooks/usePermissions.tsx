@@ -17,8 +17,8 @@ interface Permissions {
   loading: boolean;
 }
 
-// Define an interface for the position data structure we're working with
-interface PositionData {
+// Define an interface for the staff positions data returned from Supabase
+interface StaffPositionData {
   position_id: string;
   positions?: {
     is_managerial?: boolean;
@@ -123,8 +123,8 @@ export const usePermissions = () => {
 
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce<Permissions>(
-          (acc, curr) => {
-            // Make sure positions exists before accessing its properties
+          (acc, curr: StaffPositionData) => {
+            // Access the positions object from the current staff position
             const position = curr.positions;
             
             // Check if position exists and has is_managerial property
@@ -134,13 +134,15 @@ export const usePermissions = () => {
             
             // Combine permissions if position and permissions exist
             if (position && position.permissions) {
+              // Get all keys from the permissions object
               const permKeys = Object.keys(position.permissions);
               
               permKeys.forEach((key) => {
-                // Safe type assertion for accessing dynamic properties
+                // We need to type assert the keys to access properties dynamically
                 const permKey = key as keyof typeof position.permissions;
                 const accKey = key as keyof typeof acc.permissions;
                 
+                // Only set to true if the permission exists and is true
                 if (position.permissions && position.permissions[permKey]) {
                   acc.permissions[accKey] = true;
                 }
