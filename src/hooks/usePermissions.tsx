@@ -78,6 +78,30 @@ export const usePermissions = () => {
           return;
         }
 
+        // Use RPC to check if user is a system admin for better performance
+        const { data: isSystemAdmin, error: systemAdminError } = await supabase.rpc(
+          'is_system_admin',
+          { user_id: user.id }
+        );
+
+        if (isSystemAdmin && !systemAdminError) {
+          console.log("usePermissions: User is a system admin via RPC");
+          setPermissions({
+            isManager: true,
+            isSaasAdmin: true,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: true,
+              customers: true,
+              staff: true,
+              settings: true,
+            },
+            loading: false,
+          });
+          return;
+        }
+
         // If not a superadmin via AuthContext, check if they're a staff member with permissions
         const { data: staffData, error: staffError } = await supabase
           .from('staff')

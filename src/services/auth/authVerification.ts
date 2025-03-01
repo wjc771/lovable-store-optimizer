@@ -15,41 +15,51 @@ export const checkSuperAdminStatus = async (userId: string): Promise<boolean> =>
       return true;
     }
     
-    // Check if user is in system_admins with active status
-    // We check both by user ID and by email to be thorough
-    const { data: userEmail } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('id', userId)
-      .single();
+    // Use the is_system_admin security definer function to check status
+    const { data, error } = await supabase.rpc('is_system_admin', { user_id: userId });
+    
+    if (error) {
+      console.error("AuthVerification: Erro ao verificar status de superadmin com RPC:", error);
       
-    if (userEmail?.email) {
-      const { data: systemAdmin } = await supabase
+      // Fallback: check if user is in system_admins with active status
+      // We check both by user ID and by email to be thorough
+      const { data: userEmail } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', userId)
+        .single();
+        
+      if (userEmail?.email) {
+        const { data: systemAdmin } = await supabase
+          .from('system_admins')
+          .select('status')
+          .eq('email', userEmail.email)
+          .maybeSingle();
+          
+        if (systemAdmin?.status === 'active') {
+          console.log("AuthVerification: Usuário é superadmin (correspondência por email)");
+          return true;
+        }
+      }
+      
+      // Check by direct ID match
+      const { data: directMatch } = await supabase
         .from('system_admins')
         .select('status')
-        .eq('email', userEmail.email)
+        .eq('id', userId)
         .maybeSingle();
-        
-      if (systemAdmin?.status === 'active') {
-        console.log("AuthVerification: Usuário é superadmin (correspondência por email)");
+
+      if (directMatch?.status === 'active') {
+        console.log("AuthVerification: Usuário é superadmin (correspondência direta de ID)");
         return true;
       }
+      
+      console.log("AuthVerification: Usuário não é superadmin (via fallback)");
+      return false;
     }
     
-    // Check by direct ID match
-    const { data: directMatch } = await supabase
-      .from('system_admins')
-      .select('status')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (directMatch?.status === 'active') {
-      console.log("AuthVerification: Usuário é superadmin (correspondência direta de ID)");
-      return true;
-    }
-    
-    console.log("AuthVerification: Usuário não é superadmin");
-    return false;
+    console.log("AuthVerification: Status de superadmin via RPC:", data);
+    return !!data;
   } catch (error) {
     console.error("AuthVerification: Erro ao verificar status de superadmin:", error);
     return false;

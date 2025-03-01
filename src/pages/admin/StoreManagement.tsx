@@ -40,8 +40,8 @@ const StoreManagement = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Fetch stores
-  const { data: stores, isLoading } = useQuery({
+  // Fetch stores with better error handling
+  const { data: stores, isLoading, error: storesError } = useQuery({
     queryKey: ["stores"],
     queryFn: async () => {
       console.log("Fetching stores...");
@@ -53,6 +53,11 @@ const StoreManagement = () => {
 
         if (error) {
           console.error("Error fetching stores:", error);
+          toast({
+            title: "Error loading stores",
+            description: error.message,
+            variant: "destructive",
+          });
           throw error;
         }
         console.log("Stores fetched successfully:", data);
@@ -62,16 +67,33 @@ const StoreManagement = () => {
         throw error;
       }
     },
+    onError: (error) => {
+      console.error("Query error fetching stores:", error);
+      toast({
+        title: "Error loading stores",
+        description: "There was an error loading the stores. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
-  // Create new store mutation
+  // Create new store mutation with improved error reporting
   const createStore = useMutation({
     mutationFn: async ({ storeName, email }: { storeName: string; email: string }) => {
       console.log("Creating store with name:", storeName, "for owner:", email);
       try {
         // Get current user session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error("Error getting user session:", sessionError);
+          throw new Error("Failed to get user session: " + sessionError.message);
+        }
+        
         console.log("Current user session:", session?.user.email);
+        
+        if (!session) {
+          throw new Error("You must be logged in to create a store");
+        }
         
         // First create the store
         const { data: store, error: storeError } = await supabase
@@ -88,7 +110,7 @@ const StoreManagement = () => {
 
         if (storeError) {
           console.error("Error creating store:", storeError);
-          throw storeError;
+          throw new Error("Failed to create store: " + storeError.message);
         }
         console.log("Store created successfully:", store);
 
@@ -113,9 +135,16 @@ const StoreManagement = () => {
 
         if (inviteError) {
           console.error("Error creating store invite:", inviteError);
-          throw inviteError;
+          // We don't want to throw here as the store was already created
+          // Instead, we'll show a toast warning that the invite failed
+          toast({
+            title: "Store created but invite failed",
+            description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
+            variant: "warning",
+          });
+        } else {
+          console.log("Store invite created successfully with token:", token);
         }
-        console.log("Store invite created successfully with token:", token);
 
         return { store, token };
       } catch (error) {
@@ -162,8 +191,33 @@ const StoreManagement = () => {
     createStore.mutate({ storeName: newStoreName, email: ownerEmail });
   };
 
+  // If there was an error fetching stores, display it
+  if (storesError) {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold">Error loading stores</h3>
+          <p>There was a problem loading the store list. Please try refreshing the page.</p>
+        </div>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["stores"] })}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto py-10">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Store Management</h1>
+        </div>
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -234,47 +288,56 @@ const StoreManagement = () => {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Store Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {stores?.map((store) => (
-              <TableRow key={store.id}>
-                <TableCell className="font-medium">{store.business_name}</TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      store.status === "active"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                    }`}
-                  >
-                    {store.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {new Date(store.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/admin/stores/${store.id}`)}
-                  >
-                    <Store className="mr-2 h-4 w-4" />
-                    Manage
-                  </Button>
-                </TableCell>
+        {stores && stores.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Store Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {stores.map((store) => (
+                <TableRow key={store.id}>
+                  <TableCell className="font-medium">{store.business_name}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        store.status === "active"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                      }`}
+                    >
+                      {store.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(store.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin/stores/${store.id}`)}
+                    >
+                      <Store className="mr-2 h-4 w-4" />
+                      Manage
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400">No stores found</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              Create your first store to get started
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
