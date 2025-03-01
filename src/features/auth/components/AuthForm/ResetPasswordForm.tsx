@@ -37,20 +37,27 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     }
 
     try {
-      // Se temos um token de acesso, usamos para atualizar a senha
+      // Se temos um token de acesso, usamos para definir a sessão primeiro
       if (accessToken) {
-        const { error } = await supabase.auth.updateUser(
-          { password: newPassword },
-          { accessToken }
-        );
-        if (error) throw error;
-      } else {
-        // Caso contrário, tentamos usar a sessão atual
-        const { error } = await supabase.auth.updateUser({ 
-          password: newPassword 
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: "", // Não temos refresh token neste caso
         });
-        if (error) throw error;
+        
+        if (sessionError) {
+          console.error("ResetPasswordForm: Erro ao definir sessão:", sessionError);
+          throw sessionError;
+        }
+        
+        console.log("ResetPasswordForm: Sessão definida com sucesso usando token");
       }
+      
+      // Agora atualizamos a senha usando a sessão atual
+      const { error } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      });
+      
+      if (error) throw error;
 
       toast.success("Sua senha foi atualizada com sucesso");
       
