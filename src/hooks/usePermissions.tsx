@@ -20,7 +20,7 @@ interface Permissions {
 // Define an interface for the staff positions data returned from Supabase
 interface StaffPositionData {
   position_id: string;
-  positions?: {
+  positions: {
     is_managerial?: boolean;
     permissions?: {
       sales?: boolean;
@@ -123,7 +123,7 @@ export const usePermissions = () => {
 
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce<Permissions>(
-          (acc, curr: StaffPositionData) => {
+          (acc: Permissions, curr: StaffPositionData) => {
             // Access the positions object from the current staff position
             const position = curr.positions;
             
