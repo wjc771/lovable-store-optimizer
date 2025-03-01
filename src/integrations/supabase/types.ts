@@ -1248,6 +1248,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_system_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_can_access_store: {
+        Args: {
+          store_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       system_role: "saas_admin" | "store_admin" | "staff"
