@@ -17,6 +17,22 @@ interface Permissions {
   loading: boolean;
 }
 
+// Define an interface for the position data structure we're working with
+interface PositionData {
+  positions?: {
+    is_managerial?: boolean;
+    permissions?: {
+      sales?: boolean;
+      inventory?: boolean;
+      financial?: boolean;
+      customers?: boolean;
+      staff?: boolean;
+      settings?: boolean;
+    };
+  };
+  position_id: string;
+}
+
 export const usePermissions = () => {
   const { user, isSuperAdmin: authIsSuperAdmin } = useAuth();
   const [permissions, setPermissions] = useState<Permissions>({
@@ -92,7 +108,7 @@ export const usePermissions = () => {
 
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce(
-          (acc, curr) => {
+          (acc, curr: PositionData) => {
             // Make sure positions exists before accessing its properties
             const position = curr.positions;
             
@@ -104,7 +120,7 @@ export const usePermissions = () => {
             // Combine permissions if position and permissions exist
             if (position && position.permissions) {
               Object.keys(position.permissions).forEach((key) => {
-                if (position.permissions[key]) {
+                if (position.permissions && position.permissions[key]) {
                   acc.permissions[key] = true;
                 }
               });
