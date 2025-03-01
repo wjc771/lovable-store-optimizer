@@ -19,6 +19,7 @@ interface Permissions {
 
 // Define an interface for the position data structure we're working with
 interface PositionData {
+  position_id: string;
   positions?: {
     is_managerial?: boolean;
     permissions?: {
@@ -30,7 +31,6 @@ interface PositionData {
       settings?: boolean;
     };
   };
-  position_id: string;
 }
 
 export const usePermissions = () => {
@@ -108,7 +108,7 @@ export const usePermissions = () => {
 
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce(
-          (acc, curr: PositionData) => {
+          (acc: Permissions, curr: PositionData) => {
             // Make sure positions exists before accessing its properties
             const position = curr.positions;
             
@@ -120,8 +120,8 @@ export const usePermissions = () => {
             // Combine permissions if position and permissions exist
             if (position && position.permissions) {
               Object.keys(position.permissions).forEach((key) => {
-                if (position.permissions && position.permissions[key]) {
-                  acc.permissions[key] = true;
+                if (position.permissions && position.permissions[key as keyof typeof position.permissions]) {
+                  acc.permissions[key as keyof typeof acc.permissions] = true;
                 }
               });
             }
@@ -139,6 +139,7 @@ export const usePermissions = () => {
               staff: false,
               settings: false,
             },
+            loading: false
           }
         );
 
