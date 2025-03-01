@@ -24,14 +24,18 @@ export const EmailTester = () => {
     setTestResult(null);
 
     try {
+      // Log the current origin for debugging
+      console.log(`Redirecting to: ${window.location.origin}/auth?tab=reset`);
+      
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/auth?tab=reset`,
       });
 
       if (error) {
         throw error;
       }
 
+      console.log("Password reset response:", data);
       toast.success("Password reset email requested, check email for results");
       setTestResult({
         success: true,
@@ -186,6 +190,7 @@ export const EmailTester = () => {
             <li>Confirm the email domain is correctly set up in Resend</li>
             <li>Try a different email address (e.g., Gmail, Outlook)</li>
             <li>Check Supabase Edge Function logs for errors</li>
+            <li>Ensure your site URL and redirect URLs are properly configured</li>
           </ul>
         </div>
       </CardContent>

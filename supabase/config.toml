@@ -46,7 +46,11 @@ additional_redirect_urls = [
   "http://localhost:5173", 
   "https://localhost:5173",
   "http://localhost:3000/auth",
-  "http://localhost:5173/auth"
+  "http://localhost:5173/auth",
+  "https://autonomme.com",
+  "https://autonomme.com/auth",
+  "https://www.autonomme.com",
+  "https://www.autonomme.com/auth"
 ]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
@@ -73,3 +77,4 @@ enabled = false
 port = 54327
 vector_port = 54328
 backend = "postgres"
+
