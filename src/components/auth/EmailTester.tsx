@@ -24,11 +24,12 @@ export const EmailTester = () => {
     setTestResult(null);
 
     try {
-      // Log the current origin for debugging
-      console.log(`Redirecting to: ${window.location.origin}/auth?tab=reset`);
+      // Importante: use ?tab=reset para garantir que o usuário seja redirecionado para a tela correta
+      const redirectUrl = `${window.location.origin}/auth?tab=reset`;
+      console.log(`Redirecting to: ${redirectUrl}`);
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?tab=reset`,
+        redirectTo: redirectUrl,
       });
 
       if (error) {
