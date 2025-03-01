@@ -93,7 +93,7 @@ export const usePermissions = () => {
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce(
           (acc, curr) => {
-            // Access the positions property from the current item
+            // Make sure positions exists before accessing its properties
             const position = curr.positions;
             
             // Check if position exists and has is_managerial property
