@@ -29,9 +29,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Configurando URL de redirecionamento
     storageKey: 'supabase.auth.token',
     persistSession: true,
-    detectSessionInUrl: true,
-    // Adicionando o siteUrl como redirect para autenticação
-    redirectTo: siteUrl
+    detectSessionInUrl: true
   }
 });
 

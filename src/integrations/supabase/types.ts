@@ -1121,16 +1121,19 @@ export type Database = {
       system_admins: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           status: string | null
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id: string
           status?: string | null
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           status?: string | null
         }

@@ -61,35 +61,7 @@ export const usePermissions = () => {
           return;
         }
 
-        // If not a superadmin via AuthContext, double-check in the database
-        // This is a fallback in case the AuthContext needs refresh
-        const { data: saasAdminData } = await supabase
-          .from('system_admins')
-          .select('status')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        const isSaasAdmin = saasAdminData?.status === 'active';
-
-        if (isSaasAdmin) {
-          console.log("usePermissions: Usuário é superadmin via consulta direta");
-          setPermissions({
-            isManager: true,
-            isSaasAdmin: true,
-            permissions: {
-              sales: true,
-              inventory: true,
-              financial: true,
-              customers: true,
-              staff: true,
-              settings: true,
-            },
-            loading: false,
-          });
-          return;
-        }
-
-        // If not SAAS admin, check staff permissions
+        // If not a superadmin via AuthContext, check if they're a staff member with permissions
         const { data: staffData } = await supabase
           .from('staff')
           .select('id')
