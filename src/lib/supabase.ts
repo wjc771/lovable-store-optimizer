@@ -15,8 +15,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Este é o cliente Supabase que será usado por toda a aplicação
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Usamos a URL explícita do site para redirecionamentos
-    redirectTo: `${siteUrl}/auth?tab=reset`,
     flowType: 'pkce',
     // Ativado para ajudar na depuração
     debug: true,
