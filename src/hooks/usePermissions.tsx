@@ -106,9 +106,24 @@ export const usePermissions = () => {
           return;
         }
 
+        // Initialize our combined permissions object
+        const initialPermissions: Permissions = {
+          isManager: false,
+          isSaasAdmin: false,
+          permissions: {
+            sales: false,
+            inventory: false,
+            financial: false,
+            customers: false,
+            staff: false,
+            settings: false,
+          },
+          loading: false
+        };
+
         // Combine permissions from all positions
-        const combinedPermissions = positionsData.reduce(
-          (acc: Permissions, curr: PositionData) => {
+        const combinedPermissions = positionsData.reduce<Permissions>(
+          (acc, curr) => {
             // Make sure positions exists before accessing its properties
             const position = curr.positions;
             
@@ -119,34 +134,25 @@ export const usePermissions = () => {
             
             // Combine permissions if position and permissions exist
             if (position && position.permissions) {
-              Object.keys(position.permissions).forEach((key) => {
-                if (position.permissions && position.permissions[key as keyof typeof position.permissions]) {
-                  acc.permissions[key as keyof typeof acc.permissions] = true;
+              const permKeys = Object.keys(position.permissions);
+              
+              permKeys.forEach((key) => {
+                // Safe type assertion for accessing dynamic properties
+                const permKey = key as keyof typeof position.permissions;
+                const accKey = key as keyof typeof acc.permissions;
+                
+                if (position.permissions && position.permissions[permKey]) {
+                  acc.permissions[accKey] = true;
                 }
               });
             }
             
             return acc;
           },
-          {
-            isManager: false,
-            isSaasAdmin: false,
-            permissions: {
-              sales: false,
-              inventory: false,
-              financial: false,
-              customers: false,
-              staff: false,
-              settings: false,
-            },
-            loading: false
-          }
+          initialPermissions
         );
 
-        setPermissions({
-          ...combinedPermissions,
-          loading: false,
-        });
+        setPermissions(combinedPermissions);
 
       } catch (error) {
         console.error('Error fetching permissions:', error);
