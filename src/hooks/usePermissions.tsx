@@ -17,7 +17,7 @@ interface Permissions {
   loading: boolean;
 }
 
-// Define an interface for the staff positions data returned from Supabase
+// Updated interface to match the actual structure returned by Supabase
 interface StaffPositionData {
   position_id: string;
   positions: {
@@ -123,7 +123,7 @@ export const usePermissions = () => {
 
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce<Permissions>(
-          (acc: Permissions, curr: StaffPositionData) => {
+          (acc: Permissions, curr: any) => {
             // Access the positions object from the current staff position
             const position = curr.positions;
             
