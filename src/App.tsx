@@ -15,12 +15,22 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      // Add better error handling
+      onError: (error) => {
+        console.error("Query error:", error);
+      },
+    },
+    mutations: {
+      // Add better error handling for mutations
+      onError: (error) => {
+        console.error("Mutation error:", error);
+      },
     }
   }
 });
 
 function App() {
-  console.log("Rendering App component");
+  console.log("Rendering App component - Root level");
   
   return (
     <BrowserRouter>

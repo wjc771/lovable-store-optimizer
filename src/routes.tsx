@@ -13,7 +13,7 @@ import StoreDetails from "./pages/admin/StoreDetails";
 import RoleDashboard from "./pages/admin/RoleDashboard";
 import { useAuth } from "./contexts/AuthContext";
 
-// A helper component to handle protected routes with cleaner code
+// A simplified ProtectedRoute component with better logging
 const ProtectedRoute = ({ 
   element, 
   adminOnly = false 
@@ -22,6 +22,16 @@ const ProtectedRoute = ({
   adminOnly?: boolean 
 }) => {
   const { user, isAdmin, isSuperAdmin, isLoading } = useAuth();
+  
+  // More detailed logging for debugging
+  console.log("ProtectedRoute: Evaluating route protection", { 
+    isLoading, 
+    hasUser: !!user, 
+    isAdmin, 
+    isSuperAdmin,
+    adminOnly,
+    currentPath: window.location.pathname 
+  });
   
   if (isLoading) {
     return (
@@ -41,6 +51,7 @@ const ProtectedRoute = ({
     return <Navigate to="/" replace />;
   }
   
+  console.log("ProtectedRoute: Rendering protected component");
   return element;
 };
 
@@ -65,7 +76,16 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+      <Route 
+        path="/auth" 
+        element={
+          user ? (
+            <Navigate to="/" replace /> 
+          ) : (
+            <Auth />
+          )
+        } 
+      />
       
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute element={<Index />} />} />

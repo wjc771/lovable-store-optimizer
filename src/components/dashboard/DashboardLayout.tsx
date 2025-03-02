@@ -28,6 +28,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
+  console.log("DashboardLayout: Rendering with path:", location.pathname, { user: !!user, isSuperAdmin });
+
   // Redirect to auth if no user
   if (!isLoading && !user) {
     console.log("DashboardLayout: No user found, redirecting to /auth");
