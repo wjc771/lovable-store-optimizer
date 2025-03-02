@@ -18,14 +18,11 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes (cacheTime renamed to gcTime in v5)
     },
   },
-});
-
-// Set up global error handling for React Query v5+
-// Using a more direct approach without getLogger()
-queryClient.setLogger({
-  error: (error) => console.error("Query error:", error),
-  warn: (warning) => console.warn("Query warning:", warning),
-  log: (message) => console.log("Query log:", message),
+  logger: {
+    error: (error) => console.error("Query error:", error),
+    warn: (warning) => console.warn("Query warning:", warning),
+    log: (message) => console.log("Query log:", message),
+  },
 });
 
 function App() {
