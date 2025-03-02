@@ -20,18 +20,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Set up global error handling correctly for v5+
-// Using console methods directly instead of setLogger
-queryClient.getLogger().setLogger({
-  error: (error) => {
-    console.error("Query error:", error);
-  },
-  warn: (warning) => {
-    console.warn("Query warning:", warning);
-  },
-  log: (message) => {
-    console.log("Query log:", message);
-  },
+// Set up global error handling for React Query v5+
+// Using a more direct approach without getLogger()
+queryClient.setLogger({
+  error: (error) => console.error("Query error:", error),
+  warn: (warning) => console.warn("Query warning:", warning),
+  log: (message) => console.log("Query log:", message),
 });
 
 function App() {
