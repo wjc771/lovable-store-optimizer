@@ -5,7 +5,7 @@ import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Men
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -117,12 +117,16 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           variant={isActive(item.path) ? "default" : "ghost"}
           className="w-full justify-start"
           onClick={() => {
+            console.log("Navegando para:", item.path);
             navigate(item.path);
             if (isMobile) setIsOpen(false);
           }}
+          asChild
         >
-          <item.icon className="mr-2 h-5 w-5" />
-          {item.label}
+          <Link to={item.path}>
+            <item.icon className="mr-2 h-5 w-5" />
+            {item.label}
+          </Link>
         </Button>
       ))}
 
@@ -138,12 +142,16 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               variant={isActive(item.path) ? "default" : "ghost"}
               className="w-full justify-start"
               onClick={() => {
+                console.log("Navegando para:", item.path);
                 navigate(item.path);
                 if (isMobile) setIsOpen(false);
               }}
+              asChild
             >
-              <item.icon className="mr-2 h-5 w-5" />
-              {item.label}
+              <Link to={item.path}>
+                <item.icon className="mr-2 h-5 w-5" />
+                {item.label}
+              </Link>
             </Button>
           ))}
         </>

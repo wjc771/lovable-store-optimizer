@@ -8,9 +8,18 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { StoreProvider } from "./contexts/StoreContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 function App() {
+  console.log("Rendering App component");
+  
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
