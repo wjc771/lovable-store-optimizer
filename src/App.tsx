@@ -17,17 +17,18 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
-  // Global error handlers should be set at this level in v5+
-  logger: {
-    error: (error) => {
-      console.error("Query error:", error);
-    },
-    warn: (warning) => {
-      console.warn("Query warning:", warning);
-    },
-    log: (message) => {
-      console.log("Query log:", message);
-    },
+});
+
+// Set up global error handling
+queryClient.setLogger({
+  error: (error) => {
+    console.error("Query error:", error);
+  },
+  warn: (warning) => {
+    console.warn("Query warning:", warning);
+  },
+  log: (message) => {
+    console.log("Query log:", message);
   },
 });
 
