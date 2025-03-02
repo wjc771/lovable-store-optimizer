@@ -28,7 +28,7 @@ export const useStoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Handling super admin differently to avoid RPC issues
+        // Para super admin, buscar todas as lojas diretamente
         if (isSuperAdmin) {
           console.log("Super admin detected - fetching all stores");
           const { data, error } = await supabase
@@ -45,7 +45,7 @@ export const useStoreManagement = () => {
           return data as Store[];
         }
         
-        // For regular users, use the RPC function
+        // Para usuários regulares, usar a função RPC
         console.log("Using get_user_accessible_stores RPC function for regular user");
         const { data, error } = await supabase.rpc('get_user_accessible_stores');
           
