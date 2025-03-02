@@ -12,8 +12,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
-  isAdmin: boolean;
-  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,13 +20,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const {
     user,
     session,
-    isAdmin,
-    isSuperAdmin,
     handleUserSession,
     setSession,
-    setUser,
-    setIsAdmin,
-    setIsSuperAdmin
+    setUser
   } = useUserSession();
   
   const [isLoading, setIsLoading] = React.useState(true);
@@ -47,24 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("AuthContext: No active session");
           setSession(null);
           setUser(null);
-          setIsAdmin(false);
-          setIsSuperAdmin(false);
           setIsLoading(false);
           return;
         }
         
-        // Direct super admin check by email
-        if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
-          console.log("AuthContext: jotafieldsfirst@gmail.com found, setting as superadmin");
-          setSession(currentSession);
-          setUser(currentSession.user);
-          setIsSuperAdmin(true);
-          setIsAdmin(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        // For other users, normal verification
         await handleUserSession(currentSession);
         setIsLoading(false);
       } catch (error) {
@@ -83,8 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("AuthContext: User signed out");
           setSession(null);
           setUser(null);
-          setIsAdmin(false);
-          setIsSuperAdmin(false);
           navigate('/auth');
           return;
         }
@@ -92,19 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' && currentSession) {
           console.log("AuthContext: User signed in:", currentSession.user?.email);
           setIsLoading(true);
-          
-          // Direct super admin check by email
-          if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
-            console.log("AuthContext: jotafieldsfirst@gmail.com found, setting as superadmin");
-            setSession(currentSession);
-            setUser(currentSession.user);
-            setIsSuperAdmin(true);
-            setIsAdmin(true);
-            setIsLoading(false);
-            return;
-          }
-          
-          // For other users, normal verification
           await handleUserSession(currentSession);
           setIsLoading(false);
         }
@@ -114,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, handleUserSession, setSession, setUser, setIsAdmin, setIsSuperAdmin]);
+  }, [navigate, handleUserSession, setSession, setUser]);
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
@@ -127,13 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
       console.log("AuthContext: Login successful");
-
-      // If the user is jotafieldsfirst@gmail.com, set them as superadmin immediately
-      if (email === 'jotafieldsfirst@gmail.com') {
-        setIsSuperAdmin(true);
-        setIsAdmin(true);
-      }
-
     } catch (error) {
       console.error("AuthContext: Login error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to sign in");
@@ -152,8 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setSession(null);
       setUser(null);
-      setIsAdmin(false);
-      setIsSuperAdmin(false);
       navigate('/auth');
       console.log("AuthContext: Logout successful");
       
@@ -170,9 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     signIn,
     signOut,
-    isLoading,
-    isAdmin,
-    isSuperAdmin,
+    isLoading
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

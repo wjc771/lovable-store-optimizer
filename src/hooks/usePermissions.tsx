@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 
 interface Permissions {
   isManager: boolean;
-  isSaasAdmin: boolean;
   permissions: {
     sales: boolean;
     inventory: boolean;
@@ -34,10 +33,9 @@ interface StaffPositionData {
 }
 
 export const usePermissions = () => {
-  const { user, isSuperAdmin: authIsSuperAdmin } = useAuth();
+  const { user } = useAuth();
   const [permissions, setPermissions] = useState<Permissions>({
     isManager: false,
-    isSaasAdmin: false,
     permissions: {
       sales: false,
       inventory: false,
@@ -58,47 +56,7 @@ export const usePermissions = () => {
       }
 
       try {
-        // Direct check for jotafieldsfirst@gmail.com
-        if (user.email === 'jotafieldsfirst@gmail.com' || authIsSuperAdmin) {
-          console.log("usePermissions: User is superadmin");
-          setPermissions({
-            isManager: true,
-            isSaasAdmin: true,
-            permissions: {
-              sales: true,
-              inventory: true,
-              financial: true,
-              customers: true,
-              staff: true,
-              settings: true,
-            },
-            loading: false,
-          });
-          return;
-        }
-
-        // Use the is_super_admin RPC
-        const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc('is_super_admin');
-        
-        if (isSuperAdmin && !superAdminError) {
-          console.log("usePermissions: User is a super admin via RPC");
-          setPermissions({
-            isManager: true,
-            isSaasAdmin: true,
-            permissions: {
-              sales: true,
-              inventory: true,
-              financial: true,
-              customers: true,
-              staff: true,
-              settings: true,
-            },
-            loading: false,
-          });
-          return;
-        }
-
-        // If not a superadmin, check if they're a staff member with permissions
+        // Check if they're a staff member with permissions
         const { data: staffData, error: staffError } = await supabase
           .from('staff')
           .select('id')
@@ -144,7 +102,6 @@ export const usePermissions = () => {
         // Initialize our combined permissions object
         const initialPermissions: Permissions = {
           isManager: false,
-          isSaasAdmin: false,
           permissions: {
             sales: false,
             inventory: false,
@@ -202,7 +159,7 @@ export const usePermissions = () => {
     };
 
     fetchPermissions();
-  }, [user, authIsSuperAdmin]);
+  }, [user]);
 
   return permissions;
 };

@@ -15,7 +15,7 @@ interface Store {
 
 export const useStoreManagement = () => {
   const { toast } = useToast();
-  const { user, isSuperAdmin } = useAuth();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: stores, isLoading, error: storesError, refetch } = useQuery({
@@ -28,27 +28,15 @@ export const useStoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        let data;
-        if (isSuperAdmin) {
-          console.log("Super admin detected - fetching all stores");
-          const { data: storesData, error: storesError } = await supabase
-            .from("stores")
-            .select("*")
-            .order("created_at", { ascending: false });
+        // Use the get_user_accessible_stores RPC function for any user
+        console.log("Using get_user_accessible_stores RPC function");
+        const { data: storesData, error: storesError } = await supabase
+          .rpc("get_user_accessible_stores");
 
-          if (storesError) throw storesError;
-          data = storesData;
-        } else {
-          console.log("Using get_user_accessible_stores RPC function for regular user");
-          const { data: storesData, error: storesError } = await supabase
-            .rpc("get_user_accessible_stores");
-
-          if (storesError) throw storesError;
-          data = storesData;
-        }
+        if (storesError) throw storesError;
         
-        console.log(`Successfully fetched ${data?.length} stores`);
-        return data as Store[];
+        console.log(`Successfully fetched ${storesData?.length} stores`);
+        return storesData as Store[];
       } catch (error) {
         console.error("Failed to fetch stores:", error);
         const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

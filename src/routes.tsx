@@ -14,7 +14,7 @@ import RoleDashboard from "./pages/admin/RoleDashboard";
 import { useAuth } from "./contexts/AuthContext";
 
 const AppRoutes = () => {
-  const { user, isAdmin, isSuperAdmin, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -33,62 +33,22 @@ const AppRoutes = () => {
       <Route path="/chat" element={user ? <Chat /> : <Navigate to="/auth" />} />
       <Route path="/upload" element={user ? <Upload /> : <Navigate to="/auth" />} />
       
-      {/* Admin Routes - Super Admin & Admin only */}
+      {/* Admin Routes - All authenticated users for now */}
       <Route 
         path="/admin/stores" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <StoreManagement />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
+        element={user ? <StoreManagement /> : <Navigate to="/auth" />} 
       />
       <Route 
         path="/admin/roles" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <RoleDashboard />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
+        element={user ? <RoleDashboard /> : <Navigate to="/auth" />} 
       />
       <Route 
         path="/admin/stores/:storeId" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <StoreDetails />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
+        element={user ? <StoreDetails /> : <Navigate to="/auth" />} 
       />
       <Route 
         path="/admin/stores/:storeId/roles" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <RoleDashboard />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
+        element={user ? <RoleDashboard /> : <Navigate to="/auth" />} 
       />
       
       {/* 404 Route */}
