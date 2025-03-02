@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -15,7 +15,7 @@ interface Store {
 
 export const useStoreManagement = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: stores, isLoading, error: storesError, refetch } = useQuery({
@@ -28,15 +28,34 @@ export const useStoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Use the get_user_accessible_stores RPC function for any user
-        console.log("Using get_user_accessible_stores RPC function");
-        const { data: storesData, error: storesError } = await supabase
-          .rpc("get_user_accessible_stores");
-
-        if (storesError) throw storesError;
+        // Para super admin, buscar todas as lojas diretamente
+        if (isSuperAdmin) {
+          console.log("Super admin detected - fetching all stores");
+          const { data, error } = await supabase
+            .from('stores')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+          if (error) {
+            console.error("Error fetching stores for super admin:", error);
+            throw new Error("Failed to fetch stores: " + error.message);
+          }
+          
+          console.log(`Successfully fetched ${data?.length} stores for super admin`);
+          return data as Store[];
+        }
         
-        console.log(`Successfully fetched ${storesData?.length} stores`);
-        return storesData as Store[];
+        // Para usuários regulares, usar a função RPC
+        console.log("Using get_user_accessible_stores RPC function for regular user");
+        const { data, error } = await supabase.rpc('get_user_accessible_stores');
+          
+        if (error) {
+          console.error("Error fetching stores via RPC:", error);
+          throw new Error("Failed to fetch stores: " + error.message);
+        }
+        
+        console.log(`Successfully fetched ${data?.length} stores for regular user`);
+        return data as Store[];
       } catch (error) {
         console.error("Failed to fetch stores:", error);
         const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

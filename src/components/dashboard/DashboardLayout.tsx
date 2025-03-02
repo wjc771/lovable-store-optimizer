@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Menu, Store } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Menu, Store, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { useToast } from "@/hooks/use-toast";
@@ -19,12 +19,12 @@ import {
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { store, setStore } = useStore();
-  const { user, signOut, isLoading } = useAuth();
+  const { user, signOut, isLoading, isSuperAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isManager, loading: permissionsLoading } = usePermissions();
+  const { isManager, isSaasAdmin, loading: permissionsLoading } = usePermissions();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -57,8 +57,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return location.pathname.startsWith(path);
   };
   
-  // Determine if user has manager access
-  const hasManagerAccess = isManager;
+  // Determine if user has manager access - either they are a manager or superadmin
+  const hasManagerAccess = isManager || isSuperAdmin || isSaasAdmin;
 
   const navigationItems = [
     {
@@ -93,6 +93,22 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   ];
 
+  // Admin specific navigation items
+  const adminItems = [
+    {
+      icon: Store,
+      label: t('admin.stores'),
+      path: "/admin/stores",
+      show: isSuperAdmin
+    },
+    {
+      icon: ShieldCheck,
+      label: t('admin.roles'),
+      path: "/admin/roles",
+      show: isSuperAdmin
+    }
+  ];
+
   const NavigationContent = () => (
     <nav className="space-y-2">
       {navigationItems.filter(item => item.show).map((item) => (
@@ -109,6 +125,29 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           {item.label}
         </Button>
       ))}
+
+      {/* Admin Section */}
+      {isSuperAdmin && (
+        <>
+          <div className="my-2 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+            {t('admin.title') || 'ADMIN'}
+          </div>
+          {adminItems.filter(item => item.show).map((item) => (
+            <Button
+              key={item.path}
+              variant={isActive(item.path) ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) setIsOpen(false);
+              }}
+            >
+              <item.icon className="mr-2 h-5 w-5" />
+              {item.label}
+            </Button>
+          ))}
+        </>
+      )}
     </nav>
   );
 

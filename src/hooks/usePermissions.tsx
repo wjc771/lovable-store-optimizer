@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 interface Permissions {
   isManager: boolean;
+  isSaasAdmin: boolean;
   permissions: {
     sales: boolean;
     inventory: boolean;
@@ -33,9 +34,10 @@ interface StaffPositionData {
 }
 
 export const usePermissions = () => {
-  const { user } = useAuth();
+  const { user, isSuperAdmin: authIsSuperAdmin } = useAuth();
   const [permissions, setPermissions] = useState<Permissions>({
     isManager: false,
+    isSaasAdmin: false,
     permissions: {
       sales: false,
       inventory: false,
@@ -56,7 +58,51 @@ export const usePermissions = () => {
       }
 
       try {
-        // Check if they're a staff member with permissions
+        // Use the superadmin status directly from AuthContext
+        // This ensures consistency across the application
+        if (authIsSuperAdmin) {
+          console.log("usePermissions: User is superadmin via AuthContext");
+          setPermissions({
+            isManager: true,
+            isSaasAdmin: true,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: true,
+              customers: true,
+              staff: true,
+              settings: true,
+            },
+            loading: false,
+          });
+          return;
+        }
+
+        // Use RPC to check if user is a system admin for better performance
+        const { data: isSystemAdmin, error: systemAdminError } = await supabase.rpc(
+          'is_system_admin',
+          { user_id: user.id }
+        );
+
+        if (isSystemAdmin && !systemAdminError) {
+          console.log("usePermissions: User is a system admin via RPC");
+          setPermissions({
+            isManager: true,
+            isSaasAdmin: true,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: true,
+              customers: true,
+              staff: true,
+              settings: true,
+            },
+            loading: false,
+          });
+          return;
+        }
+
+        // If not a superadmin via AuthContext, check if they're a staff member with permissions
         const { data: staffData, error: staffError } = await supabase
           .from('staff')
           .select('id')
@@ -102,6 +148,7 @@ export const usePermissions = () => {
         // Initialize our combined permissions object
         const initialPermissions: Permissions = {
           isManager: false,
+          isSaasAdmin: false,
           permissions: {
             sales: false,
             inventory: false,
@@ -110,7 +157,7 @@ export const usePermissions = () => {
             staff: false,
             settings: false,
           },
-          loading: false,
+          loading: false
         };
 
         // Type assertion to handle the data structure correctly
@@ -159,7 +206,7 @@ export const usePermissions = () => {
     };
 
     fetchPermissions();
-  }, [user]);
+  }, [user, authIsSuperAdmin]);
 
   return permissions;
 };

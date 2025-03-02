@@ -34,7 +34,7 @@ interface Position {
 
 const RoleDashboard = () => {
   const { storeId } = useParams();
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [activeTab, setActiveTab] = useState<string>("system");

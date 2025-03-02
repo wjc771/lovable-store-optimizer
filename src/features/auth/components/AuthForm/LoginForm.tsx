@@ -4,25 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase, SITE_URL } from "@/lib/supabase";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const { signIn } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("LoginForm: Tentando login com", email);
     
     try {
-      await signIn(email, password);
-      toast.success("Login successful");
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      toast.success("Login realizado com sucesso");
     } catch (error: any) {
-      console.error("Login error:", error);
-      // Error is handled by the signIn function in AuthContext
+      console.error("LoginForm: Erro de login:", error);
+      toast.error(error instanceof Error ? error.message : "Falha ao fazer login");
     } finally {
       setIsLoading(false);
     }
@@ -31,21 +36,21 @@ export const LoginForm = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("LoginForm: Tentando redefinir senha para", email);
     
     try {
-      const { supabase, SITE_URL } = await import("@/lib/supabase");
-      
+      // Usar o SITE_URL para garantir o redirecionamento correto
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${SITE_URL}/auth?tab=reset`,
       });
       
       if (error) throw error;
       
-      toast.success("Password reset instructions sent to your email");
+      toast.success("Instruções para redefinição de senha enviadas para seu email");
       setIsResetting(false);
     } catch (error: any) {
-      console.error("Reset password error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to reset password");
+      console.error("LoginForm: Erro na redefinição de senha:", error);
+      toast.error(error instanceof Error ? error.message : "Falha ao redefinir senha");
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +70,7 @@ export const LoginForm = () => {
           />
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Sending..." : "Send Reset Instructions"}
+          {isLoading ? "Enviando..." : "Enviar Instruções"}
         </Button>
         <p className="text-center text-sm">
           <button
@@ -73,7 +78,7 @@ export const LoginForm = () => {
             onClick={() => setIsResetting(false)}
             className="text-primary hover:underline"
           >
-            Back to Login
+            Voltar ao Login
           </button>
         </p>
       </form>
@@ -94,13 +99,13 @@ export const LoginForm = () => {
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Senha</Label>
           <button
             type="button"
             onClick={() => setIsResetting(true)}
             className="text-sm text-primary hover:underline"
           >
-            Forgot password?
+            Esqueceu a senha?
           </button>
         </div>
         <Input
@@ -112,7 +117,7 @@ export const LoginForm = () => {
         />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
+        {isLoading ? "Logando..." : "Login"}
       </Button>
     </form>
   );

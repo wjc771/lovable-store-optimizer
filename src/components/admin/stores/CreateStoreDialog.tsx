@@ -17,15 +17,14 @@ import { useAuth } from "@/contexts/AuthContext";
 interface CreateStoreDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onStoreCreated: () => void;
 }
 
-const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStoreDialogProps) => {
+const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => {
   const [newStoreName, setNewStoreName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
 
   const createStore = useMutation({
     mutationFn: async ({ storeName, email }: { storeName: string; email: string }) => {
@@ -43,7 +42,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
           throw new Error("You must be logged in to create a store");
         }
         
-        // Create the store
+        // Criar a loja
         const { data: store, error: storeError } = await supabase
           .from("stores")
           .insert([
@@ -62,34 +61,37 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
         }
         console.log("Store created successfully:", store);
 
-        // Create the invite in a separate transaction
-        const token = crypto.randomUUID();
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7);
+        // Se não for superadmin ou o email for diferente do usuário atual, criar convite
+        if (!isSuperAdmin || email !== session.user.email) {
+          // Criar o convite em uma transação separada
+          const token = crypto.randomUUID();
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7);
 
-        const { error: inviteError } = await supabase
-          .from("store_invites")
-          .insert([
-            {
-              store_id: store.id,
-              email,
-              role: "admin",
-              token,
-              expires_at: expiresAt.toISOString(),
-              created_by: session?.user.id
-            },
-          ]);
+          const { error: inviteError } = await supabase
+            .from("store_invites")
+            .insert([
+              {
+                store_id: store.id,
+                email,
+                role: "admin",
+                token,
+                expires_at: expiresAt.toISOString(),
+                created_by: session?.user.id
+              },
+            ]);
 
-        if (inviteError) {
-          console.error("Error creating store invite:", inviteError);
-          toast({
-            title: "Store created but invite failed",
-            description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
-            variant: "destructive",
-          });
-        } else {
-          console.log("Store invite created successfully with token:", token);
-          return { store, token };
+          if (inviteError) {
+            console.error("Error creating store invite:", inviteError);
+            toast({
+              title: "Store created but invite failed",
+              description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
+              variant: "destructive",
+            });
+          } else {
+            console.log("Store invite created successfully with token:", token);
+            return { store, token };
+          }
         }
 
         return { store };
@@ -104,7 +106,6 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
       onOpenChange(false);
       setNewStoreName("");
       setOwnerEmail("");
-      onStoreCreated();
       
       toast({
         title: "Store created successfully",
@@ -136,11 +137,20 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
       return;
     }
     
-    // Use the current user's email if none provided
-    if (!ownerEmail) {
+    // Se for superadmin, usar o email do próprio usuário se não for fornecido
+    if (isSuperAdmin && !ownerEmail) {
       createStore.mutate({ 
         storeName: newStoreName, 
         email: user?.email || "" 
+      });
+      return;
+    }
+
+    if (!ownerEmail) {
+      toast({
+        title: "Missing information",
+        description: "Please provide an owner email",
+        variant: "destructive",
       });
       return;
     }
@@ -178,14 +188,15 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
               htmlFor="owner-email"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Owner Email (Optional)
+              Owner Email {isSuperAdmin && "(Optional for Super Admin)"}
             </label>
             <Input
               id="owner-email"
               type="email"
               value={ownerEmail}
               onChange={(e) => setOwnerEmail(e.target.value)}
-              placeholder="Enter owner email (optional)"
+              placeholder={isSuperAdmin ? "Enter owner email (optional)" : "Enter owner email"}
+              required={!isSuperAdmin}
             />
           </div>
           <div className="flex justify-end gap-4">

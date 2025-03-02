@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { BusinessSettings } from "@/components/settings/BusinessSettings";
@@ -23,7 +22,6 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import ProductsSettings from "@/components/settings/ProductsSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/contexts/AuthContext";
 
 const SettingsContent = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
@@ -34,7 +32,7 @@ const SettingsContent = () => {
   const { toast } = useToast();
   const { theme, setTheme, language, setLanguage } = useSettings();
   const { t } = useTranslation();
-  const { isManager, loading } = usePermissions();
+  const { isManager, isSaasAdmin, loading } = usePermissions();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -171,7 +169,7 @@ const SettingsContent = () => {
     return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
-  if (!isManager) {
+  if (!isManager && !isSaasAdmin) {
     return (
       <div className="p-4">
         <Alert variant="destructive">
@@ -255,7 +253,7 @@ const SettingsContent = () => {
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2 whitespace-nowrap">
               <Package className="h-4 w-4" />
-              {!isMobile && t('settings.productSettings')}
+              {!isMobile && t('products.productSettings')}
             </TabsTrigger>
             <TabsTrigger value="integrations" className="flex items-center gap-2 whitespace-nowrap">
               <Link className="h-4 w-4" />
