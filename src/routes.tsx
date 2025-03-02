@@ -1,5 +1,6 @@
 
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -12,27 +13,30 @@ import StoreManagement from "./pages/admin/StoreManagement";
 import StoreDetails from "./pages/admin/StoreDetails";
 import RoleDashboard from "./pages/admin/RoleDashboard";
 import { useAuth } from "./contexts/AuthContext";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
 
-// A simplified ProtectedRoute component with better logging
+// Improved ProtectedRoute component with memoization and better navigation
 const ProtectedRoute = ({ 
   element, 
-  adminOnly = false 
+  adminOnly = false,
+  layoutWrapped = true
 }: { 
   element: JSX.Element, 
-  adminOnly?: boolean 
+  adminOnly?: boolean,
+  layoutWrapped?: boolean
 }) => {
   const { user, isAdmin, isSuperAdmin, isLoading } = useAuth();
+  const location = useLocation();
   
-  // More detailed logging for debugging
-  console.log("ProtectedRoute: Evaluating route protection", { 
-    isLoading, 
-    hasUser: !!user, 
-    isAdmin, 
-    isSuperAdmin,
-    adminOnly,
-    currentPath: window.location.pathname 
-  });
+  useEffect(() => {
+    console.log("ProtectedRoute: Path changed", {
+      path: location.pathname,
+      isLoading,
+      hasUser: !!user,
+    });
+  }, [location.pathname, isLoading, user]);
   
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -41,30 +45,38 @@ const ProtectedRoute = ({
     );
   }
   
+  // Auth check
   if (!user) {
     console.log("ProtectedRoute: No user, redirecting to /auth");
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: location }} />;
   }
   
+  // Permission check
   if (adminOnly && !(isSuperAdmin || isAdmin)) {
     console.log("ProtectedRoute: User not admin, redirecting to /");
     return <Navigate to="/" replace />;
   }
   
-  console.log("ProtectedRoute: Rendering protected component");
+  // Render the element with or without layout
+  if (layoutWrapped) {
+    return <DashboardLayout>{element}</DashboardLayout>;
+  }
+  
   return element;
 };
 
 const AppRoutes = () => {
-  const { user, isAdmin, isSuperAdmin, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
   
-  console.log("Rendering AppRoutes", { 
-    user: !!user, 
-    isAdmin, 
-    isSuperAdmin,
-    currentPath: window.location.pathname
-  });
+  useEffect(() => {
+    console.log("AppRoutes: Path changed to", location.pathname, {
+      hasUser: !!user,
+      isLoading
+    });
+  }, [location.pathname, user, isLoading]);
 
+  // Global loading state - don't show anything while auth is initializing
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -75,7 +87,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Public Routes - No Layout */}
       <Route 
         path="/auth" 
         element={
@@ -87,7 +99,7 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Protected Routes */}
+      {/* Protected Routes - With Layout */}
       <Route path="/" element={<ProtectedRoute element={<Index />} />} />
       <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
       <Route path="/settings" element={<ProtectedRoute element={<Settings />} />} />
