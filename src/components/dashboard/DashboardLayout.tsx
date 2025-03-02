@@ -5,7 +5,7 @@ import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Men
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,11 +28,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
-  console.log("DashboardLayout: Rendering with path:", location.pathname, { user: !!user, isSuperAdmin });
-
   // Redirect to auth if no user
   if (!isLoading && !user) {
-    console.log("DashboardLayout: No user found, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
@@ -112,37 +109,21 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   ];
 
-  // This is the core fix - a separate component for navigation items
-  // that properly handles both navigation and mobile drawer closing
-  const NavItem = ({ item }: { item: { path: string; icon: any; label: string } }) => {
-    // Only close drawer when actually navigating to a new path
-    const handleNavigation = () => {
-      console.log("NavItem: Navigating to:", item.path);
-      if (location.pathname !== item.path) {
-        if (isMobile) {
-          setIsOpen(false);
-        }
-      }
-    };
-
-    return (
-      <Button
-        variant={isActive(item.path) ? "default" : "ghost"}
-        className="w-full justify-start"
-        asChild
-      >
-        <Link to={item.path} onClick={handleNavigation}>
-          <item.icon className="mr-2 h-5 w-5" />
-          {item.label}
-        </Link>
-      </Button>
-    );
-  };
-
   const NavigationContent = () => (
     <nav className="space-y-2">
       {navigationItems.filter(item => item.show).map((item) => (
-        <NavItem key={item.path} item={item} />
+        <Button
+          key={item.path}
+          variant={isActive(item.path) ? "default" : "ghost"}
+          className="w-full justify-start"
+          onClick={() => {
+            navigate(item.path);
+            if (isMobile) setIsOpen(false);
+          }}
+        >
+          <item.icon className="mr-2 h-5 w-5" />
+          {item.label}
+        </Button>
       ))}
 
       {/* Admin Section */}
@@ -152,7 +133,18 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             {t('admin.title') || 'ADMIN'}
           </div>
           {adminItems.filter(item => item.show).map((item) => (
-            <NavItem key={item.path} item={item} />
+            <Button
+              key={item.path}
+              variant={isActive(item.path) ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) setIsOpen(false);
+              }}
+            >
+              <item.icon className="mr-2 h-5 w-5" />
+              {item.label}
+            </Button>
           ))}
         </>
       )}
