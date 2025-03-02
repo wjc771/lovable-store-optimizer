@@ -18,12 +18,17 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes (cacheTime renamed to gcTime in v5)
     },
   },
-  logger: {
-    error: (error) => console.error("Query error:", error),
-    warn: (warning) => console.warn("Query warning:", warning),
-    log: (message) => console.log("Query log:", message),
-  },
 });
+
+// Set up custom logging for React Query
+console.error = (...args) => {
+  const [first, ...rest] = args;
+  if (typeof first === 'string' && first.includes('Query error')) {
+    console.warn('Query error:', ...rest);
+  } else {
+    console.warn(...args);
+  }
+};
 
 function App() {
   console.log("Rendering App component - Root level");
