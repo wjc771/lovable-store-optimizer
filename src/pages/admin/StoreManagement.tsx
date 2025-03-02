@@ -8,6 +8,7 @@ import StoreTable from "@/components/admin/stores/StoreTable";
 import StoreLoadingError from "@/components/admin/stores/StoreLoadingError";
 import StoreLoadingSkeleton from "@/components/admin/stores/StoreLoadingSkeleton";
 import { Plus } from "lucide-react";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const StoreManagement = () => {
   const {
@@ -19,16 +20,16 @@ const StoreManagement = () => {
     setIsDialogOpen
   } = useStoreManagement();
 
-  if (storesError) {
-    return <StoreLoadingError error={storesError} onRetry={refetch} />;
-  }
+  const content = () => {
+    if (storesError) {
+      return <StoreLoadingError error={storesError} onRetry={refetch} />;
+    }
 
-  if (isLoading) {
-    return <StoreLoadingSkeleton />;
-  }
+    if (isLoading) {
+      return <StoreLoadingSkeleton />;
+    }
 
-  return (
-    <ErrorBoundary>
+    return (
       <div className="container mx-auto py-10">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Store Management</h1>
@@ -49,7 +50,15 @@ const StoreManagement = () => {
           {stores && <StoreTable stores={stores} onRefresh={refetch} />}
         </div>
       </div>
-    </ErrorBoundary>
+    );
+  };
+
+  return (
+    <DashboardLayout>
+      <ErrorBoundary>
+        {content()}
+      </ErrorBoundary>
+    </DashboardLayout>
   );
 };
 

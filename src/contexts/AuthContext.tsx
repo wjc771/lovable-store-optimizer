@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
@@ -62,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsSuperAdmin(true);
           setIsAdmin(true);
           setIsLoading(false);
-          navigate('/admin/stores');
           return;
         }
         
@@ -72,12 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isAuthenticated) {
           console.log("AuthContext: Usuário não autenticado, redirecionando para /auth");
           navigate('/auth');
-        } else if (isSuperAdmin) {
-          console.log("AuthContext: Superadmin autenticado, redirecionando para /admin/stores");
-          navigate('/admin/stores');
-        } else if (isAdmin) {
-          console.log("AuthContext: Admin autenticado, redirecionando para /");
-          navigate('/');
         }
       } catch (error) {
         console.error("AuthContext: Erro na inicialização da autenticação:", error);
@@ -116,23 +108,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsSuperAdmin(true);
             setIsAdmin(true);
             setIsLoading(false);
-            navigate('/admin/stores');
             return;
           }
           
           // For other users, check normally
           const isAuthenticated = await handleUserSession(currentSession);
           setIsLoading(false);
-
-          if (isAuthenticated) {
-            if (isSuperAdmin) {
-              console.log("AuthContext: Superadmin conectado, redirecionando para /admin/stores");
-              navigate('/admin/stores');
-            } else if (isAdmin) {
-              console.log("AuthContext: Admin conectado, redirecionando para /");
-              navigate('/');
-            }
-          }
         }
       }
     );

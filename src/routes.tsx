@@ -31,10 +31,10 @@ const AppRoutes = () => {
       <Route path="/upload" element={user ? <Upload /> : <Navigate to="/auth" />} />
       
       {/* Admin Routes */}
-      <Route path="/admin/stores" element={user && isSuperAdmin ? <StoreManagement /> : <Navigate to="/auth" />} />
-      <Route path="/admin/roles" element={user && isSuperAdmin ? <RoleDashboard /> : <Navigate to="/auth" />} />
-      <Route path="/admin/stores/:storeId" element={user && isAdmin ? <StoreDetails /> : <Navigate to="/auth" />} />
-      <Route path="/admin/stores/:storeId/roles" element={user && isAdmin ? <RoleDashboard /> : <Navigate to="/auth" />} />
+      <Route path="/admin/stores" element={user && (isAdmin || isSuperAdmin) ? <StoreManagement /> : <Navigate to="/auth" />} />
+      <Route path="/admin/roles" element={user && (isAdmin || isSuperAdmin) ? <RoleDashboard /> : <Navigate to="/auth" />} />
+      <Route path="/admin/stores/:storeId" element={user && (isAdmin || isSuperAdmin) ? <StoreDetails /> : <Navigate to="/auth" />} />
+      <Route path="/admin/stores/:storeId/roles" element={user && (isAdmin || isSuperAdmin) ? <RoleDashboard /> : <Navigate to="/auth" />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
