@@ -15,18 +15,20 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      // Add better error handling
-      onError: (error) => {
-        console.error("Query error:", error);
-      },
     },
-    mutations: {
-      // Add better error handling for mutations
-      onError: (error) => {
-        console.error("Mutation error:", error);
-      },
-    }
-  }
+  },
+  // Global error handlers should be set at this level in v5+
+  logger: {
+    error: (error) => {
+      console.error("Query error:", error);
+    },
+    warn: (warning) => {
+      console.warn("Query warning:", warning);
+    },
+    log: (message) => {
+      console.log("Query log:", message);
+    },
+  },
 });
 
 function App() {
