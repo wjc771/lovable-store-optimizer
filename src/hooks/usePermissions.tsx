@@ -14,7 +14,7 @@ interface Permissions {
     settings: boolean;
   };
   loading: boolean;
-  isSaasAdmin: boolean; // Add missing property
+  isSaasAdmin: boolean;
 }
 
 // Updated interface to match the actual structure returned by Supabase
@@ -46,7 +46,7 @@ export const usePermissions = () => {
       settings: false,
     },
     loading: true,
-    isSaasAdmin: false, // Initialize isSaasAdmin property
+    isSaasAdmin: false,
   });
 
   useEffect(() => {
@@ -112,7 +112,8 @@ export const usePermissions = () => {
             staff: false,
             settings: false,
           },
-          loading: false
+          loading: false,
+          isSaasAdmin: false // Make sure to include isSaasAdmin property here
         };
 
         // Type assertion to handle the data structure correctly
