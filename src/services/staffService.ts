@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { StaffMember, StaffMemberInput } from "@/types/settings";
 
 export const addStaffMember = async (data: StaffMemberInput): Promise<StaffMember> => {
@@ -97,4 +97,3 @@ export const deleteStaffMember = async (id: string): Promise<void> => {
 
   if (error) throw error;
 };
-
