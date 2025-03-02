@@ -59,7 +59,11 @@ const StoreManagement = () => {
         {/* Create store dialog */}
         <CreateStoreDialog 
           isOpen={isDialogOpen} 
-          onOpenChange={setIsDialogOpen} 
+          onOpenChange={setIsDialogOpen}
+          onStoreCreated={() => {
+            setIsDialogOpen(false);
+            refetch();
+          }}
         />
       </div>
     );

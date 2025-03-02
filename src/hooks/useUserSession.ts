@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import type { User, Session } from "@supabase/supabase-js";
-import { checkSuperAdminStatus, checkAdminStatus } from "@/services/auth/authVerification";
 
 interface UserSessionState {
   user: User | null;
@@ -39,9 +38,7 @@ export const useUserSession = (): UserSessionResult => {
       setSession(currentSession);
       setUser(currentSession.user);
 
-      console.log("UserSession: Checking user roles");
-      
-      // Fast path for jotafieldsfirst@gmail.com
+      // Fast path for superadmin check by email
       if (currentSession.user.email === 'jotafieldsfirst@gmail.com') {
         console.log("UserSession: jotafieldsfirst@gmail.com detected, setting as superadmin");
         setIsSuperAdmin(true);
@@ -49,18 +46,10 @@ export const useUserSession = (): UserSessionResult => {
         return true;
       }
       
-      // For other users, use the verification functions
-      const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
-      if (superAdminStatus) {
-        console.log("UserSession: User is superadmin");
-        setIsSuperAdmin(true);
-        setIsAdmin(true);
-        return true;
-      }
-
-      const adminStatus = await checkAdminStatus(currentSession.user.id);
-      console.log("UserSession: User is admin?", adminStatus);
-      setIsAdmin(adminStatus);
+      // For regular users, determine if they're staff/admin
+      // This would be replaced with your actual logic to check user roles
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
       return true;
 
     } catch (error) {

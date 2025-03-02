@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -28,13 +28,23 @@ export const useStoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Use the RPC function to get user accessible stores
-        // This avoids RLS recursion issues by using SECURITY DEFINER
-        const { data, error } = await supabase.rpc('get_user_accessible_stores');
-          
-        if (error) {
-          console.error("Error fetching stores via RPC:", error);
-          throw new Error("Failed to fetch stores: " + error.message);
+        let data;
+        if (isSuperAdmin) {
+          console.log("Super admin detected - fetching all stores");
+          const { data: storesData, error: storesError } = await supabase
+            .from("stores")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (storesError) throw storesError;
+          data = storesData;
+        } else {
+          console.log("Using get_user_accessible_stores RPC function for regular user");
+          const { data: storesData, error: storesError } = await supabase
+            .rpc("get_user_accessible_stores");
+
+          if (storesError) throw storesError;
+          data = storesData;
         }
         
         console.log(`Successfully fetched ${data?.length} stores`);

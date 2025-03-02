@@ -17,9 +17,10 @@ import { useAuth } from "@/contexts/AuthContext";
 interface CreateStoreDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onStoreCreated: () => void;
 }
 
-const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => {
+const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStoreDialogProps) => {
   const [newStoreName, setNewStoreName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const { toast } = useToast();
@@ -42,7 +43,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
           throw new Error("You must be logged in to create a store");
         }
         
-        // Criar a loja
+        // Create the store
         const { data: store, error: storeError } = await supabase
           .from("stores")
           .insert([
@@ -61,9 +62,9 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
         }
         console.log("Store created successfully:", store);
 
-        // Se não for superadmin ou o email for diferente do usuário atual, criar convite
+        // If not superadmin or the email is different from the current user, create an invite
         if (!isSuperAdmin || email !== session.user.email) {
-          // Criar o convite em uma transação separada
+          // Create the invite in a separate transaction
           const token = crypto.randomUUID();
           const expiresAt = new Date();
           expiresAt.setDate(expiresAt.getDate() + 7);
@@ -106,6 +107,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
       onOpenChange(false);
       setNewStoreName("");
       setOwnerEmail("");
+      onStoreCreated();
       
       toast({
         title: "Store created successfully",
@@ -137,7 +139,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
       return;
     }
     
-    // Se for superadmin, usar o email do próprio usuário se não for fornecido
+    // If superadmin, use the current user's email if none provided
     if (isSuperAdmin && !ownerEmail) {
       createStore.mutate({ 
         storeName: newStoreName, 

@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // Simplified super admin check
+        // Direct super admin check by email
         if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
           console.log("AuthContext: jotafieldsfirst@gmail.com found, setting as superadmin");
           setSession(currentSession);
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("AuthContext: User signed in:", currentSession.user?.email);
           setIsLoading(true);
           
-          // Simplified super admin check
+          // Direct super admin check by email
           if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
             console.log("AuthContext: jotafieldsfirst@gmail.com found, setting as superadmin");
             setSession(currentSession);
