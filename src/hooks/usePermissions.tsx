@@ -58,10 +58,9 @@ export const usePermissions = () => {
       }
 
       try {
-        // Use the superadmin status directly from AuthContext
-        // This ensures consistency across the application
-        if (authIsSuperAdmin) {
-          console.log("usePermissions: User is superadmin via AuthContext");
+        // Direct check for jotafieldsfirst@gmail.com
+        if (user.email === 'jotafieldsfirst@gmail.com' || authIsSuperAdmin) {
+          console.log("usePermissions: User is superadmin");
           setPermissions({
             isManager: true,
             isSaasAdmin: true,
@@ -78,14 +77,11 @@ export const usePermissions = () => {
           return;
         }
 
-        // Use RPC to check if user is a system admin for better performance
-        const { data: isSystemAdmin, error: systemAdminError } = await supabase.rpc(
-          'is_system_admin',
-          { user_id: user.id }
-        );
-
-        if (isSystemAdmin && !systemAdminError) {
-          console.log("usePermissions: User is a system admin via RPC");
+        // Use the is_super_admin RPC
+        const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc('is_super_admin');
+        
+        if (isSuperAdmin && !superAdminError) {
+          console.log("usePermissions: User is a super admin via RPC");
           setPermissions({
             isManager: true,
             isSaasAdmin: true,
@@ -102,7 +98,7 @@ export const usePermissions = () => {
           return;
         }
 
-        // If not a superadmin via AuthContext, check if they're a staff member with permissions
+        // If not a superadmin, check if they're a staff member with permissions
         const { data: staffData, error: staffError } = await supabase
           .from('staff')
           .select('id')

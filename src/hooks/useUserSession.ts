@@ -26,9 +26,9 @@ export const useUserSession = (): UserSessionResult => {
 
   const handleUserSession = async (currentSession: Session | null): Promise<boolean> => {
     try {
-      console.log("UserSession: Processando sessão de usuário", currentSession?.user?.email);
+      console.log("UserSession: Processing user session", currentSession?.user?.email);
       if (!currentSession?.user) {
-        console.log("UserSession: Nenhuma sessão ou usuário encontrado");
+        console.log("UserSession: No session or user found");
         setSession(null);
         setUser(null);
         setIsAdmin(false);
@@ -39,32 +39,32 @@ export const useUserSession = (): UserSessionResult => {
       setSession(currentSession);
       setUser(currentSession.user);
 
-      console.log("UserSession: Verificando papéis do usuário");
+      console.log("UserSession: Checking user roles");
       
-      // Priority check for jotafieldsfirst@gmail.com
+      // Fast path for jotafieldsfirst@gmail.com
       if (currentSession.user.email === 'jotafieldsfirst@gmail.com') {
-        console.log("UserSession: jotafieldsfirst@gmail.com identificado, definindo como superadmin");
+        console.log("UserSession: jotafieldsfirst@gmail.com detected, setting as superadmin");
         setIsSuperAdmin(true);
         setIsAdmin(true);
         return true;
       }
       
-      // For other users, check using the updated functions that use RPC
+      // For other users, use the verification functions
       const superAdminStatus = await checkSuperAdminStatus(currentSession.user.id);
       if (superAdminStatus) {
-        console.log("UserSession: Usuário é superadmin");
+        console.log("UserSession: User is superadmin");
         setIsSuperAdmin(true);
         setIsAdmin(true);
         return true;
       }
 
       const adminStatus = await checkAdminStatus(currentSession.user.id);
-      console.log("UserSession: Usuário é admin?", adminStatus);
+      console.log("UserSession: User is admin?", adminStatus);
       setIsAdmin(adminStatus);
       return true;
 
     } catch (error) {
-      console.error("UserSession: Erro no processamento da sessão:", error);
+      console.error("UserSession: Error processing session:", error);
       return false;
     }
   };

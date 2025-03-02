@@ -34,17 +34,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(true);
   const navigate = useNavigate();
 
-  console.log("AuthContext: Inicializando provider");
+  console.log("AuthContext: Initializing provider");
 
   useEffect(() => {
     const initialize = async () => {
       try {
-        console.log("AuthContext: Inicializando e verificando sessão");
+        console.log("AuthContext: Initializing and checking session");
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log("AuthContext: Sessão obtida:", currentSession ? "Presente" : "Ausente");
+        console.log("AuthContext: Session obtained:", currentSession ? "Present" : "Absent");
         
         if (!currentSession) {
-          console.log("AuthContext: Sem sessão ativa");
+          console.log("AuthContext: No active session");
           setSession(null);
           setUser(null);
           setIsAdmin(false);
@@ -53,9 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // Verificação simplificada para super admin
+        // Simplified super admin check
         if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
-          console.log("AuthContext: jotafieldsfirst@gmail.com identificado, definindo como superadmin");
+          console.log("AuthContext: jotafieldsfirst@gmail.com found, setting as superadmin");
           setSession(currentSession);
           setUser(currentSession.user);
           setIsSuperAdmin(true);
@@ -64,11 +64,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // Para outros usuários, verificação normal
+        // For other users, normal verification
         await handleUserSession(currentSession);
         setIsLoading(false);
       } catch (error) {
-        console.error("AuthContext: Erro na inicialização da autenticação:", error);
+        console.error("AuthContext: Error initializing authentication:", error);
         setIsLoading(false);
       }
     };
@@ -77,10 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log("AuthContext: Estado de autenticação alterado:", event);
+        console.log("AuthContext: Auth state changed:", event);
 
         if (event === 'SIGNED_OUT') {
-          console.log("AuthContext: Usuário desconectado");
+          console.log("AuthContext: User signed out");
           setSession(null);
           setUser(null);
           setIsAdmin(false);
@@ -90,12 +90,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (event === 'SIGNED_IN' && currentSession) {
-          console.log("AuthContext: Usuário conectado:", currentSession.user?.email);
+          console.log("AuthContext: User signed in:", currentSession.user?.email);
           setIsLoading(true);
           
-          // Verificação simplificada para super admin
+          // Simplified super admin check
           if (currentSession.user?.email === 'jotafieldsfirst@gmail.com') {
-            console.log("AuthContext: jotafieldsfirst@gmail.com identificado, definindo como superadmin");
+            console.log("AuthContext: jotafieldsfirst@gmail.com found, setting as superadmin");
             setSession(currentSession);
             setUser(currentSession.user);
             setIsSuperAdmin(true);
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           
-          // Para outros usuários, verificação normal
+          // For other users, normal verification
           await handleUserSession(currentSession);
           setIsLoading(false);
         }
@@ -119,17 +119,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log("AuthContext: Tentando login para", email);
+      console.log("AuthContext: Attempting login for", email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-      console.log("AuthContext: Login bem-sucedido");
+      console.log("AuthContext: Login successful");
+
+      // If the user is jotafieldsfirst@gmail.com, set them as superadmin immediately
+      if (email === 'jotafieldsfirst@gmail.com') {
+        setIsSuperAdmin(true);
+        setIsAdmin(true);
+      }
 
     } catch (error) {
-      console.error("AuthContext: Erro de login:", error);
+      console.error("AuthContext: Login error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to sign in");
       throw error;
     } finally {
@@ -140,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setIsLoading(true);
     try {
-      console.log("AuthContext: Iniciando logout");
+      console.log("AuthContext: Starting logout");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -149,10 +155,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false);
       setIsSuperAdmin(false);
       navigate('/auth');
-      console.log("AuthContext: Logout bem-sucedido");
+      console.log("AuthContext: Logout successful");
       
     } catch (error) {
-      console.error("AuthContext: Erro de logout:", error);
+      console.error("AuthContext: Logout error:", error);
       toast.error("Failed to sign out");
     } finally {
       setIsLoading(false);
