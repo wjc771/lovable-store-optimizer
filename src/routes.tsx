@@ -8,9 +8,6 @@ import Chat from "./pages/Chat";
 import Upload from "./pages/Upload";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
-import StoreManagement from "./pages/admin/StoreManagement";
-import StoreDetails from "./pages/admin/StoreDetails";
-import RoleDashboard from "./pages/admin/RoleDashboard";
 import { useAuth } from "./contexts/AuthContext";
 
 const AppRoutes = () => {
@@ -32,24 +29,6 @@ const AppRoutes = () => {
       <Route path="/business" element={user ? <BusinessControl /> : <Navigate to="/auth" />} />
       <Route path="/chat" element={user ? <Chat /> : <Navigate to="/auth" />} />
       <Route path="/upload" element={user ? <Upload /> : <Navigate to="/auth" />} />
-      
-      {/* Admin Routes - All authenticated users for now */}
-      <Route 
-        path="/admin/stores" 
-        element={user ? <StoreManagement /> : <Navigate to="/auth" />} 
-      />
-      <Route 
-        path="/admin/roles" 
-        element={user ? <RoleDashboard /> : <Navigate to="/auth" />} 
-      />
-      <Route 
-        path="/admin/stores/:storeId" 
-        element={user ? <StoreDetails /> : <Navigate to="/auth" />} 
-      />
-      <Route 
-        path="/admin/stores/:storeId/roles" 
-        element={user ? <RoleDashboard /> : <Navigate to="/auth" />} 
-      />
       
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

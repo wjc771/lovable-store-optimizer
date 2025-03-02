@@ -14,7 +14,6 @@ interface Permissions {
     settings: boolean;
   };
   loading: boolean;
-  isSaasAdmin: boolean;
 }
 
 // Updated interface to match the actual structure returned by Supabase
@@ -46,7 +45,6 @@ export const usePermissions = () => {
       settings: false,
     },
     loading: true,
-    isSaasAdmin: false,
   });
 
   useEffect(() => {
@@ -113,7 +111,6 @@ export const usePermissions = () => {
             settings: false,
           },
           loading: false,
-          isSaasAdmin: false // Make sure to include isSaasAdmin property here
         };
 
         // Type assertion to handle the data structure correctly
@@ -153,10 +150,7 @@ export const usePermissions = () => {
         );
 
         console.log("usePermissions: Calculated permissions:", combinedPermissions);
-        setPermissions({
-          ...combinedPermissions,
-          isSaasAdmin: false // Set isSaasAdmin to false by default
-        });
+        setPermissions(combinedPermissions);
 
       } catch (error) {
         console.error('Error fetching permissions:', error);
