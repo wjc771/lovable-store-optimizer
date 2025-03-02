@@ -40,6 +40,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
           throw new Error("You must be logged in to create a store");
         }
         
+        // Step 1: Create the store
         const { data: store, error: storeError } = await supabase
           .from("stores")
           .insert([
@@ -58,6 +59,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
         }
         console.log("Store created successfully:", store);
 
+        // Step 2: Create the invite in a separate transaction
         const token = crypto.randomUUID();
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);

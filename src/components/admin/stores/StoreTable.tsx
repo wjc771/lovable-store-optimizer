@@ -43,13 +43,7 @@ const StoreTable = ({ stores, onRefresh }: StoreTableProps) => {
   }
 
   return (
-    <div>
-      <div className="flex justify-end p-4">
-        <Button onClick={onRefresh} variant="outline" size="sm">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
-      </div>
+    <div className="overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>

@@ -56,7 +56,7 @@ const StoreManagement = () => {
           {stores && <StoreTable stores={stores} onRefresh={refetch} />}
         </div>
         
-        {/* Move dialog outside the header to avoid duplicate buttons */}
+        {/* Create store dialog */}
         <CreateStoreDialog 
           isOpen={isDialogOpen} 
           onOpenChange={setIsDialogOpen} 

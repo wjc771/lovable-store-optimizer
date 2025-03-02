@@ -28,8 +28,8 @@ export const useStoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Simplified query approach - using the RPC function
-        console.log("Using get_user_accessible_stores RPC function");
+        // Using the optimized RPC function
+        console.log("Using optimized get_user_accessible_stores RPC function");
         const { data, error } = await supabase.rpc('get_user_accessible_stores');
           
         if (error) {
