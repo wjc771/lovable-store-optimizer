@@ -13,91 +13,73 @@ import StoreDetails from "./pages/admin/StoreDetails";
 import RoleDashboard from "./pages/admin/RoleDashboard";
 import { useAuth } from "./contexts/AuthContext";
 
+// A helper component to handle protected routes with cleaner code
+const ProtectedRoute = ({ 
+  element, 
+  adminOnly = false 
+}: { 
+  element: JSX.Element, 
+  adminOnly?: boolean 
+}) => {
+  const { user, isAdmin, isSuperAdmin, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    console.log("ProtectedRoute: No user, redirecting to /auth");
+    return <Navigate to="/auth" replace />;
+  }
+  
+  if (adminOnly && !(isSuperAdmin || isAdmin)) {
+    console.log("ProtectedRoute: User not admin, redirecting to /");
+    return <Navigate to="/" replace />;
+  }
+  
+  return element;
+};
+
 const AppRoutes = () => {
   const { user, isAdmin, isSuperAdmin, isLoading } = useAuth();
   
-  console.log("Rendering AppRoutes component", { 
+  console.log("Rendering AppRoutes", { 
     user: !!user, 
     isAdmin, 
-    isSuperAdmin 
+    isSuperAdmin,
+    currentPath: window.location.pathname
   });
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/auth" element={user ? <Navigate to="/" /> : <Auth />} />
+      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
       
-      {/* Protected Routes - Redirect to auth if not logged in */}
-      <Route path="/" element={user ? <Index /> : <Navigate to="/auth" />} />
-      <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/auth" />} />
-      <Route path="/settings" element={user ? <Settings /> : <Navigate to="/auth" />} />
-      <Route path="/business" element={user ? <BusinessControl /> : <Navigate to="/auth" />} />
-      <Route path="/chat" element={user ? <Chat /> : <Navigate to="/auth" />} />
-      <Route path="/upload" element={user ? <Upload /> : <Navigate to="/auth" />} />
+      {/* Protected Routes */}
+      <Route path="/" element={<ProtectedRoute element={<Index />} />} />
+      <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+      <Route path="/settings" element={<ProtectedRoute element={<Settings />} />} />
+      <Route path="/business" element={<ProtectedRoute element={<BusinessControl />} />} />
+      <Route path="/chat" element={<ProtectedRoute element={<Chat />} />} />
+      <Route path="/upload" element={<ProtectedRoute element={<Upload />} />} />
       
-      {/* Admin Routes - Super Admin & Admin only */}
-      <Route 
-        path="/admin/stores" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <StoreManagement />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
-      />
-      <Route 
-        path="/admin/roles" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <RoleDashboard />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
-      />
-      <Route 
-        path="/admin/stores/:storeId" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <StoreDetails />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
-      />
-      <Route 
-        path="/admin/stores/:storeId/roles" 
-        element={
-          user ? (
-            isSuperAdmin || isAdmin ? (
-              <RoleDashboard />
-            ) : (
-              <Navigate to="/" />
-            )
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } 
-      />
+      {/* Admin Routes */}
+      <Route path="/admin/stores" element={<ProtectedRoute adminOnly element={<StoreManagement />} />} />
+      <Route path="/admin/roles" element={<ProtectedRoute adminOnly element={<RoleDashboard />} />} />
+      <Route path="/admin/stores/:storeId" element={<ProtectedRoute adminOnly element={<StoreDetails />} />} />
+      <Route path="/admin/stores/:storeId/roles" element={<ProtectedRoute adminOnly element={<RoleDashboard />} />} />
       
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />
