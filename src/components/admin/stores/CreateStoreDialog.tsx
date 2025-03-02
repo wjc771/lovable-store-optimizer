@@ -25,7 +25,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
   const [ownerEmail, setOwnerEmail] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, isSuperAdmin } = useAuth();
+  const { user } = useAuth();
 
   const createStore = useMutation({
     mutationFn: async ({ storeName, email }: { storeName: string; email: string }) => {
@@ -62,37 +62,34 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
         }
         console.log("Store created successfully:", store);
 
-        // If not superadmin or the email is different from the current user, create an invite
-        if (!isSuperAdmin || email !== session.user.email) {
-          // Create the invite in a separate transaction
-          const token = crypto.randomUUID();
-          const expiresAt = new Date();
-          expiresAt.setDate(expiresAt.getDate() + 7);
+        // Create the invite in a separate transaction
+        const token = crypto.randomUUID();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
 
-          const { error: inviteError } = await supabase
-            .from("store_invites")
-            .insert([
-              {
-                store_id: store.id,
-                email,
-                role: "admin",
-                token,
-                expires_at: expiresAt.toISOString(),
-                created_by: session?.user.id
-              },
-            ]);
+        const { error: inviteError } = await supabase
+          .from("store_invites")
+          .insert([
+            {
+              store_id: store.id,
+              email,
+              role: "admin",
+              token,
+              expires_at: expiresAt.toISOString(),
+              created_by: session?.user.id
+            },
+          ]);
 
-          if (inviteError) {
-            console.error("Error creating store invite:", inviteError);
-            toast({
-              title: "Store created but invite failed",
-              description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
-              variant: "destructive",
-            });
-          } else {
-            console.log("Store invite created successfully with token:", token);
-            return { store, token };
-          }
+        if (inviteError) {
+          console.error("Error creating store invite:", inviteError);
+          toast({
+            title: "Store created but invite failed",
+            description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
+            variant: "destructive",
+          });
+        } else {
+          console.log("Store invite created successfully with token:", token);
+          return { store, token };
         }
 
         return { store };
@@ -139,20 +136,11 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
       return;
     }
     
-    // If superadmin, use the current user's email if none provided
-    if (isSuperAdmin && !ownerEmail) {
+    // Use the current user's email if none provided
+    if (!ownerEmail) {
       createStore.mutate({ 
         storeName: newStoreName, 
         email: user?.email || "" 
-      });
-      return;
-    }
-
-    if (!ownerEmail) {
-      toast({
-        title: "Missing information",
-        description: "Please provide an owner email",
-        variant: "destructive",
       });
       return;
     }
@@ -190,15 +178,14 @@ const CreateStoreDialog = ({ isOpen, onOpenChange, onStoreCreated }: CreateStore
               htmlFor="owner-email"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Owner Email {isSuperAdmin && "(Optional for Super Admin)"}
+              Owner Email (Optional)
             </label>
             <Input
               id="owner-email"
               type="email"
               value={ownerEmail}
               onChange={(e) => setOwnerEmail(e.target.value)}
-              placeholder={isSuperAdmin ? "Enter owner email (optional)" : "Enter owner email"}
-              required={!isSuperAdmin}
+              placeholder="Enter owner email (optional)"
             />
           </div>
           <div className="flex justify-end gap-4">

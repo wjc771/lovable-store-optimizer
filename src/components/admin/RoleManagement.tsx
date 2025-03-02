@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface SuperAdmin {
   id: string;
@@ -30,18 +31,19 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
   const [selectedAdmin, setSelectedAdmin] = useState<SuperAdmin | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, isSuperAdmin } = useAuth();
+  const { user } = useAuth();
+  const { isManager } = usePermissions();
   const form = useForm({
     defaultValues: {
       email: "",
     },
   });
 
-  const { data: superAdmins, isLoading: loadingAdmins, error: adminsError } = useQuery({
+  const { data: systemAdmins, isLoading: loadingAdmins, error: adminsError } = useQuery({
     queryKey: ["system-admins"],
     queryFn: async () => {
-      if (!isSuperAdmin) {
-        throw new Error("Only super admins can view this information");
+      if (!isManager) {
+        throw new Error("Only managers can view this information");
       }
 
       const { data, error } = await supabase
@@ -56,12 +58,12 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
 
       return data as SuperAdmin[];
     },
-    enabled: isSuperAdmin,
+    enabled: isManager,
   });
 
-  const addSuperAdmin = useMutation({
+  const addSystemAdmin = useMutation({
     mutationFn: async (email: string) => {
-      console.log("Adding super admin with email:", email);
+      console.log("Adding system admin with email:", email);
       const { data, error } = await supabase
         .from("system_admins")
         .insert([
@@ -84,13 +86,13 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
       setIsDialogOpen(false);
       form.reset();
       toast({
-        title: "Super Admin added",
-        description: "The user has been granted super admin privileges",
+        title: "System Admin added",
+        description: "The user has been granted system admin privileges",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error adding Super Admin",
+        title: "Error adding System Admin",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
@@ -146,7 +148,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
       queryClient.invalidateQueries({ queryKey: ["system-admins"] });
       toast({
         title: "Admin removed",
-        description: "Super admin privileges have been revoked",
+        description: "System admin privileges have been revoked",
       });
     },
     onError: (error) => {
@@ -159,7 +161,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
   });
 
   const handleSubmit = (data: { email: string }) => {
-    addSuperAdmin.mutate(data.email);
+    addSystemAdmin.mutate(data.email);
   };
 
   const toggleAdminStatus = (admin: SuperAdmin) => {
@@ -167,11 +169,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
     updateAdminStatus.mutate({ id: admin.id, status: newStatus });
   };
 
-  const isJotaFieldsFirst = (email: string) => {
-    return email === "jotafieldsfirst@gmail.com";
-  };
-
-  if (!isSuperAdmin) {
+  if (!isManager) {
     return (
       <Card>
         <CardHeader>
@@ -181,7 +179,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
         <CardContent>
           <div className="flex items-center text-amber-500 bg-amber-50 dark:bg-amber-950 p-4 rounded-md">
             <AlertCircle className="h-5 w-5 mr-2" />
-            <p>Only super administrators can manage system roles</p>
+            <p>Only managers can manage system roles</p>
           </div>
         </CardContent>
       </Card>
@@ -197,7 +195,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
         </div>
         <Button onClick={() => setIsDialogOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
-          Add Super Admin
+          Add System Admin
         </Button>
       </CardHeader>
       <CardContent>
@@ -226,11 +224,11 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {superAdmins && superAdmins.length > 0 ? (
-                  superAdmins.map((admin) => (
+                {systemAdmins && systemAdmins.length > 0 ? (
+                  systemAdmins.map((admin) => (
                     <TableRow key={admin.id}>
                       <TableCell className="font-medium flex items-center gap-2">
-                        <Crown className={`h-4 w-4 ${isJotaFieldsFirst(admin.email) ? "text-yellow-500" : "text-blue-500"}`} />
+                        <Crown className={`h-4 w-4 ${admin.email === "jotafieldsfirst@gmail.com" ? "text-yellow-500" : "text-blue-500"}`} />
                         {admin.email}
                       </TableCell>
                       <TableCell>
@@ -238,7 +236,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
                           <Switch
                             checked={admin.status === "active"}
                             onCheckedChange={() => toggleAdminStatus(admin)}
-                            disabled={isJotaFieldsFirst(admin.email)}
+                            disabled={admin.email === "jotafieldsfirst@gmail.com"}
                             aria-label="Toggle admin status"
                           />
                           <span
@@ -261,7 +259,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              disabled={isJotaFieldsFirst(admin.email)}
+                              disabled={admin.email === "jotafieldsfirst@gmail.com"}
                             >
                               <Trash className="h-4 w-4 text-red-500" />
                             </Button>
@@ -302,7 +300,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Super Administrator</DialogTitle>
+              <DialogTitle>Add System Administrator</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -322,8 +320,8 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={addSuperAdmin.isPending}>
-                    {addSuperAdmin.isPending ? "Adding..." : "Add Administrator"}
+                  <Button type="submit" disabled={addSystemAdmin.isPending}>
+                    {addSystemAdmin.isPending ? "Adding..." : "Add Administrator"}
                   </Button>
                 </DialogFooter>
               </form>

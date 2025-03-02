@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,6 @@ const SettingsContent = () => {
   const { theme, setTheme, language, setLanguage } = useSettings();
   const { t } = useTranslation();
   const { isManager, loading } = usePermissions();
-  const { isSuperAdmin } = useAuth(); // Get isSuperAdmin from useAuth instead
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -172,8 +170,7 @@ const SettingsContent = () => {
     return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
-  // Check if user has access to settings (either manager or super admin)
-  if (!isManager && !isSuperAdmin) {
+  if (!isManager) {
     return (
       <div className="p-4">
         <Alert variant="destructive">
@@ -257,7 +254,7 @@ const SettingsContent = () => {
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2 whitespace-nowrap">
               <Package className="h-4 w-4" />
-              {!isMobile && t('products.productSettings')}
+              {!isMobile && t('settings.productSettings')}
             </TabsTrigger>
             <TabsTrigger value="integrations" className="flex items-center gap-2 whitespace-nowrap">
               <Link className="h-4 w-4" />

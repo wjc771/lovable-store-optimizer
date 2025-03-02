@@ -11,8 +11,6 @@ import {
   BarChart3,
   MessageSquare,
   Upload,
-  Store,
-  ShieldCheck,
   LogOut,
 } from "lucide-react";
 
@@ -22,7 +20,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ className, ...props }: SidebarProps) {
   const { pathname } = useLocation();
-  const { signOut, isSuperAdmin } = useAuth();
+  const { signOut } = useAuth();
 
   return (
     <div
@@ -88,34 +86,6 @@ export function Sidebar({ className, ...props }: SidebarProps) {
             <Upload className="h-5 w-5" />
             Upload
           </Link>
-
-          {isSuperAdmin && (
-            <>
-              <div className="my-2 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                SYSTEM ADMIN
-              </div>
-              <Link
-                to="/admin/stores"
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-foreground transition-all hover:text-primary",
-                  pathname.startsWith("/admin/stores") && "bg-muted font-medium"
-                )}
-              >
-                <Store className="h-5 w-5" />
-                Stores
-              </Link>
-              <Link
-                to="/admin/roles"
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-foreground transition-all hover:text-primary",
-                  pathname === "/admin/roles" && "bg-muted font-medium"
-                )}
-              >
-                <ShieldCheck className="h-5 w-5" />
-                System Roles
-              </Link>
-            </>
-          )}
 
           <Link
             to="/settings"
