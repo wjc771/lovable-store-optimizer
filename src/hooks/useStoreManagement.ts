@@ -28,8 +28,25 @@ export const useStoreManagement = () => {
           throw new Error("You must be logged in to view stores");
         }
         
-        // Using the optimized RPC function
-        console.log("Using optimized get_user_accessible_stores RPC function");
+        // Handling super admin differently to avoid RPC issues
+        if (isSuperAdmin) {
+          console.log("Super admin detected - fetching all stores");
+          const { data, error } = await supabase
+            .from('stores')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+          if (error) {
+            console.error("Error fetching stores for super admin:", error);
+            throw new Error("Failed to fetch stores: " + error.message);
+          }
+          
+          console.log(`Successfully fetched ${data?.length} stores for super admin`);
+          return data as Store[];
+        }
+        
+        // For regular users, use the RPC function
+        console.log("Using get_user_accessible_stores RPC function for regular user");
         const { data, error } = await supabase.rpc('get_user_accessible_stores');
           
         if (error) {
@@ -37,7 +54,7 @@ export const useStoreManagement = () => {
           throw new Error("Failed to fetch stores: " + error.message);
         }
         
-        console.log(`Successfully fetched ${data?.length} stores`);
+        console.log(`Successfully fetched ${data?.length} stores for regular user`);
         return data as Store[];
       } catch (error) {
         console.error("Failed to fetch stores:", error);

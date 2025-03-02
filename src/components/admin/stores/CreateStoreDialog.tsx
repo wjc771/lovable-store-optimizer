@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CreateStoreDialogProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
   const [ownerEmail, setOwnerEmail] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isSuperAdmin } = useAuth();
 
   const createStore = useMutation({
     mutationFn: async ({ storeName, email }: { storeName: string; email: string }) => {
@@ -40,7 +42,7 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
           throw new Error("You must be logged in to create a store");
         }
         
-        // Step 1: Create the store
+        // Criar a loja
         const { data: store, error: storeError } = await supabase
           .from("stores")
           .insert([
@@ -59,36 +61,40 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
         }
         console.log("Store created successfully:", store);
 
-        // Step 2: Create the invite in a separate transaction
-        const token = crypto.randomUUID();
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7);
+        // Se não for superadmin ou o email for diferente do usuário atual, criar convite
+        if (!isSuperAdmin || email !== session.user.email) {
+          // Criar o convite em uma transação separada
+          const token = crypto.randomUUID();
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7);
 
-        const { error: inviteError } = await supabase
-          .from("store_invites")
-          .insert([
-            {
-              store_id: store.id,
-              email,
-              role: "admin",
-              token,
-              expires_at: expiresAt.toISOString(),
-              created_by: session?.user.id
-            },
-          ]);
+          const { error: inviteError } = await supabase
+            .from("store_invites")
+            .insert([
+              {
+                store_id: store.id,
+                email,
+                role: "admin",
+                token,
+                expires_at: expiresAt.toISOString(),
+                created_by: session?.user.id
+              },
+            ]);
 
-        if (inviteError) {
-          console.error("Error creating store invite:", inviteError);
-          toast({
-            title: "Store created but invite failed",
-            description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
-            variant: "destructive",
-          });
-        } else {
-          console.log("Store invite created successfully with token:", token);
+          if (inviteError) {
+            console.error("Error creating store invite:", inviteError);
+            toast({
+              title: "Store created but invite failed",
+              description: "The store was created but the invite couldn't be sent. You can try resending the invite later.",
+              variant: "destructive",
+            });
+          } else {
+            console.log("Store invite created successfully with token:", token);
+            return { store, token };
+          }
         }
 
-        return { store, token };
+        return { store };
       } catch (error) {
         console.error("Failed to create store:", error);
         throw error;
@@ -103,7 +109,9 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
       
       toast({
         title: "Store created successfully",
-        description: `Invite link: ${window.location.origin}/auth?token=${data.token}`,
+        description: data.token 
+          ? `Invite link: ${window.location.origin}/auth?token=${data.token}`
+          : "Store has been created successfully",
       });
     },
     onError: (error) => {
@@ -119,10 +127,29 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
   const handleCreateStore = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Creating store...");
-    if (!newStoreName || !ownerEmail) {
+    
+    if (!newStoreName) {
       toast({
         title: "Missing information",
-        description: "Please provide both store name and owner email",
+        description: "Please provide a store name",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Se for superadmin, usar o email do próprio usuário se não for fornecido
+    if (isSuperAdmin && !ownerEmail) {
+      createStore.mutate({ 
+        storeName: newStoreName, 
+        email: user?.email || "" 
+      });
+      return;
+    }
+
+    if (!ownerEmail) {
+      toast({
+        title: "Missing information",
+        description: "Please provide an owner email",
         variant: "destructive",
       });
       return;
@@ -161,15 +188,15 @@ const CreateStoreDialog = ({ isOpen, onOpenChange }: CreateStoreDialogProps) => 
               htmlFor="owner-email"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Owner Email
+              Owner Email {isSuperAdmin && "(Optional for Super Admin)"}
             </label>
             <Input
               id="owner-email"
               type="email"
               value={ownerEmail}
               onChange={(e) => setOwnerEmail(e.target.value)}
-              placeholder="Enter owner email"
-              required
+              placeholder={isSuperAdmin ? "Enter owner email (optional)" : "Enter owner email"}
+              required={!isSuperAdmin}
             />
           </div>
           <div className="flex justify-end gap-4">
