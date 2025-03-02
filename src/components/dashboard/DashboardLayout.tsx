@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Menu, Store, ShieldCheck } from "lucide-react";
@@ -24,7 +23,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isManager, isSaasAdmin, loading: permissionsLoading } = usePermissions();
+  const { isManager, loading: permissionsLoading } = usePermissions();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -58,7 +57,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   };
   
   // Determine if user has manager access - either they are a manager or superadmin
-  const hasManagerAccess = isManager || isSuperAdmin || isSaasAdmin;
+  const hasManagerAccess = isManager || isSuperAdmin;
 
   const navigationItems = [
     {

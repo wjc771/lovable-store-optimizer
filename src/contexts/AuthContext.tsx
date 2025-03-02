@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
@@ -12,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,9 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   } = useUserSession();
   
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isSuperAdmin, setIsSuperAdmin] = React.useState(false);
   const navigate = useNavigate();
 
   console.log("AuthContext: Initializing provider");
+
+  useEffect(() => {
+    if (user?.email) {
+      setIsSuperAdmin(false);
+    } else {
+      setIsSuperAdmin(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -126,7 +135,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     signIn,
     signOut,
-    isLoading
+    isLoading,
+    isSuperAdmin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

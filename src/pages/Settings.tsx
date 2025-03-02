@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Users, BarChart3, Bell, Link, Moon, Sun, Languages, AlertTriangle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import ProductsSettings from "@/components/settings/ProductsSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SettingsContent = () => {
   const [uploadWebhookUrl, setUploadWebhookUrl] = useState("");
@@ -32,7 +34,8 @@ const SettingsContent = () => {
   const { toast } = useToast();
   const { theme, setTheme, language, setLanguage } = useSettings();
   const { t } = useTranslation();
-  const { isManager, isSaasAdmin, loading } = usePermissions();
+  const { isManager, loading } = usePermissions();
+  const { isSuperAdmin } = useAuth(); // Get isSuperAdmin from useAuth instead
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -169,7 +172,8 @@ const SettingsContent = () => {
     return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
-  if (!isManager && !isSaasAdmin) {
+  // Check if user has access to settings (either manager or super admin)
+  if (!isManager && !isSuperAdmin) {
     return (
       <div className="p-4">
         <Alert variant="destructive">

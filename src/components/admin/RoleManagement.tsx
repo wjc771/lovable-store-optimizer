@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +37,6 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
     },
   });
 
-  // Query for retrieving the list of system admins
   const { data: superAdmins, isLoading: loadingAdmins, error: adminsError } = useQuery({
     queryKey: ["system-admins"],
     queryFn: async () => {
@@ -61,7 +59,6 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
     enabled: isSuperAdmin,
   });
 
-  // Mutation for adding a new system admin
   const addSuperAdmin = useMutation({
     mutationFn: async (email: string) => {
       console.log("Adding super admin with email:", email);
@@ -100,7 +97,6 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
     },
   });
 
-  // Mutation for updating an admin's status
   const updateAdminStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase
@@ -132,7 +128,6 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
     },
   });
 
-  // Mutation for removing an admin
   const removeAdmin = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -172,7 +167,6 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ storeId }) => {
     updateAdminStatus.mutate({ id: admin.id, status: newStatus });
   };
 
-  // Special case for the email jotafieldsfirst@gmail.com
   const isJotaFieldsFirst = (email: string) => {
     return email === "jotafieldsfirst@gmail.com";
   };

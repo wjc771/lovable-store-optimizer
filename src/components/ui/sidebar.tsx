@@ -22,7 +22,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ className, ...props }: SidebarProps) {
   const { pathname } = useLocation();
-  const { signOut, isAdmin, isSuperAdmin } = useAuth();
+  const { signOut, isSuperAdmin } = useAuth();
 
   return (
     <div
@@ -91,7 +91,7 @@ export function Sidebar({ className, ...props }: SidebarProps) {
 
           {isSuperAdmin && (
             <>
-              <div className="mt-2 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              <div className="my-2 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 SYSTEM ADMIN
               </div>
               <Link
