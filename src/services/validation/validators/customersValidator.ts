@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult, CustomersValidationData } from '../types';
 import { z } from 'zod';
 
-// Define a type for sales records to avoid deep type recursion
-type SalesRecord = {
+// Define a simple interface for sales records to avoid deep type recursion
+interface SalesRecord {
   amount: number;
   created_at: string;
-};
+}
 
 // Helper function to validate sales relationships for a customer
 const validateCustomerSalesRelationships = async (data: CustomersValidationData): Promise<z.ZodError | undefined> => {
@@ -22,7 +22,7 @@ const validateCustomerSalesRelationships = async (data: CustomersValidationData)
     
   if (error) {
     return new z.ZodError([{
-      code: 'custom',
+      code: z.ZodIssueCode.custom,
       message: `Error validating sales relationships: ${error.message}`,
       path: ['sales_relationships']
     }]);
@@ -51,7 +51,7 @@ export const customersValidator = async (
   if (!result.success) {
     return {
       success: false,
-      errors: result.error, // Use the full Zod error
+      errors: result.error,
       data: undefined
     };
   }
@@ -69,33 +69,33 @@ export const customersValidator = async (
 
   // Validate business logic
   if (data.total_purchases !== undefined) {
-    // Use explicit typing to avoid deep recursion
-    const { data: salesData, error: salesError } = await supabase
+    // Use explicit typing with the SalesRecord interface to avoid deep recursion
+    const salesResponse = await supabase
       .from('sales')
       .select('amount, created_at')
       .eq('customer_id', data.id);
 
-    if (salesError) {
+    if (salesResponse.error) {
       return {
         success: false,
         errors: new z.ZodError([{
-          code: 'custom',
-          message: `Database error: ${salesError.message}`,
+          code: z.ZodIssueCode.custom,
+          message: `Database error: ${salesResponse.error.message}`,
           path: ['database']
         }]),
         data: undefined
       };
     }
 
-    // Use the defined type to avoid deep type recursion
-    const sales = salesData as SalesRecord[] || [];
+    // Explicitly type the sales data as SalesRecord[] to avoid recursion
+    const sales = salesResponse.data as SalesRecord[] || [];
     const actualTotalPurchases = sales.length;
 
     if (data.total_purchases !== actualTotalPurchases) {
       return {
         success: false,
         errors: new z.ZodError([{
-          code: 'custom',
+          code: z.ZodIssueCode.custom,
           message: `Total purchases should be ${actualTotalPurchases}`,
           path: ['total_purchases']
         }]),

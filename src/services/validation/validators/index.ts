@@ -1,6 +1,14 @@
 
-export { validateSalesRelationships } from './salesValidator';
-export { validateOrdersRelationships } from './ordersValidator';
-export { validateTasksRelationships } from './tasksValidator';
-export { validateProductsRelationships } from './productsValidator';
-export { customersValidator } from './customersValidator';
+import { validateSalesRelationships } from './salesValidator';
+import { validateOrdersRelationships } from './ordersValidator';
+import { validateTasksRelationships } from './tasksValidator';
+import { validateProductsRelationships } from './productsValidator';
+import { customersValidator } from './customersValidator';
+
+export {
+  validateSalesRelationships,
+  validateOrdersRelationships,
+  validateTasksRelationships,
+  validateProductsRelationships,
+  customersValidator
+};
