@@ -1,16 +1,18 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Package, Users, Bell } from "lucide-react";
+import { DollarSign, Package, Users, Bell, RefreshCw } from "lucide-react";
 import SmartActionsFeed from "@/components/dashboard/SmartActionsFeed";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const Dashboard = () => {
   const { isManager, loading } = usePermissions();
+  const [generatingActions, setGeneratingActions] = useState(false);
 
   // Let user know we're trying to load data
   useEffect(() => {
@@ -80,6 +82,30 @@ const Dashboard = () => {
     }
   });
 
+  const handleGenerateSmartActions = async () => {
+    try {
+      setGeneratingActions(true);
+      toast.info("Generating smart actions...");
+      
+      const { error } = await supabase.rpc('generate_smart_actions');
+      
+      if (error) {
+        console.error("Error generating smart actions:", error);
+        toast.error(`Failed to generate smart actions: ${error.message}`);
+        return;
+      }
+      
+      toast.success("Smart actions generated successfully!");
+      // Force refetch of smart actions in SmartActionsFeed component
+      // No need to manually trigger refetch since the subscription in SmartActionsFeed will catch the changes
+    } catch (err) {
+      console.error("Error invoking generate_smart_actions:", err);
+      toast.error("An unexpected error occurred while generating smart actions");
+    } finally {
+      setGeneratingActions(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading permissions...</div>;
   }
@@ -143,7 +169,19 @@ const Dashboard = () => {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold">Smart Actions</h3>
-            <Bell className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center space-x-2">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleGenerateSmartActions}
+                disabled={generatingActions}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className={`h-4 w-4 ${generatingActions ? 'animate-spin' : ''}`} />
+                {generatingActions ? 'Generating...' : 'Generate Actions'}
+              </Button>
+            </div>
           </div>
           <SmartActionsFeed />
         </section>

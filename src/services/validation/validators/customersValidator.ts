@@ -1,19 +1,18 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { customerSchema } from '../schemas';
 import { ValidationResult, CustomersValidationData } from '../types';
 import { z } from 'zod';
 
-// Define a simple interface for sales records to avoid deep type recursion
-interface SalesRecord {
+// Explicitly define a simple record type to avoid circular references
+interface SimpleSalesRecord {
   amount: number;
   created_at: string;
 }
 
 // Helper function to validate sales relationships for a customer
 const validateCustomerSalesRelationships = async (data: CustomersValidationData): Promise<z.ZodError | undefined> => {
-  if (!data.id) return undefined;
-  
-  // Basic validation logic for sales related to this customer
+  // Check if customer has valid sales relationships
   const { error } = await supabase
     .from('sales')
     .select('id')
@@ -27,27 +26,14 @@ const validateCustomerSalesRelationships = async (data: CustomersValidationData)
       path: ['sales_relationships']
     }]);
   }
-  
+
   return undefined;
 };
 
-export const customersValidator = async (
-  data: CustomersValidationData
-): Promise<ValidationResult> => {
-  // Basic schema validation
-  const customerSchema = z.object({
-    id: z.string().uuid(),
-    name: z.string().min(1),
-    email: z.string().email().optional().nullable(),
-    phone: z.string().optional().nullable(),
-    status: z.string().optional(),
-    total_purchases: z.number().optional(),
-    last_purchase_date: z.string().optional().nullable(),
-    store_id: z.string().uuid().optional().nullable(),
-  });
-
+export const customersValidator = async (data: CustomersValidationData): Promise<ValidationResult<CustomersValidationData>> => {
+  // Schema validation
   const result = customerSchema.safeParse(data);
-
+  
   if (!result.success) {
     return {
       success: false,
@@ -56,39 +42,42 @@ export const customersValidator = async (
     };
   }
 
-  // Validate relationships
-  const relationshipErrors = await validateCustomerSalesRelationships(data);
-
-  if (relationshipErrors) {
+  // Relationship validation
+  const relationshipError = await validateCustomerSalesRelationships(data);
+  if (relationshipError) {
     return {
       success: false,
-      errors: relationshipErrors,
+      errors: relationshipError,
       data: undefined
     };
   }
 
   // Validate business logic
   if (data.total_purchases !== undefined) {
-    // Use explicit typing with the SalesRecord interface to avoid deep recursion
+    // Use a type assertion to explicitly break the type recursion
     const salesResponse = await supabase
       .from('sales')
-      .select('amount, created_at')
-      .eq('customer_id', data.id);
-
-    if (salesResponse.error) {
+      .select('amount, created_at');
+      
+    // Break the type recursion by using a simple type
+    const typedResponse = salesResponse as unknown as { 
+      data: SimpleSalesRecord[] | null, 
+      error: { message: string } | null 
+    };
+    
+    if (typedResponse.error) {
       return {
         success: false,
         errors: new z.ZodError([{
           code: z.ZodIssueCode.custom,
-          message: `Database error: ${salesResponse.error.message}`,
+          message: `Database error: ${typedResponse.error.message}`,
           path: ['database']
         }]),
         data: undefined
       };
     }
 
-    // Explicitly type the sales data as SalesRecord[] to avoid recursion
-    const sales = salesResponse.data as SalesRecord[] || [];
+    const sales = typedResponse.data || [];
     const actualTotalPurchases = sales.length;
 
     if (data.total_purchases !== actualTotalPurchases) {
@@ -106,7 +95,7 @@ export const customersValidator = async (
 
   return {
     success: true,
-    errors: undefined,
-    data: result.data
+    data: data,
+    errors: undefined
   };
 };
