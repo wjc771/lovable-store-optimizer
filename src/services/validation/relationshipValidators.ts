@@ -4,5 +4,5 @@ export {
   validateOrdersRelationships,
   validateTasksRelationships,
   validateProductsRelationships,
-  validateCustomersRelationships,
+  customersValidator,
 } from './validators';

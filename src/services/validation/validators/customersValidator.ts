@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { validateSalesRelationships } from './salesValidator';
 import { ValidationResult, CustomersValidationData } from '../types';
 import { z } from 'zod';
 
@@ -8,6 +7,28 @@ import { z } from 'zod';
 type SalesRecord = {
   amount: number;
   created_at: string;
+};
+
+// Helper function to validate sales relationships for a customer
+const validateCustomerSalesRelationships = async (data: CustomersValidationData): Promise<z.ZodError | undefined> => {
+  if (!data.id) return undefined;
+  
+  // Basic validation logic for sales related to this customer
+  const { error } = await supabase
+    .from('sales')
+    .select('id')
+    .eq('customer_id', data.id)
+    .limit(1);
+    
+  if (error) {
+    return new z.ZodError([{
+      code: 'custom',
+      message: `Error validating sales relationships: ${error.message}`,
+      path: ['sales_relationships']
+    }]);
+  }
+  
+  return undefined;
 };
 
 export const customersValidator = async (
@@ -36,8 +57,7 @@ export const customersValidator = async (
   }
 
   // Validate relationships
-  // For now, we'll assume only simple validation on sales relationship
-  const relationshipErrors = await validateSalesRelationships(data);
+  const relationshipErrors = await validateCustomerSalesRelationships(data);
 
   if (relationshipErrors) {
     return {
