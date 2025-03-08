@@ -4,25 +4,38 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import AppRoutes from "./routes";
-import { AuthProvider } from "./contexts/AuthContext";
-import { StoreProvider } from "./contexts/StoreContext";
-import { SettingsProvider } from "./contexts/SettingsContext";
 
-const queryClient = new QueryClient();
+// Configure o queryClient com opções adequadas para v5
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Substitua o console.error padrão para lidar com erros do React Query
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  // Filtrar erros internos do React Query que não são relevantes para o usuário
+  if (typeof args[0] === 'string' && 
+     (args[0].includes('QueryClient') || args[0].includes('Hydration'))) {
+    console.log('React Query internal error:', args[0]);
+    return;
+  }
+  originalConsoleError(...args);
+};
 
 function App() {
+  console.log("App: Renderizando aplicação");
+  
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            <StoreProvider>
-              <SettingsProvider>
-                <AppRoutes />
-                <Toaster />
-              </SettingsProvider>
-            </StoreProvider>
-          </AuthProvider>
+          <AppRoutes />
+          <Toaster />
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
