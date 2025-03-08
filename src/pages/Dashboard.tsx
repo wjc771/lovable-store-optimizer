@@ -3,57 +3,104 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Package, Users, Bell } from "lucide-react";
 import SmartActionsFeed from "@/components/dashboard/SmartActionsFeed";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { isManager, loading } = usePermissions();
 
-  const { data: stats } = useQuery({
+  // Let user know we're trying to load data
+  useEffect(() => {
+    toast.info("Fetching dashboard data...");
+  }, []);
+
+  const { data: stats, isLoading, error } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const promises = [
-        // Get total sales
-        supabase
-          .from('sales')
-          .select('amount')
-          .eq('status', 'completed'),
-        // Get total products
-        supabase
-          .from('products')
-          .select('id', { count: 'exact' }),
-        // Get total customers
-        supabase
-          .from('customers')
-          .select('id', { count: 'exact' })
-      ];
+      try {
+        const promises = [
+          // Get total sales
+          supabase
+            .from('sales')
+            .select('amount')
+            .eq('status', 'completed'),
+          // Get total products
+          supabase
+            .from('products')
+            .select('id', { count: 'exact' }),
+          // Get total customers
+          supabase
+            .from('customers')
+            .select('id', { count: 'exact' })
+        ];
 
-      const [salesResponse, productsResponse, customersResponse] = await Promise.all(promises);
+        const [salesResponse, productsResponse, customersResponse] = await Promise.all(promises);
 
-      const totalSales = salesResponse.data?.reduce((sum, sale) => {
-        if ('amount' in sale) {
-          return sum + Number(sale.amount);
+        // Handle potential errors in responses
+        if (salesResponse.error) {
+          console.error("Error fetching sales:", salesResponse.error);
+          toast.error("Failed to fetch sales data");
+          throw salesResponse.error;
         }
-        return sum;
-      }, 0) || 0;
-      
-      const totalProducts = productsResponse.count || 0;
-      const totalCustomers = customersResponse.count || 0;
+        
+        if (productsResponse.error) {
+          console.error("Error fetching products:", productsResponse.error);
+          toast.error("Failed to fetch products data");
+          throw productsResponse.error;
+        }
+        
+        if (customersResponse.error) {
+          console.error("Error fetching customers:", customersResponse.error);
+          toast.error("Failed to fetch customers data");
+          throw customersResponse.error;
+        }
 
-      return {
-        totalSales,
-        totalProducts,
-        totalCustomers
-      };
+        const totalSales = salesResponse.data?.reduce((sum, sale) => {
+          if ('amount' in sale) {
+            return sum + Number(sale.amount);
+          }
+          return sum;
+        }, 0) || 0;
+        
+        const totalProducts = productsResponse.count || 0;
+        const totalCustomers = customersResponse.count || 0;
+
+        return {
+          totalSales,
+          totalProducts,
+          totalCustomers
+        };
+      } catch (error) {
+        console.error("Error in dashboard stats query:", error);
+        throw error;
+      }
     }
   });
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center h-screen">Loading permissions...</div>;
   }
 
-  // Removendo a restrição de acesso apenas para gerentes para permitir que qualquer usuário acesse o dashboard
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading dashboard data...</div>;
+  }
+
+  if (error) {
+    console.error("Dashboard error:", error);
+    return (
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Error loading dashboard data. Please try refreshing the page.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
