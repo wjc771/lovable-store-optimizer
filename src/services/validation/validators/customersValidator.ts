@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult, CustomersValidationData } from '../types';
 import { z } from 'zod';
 
+// Define a simple interface for sales records to avoid deep type recursion
 interface SalesRecord {
   amount: number;
   created_at: string;
@@ -40,6 +41,7 @@ export async function validateCustomersRelationships(
         .select('amount, created_at')
         .eq('customer_id', data.id);
 
+      // Explicitly cast to SalesRecord[] to avoid deep type recursion
       const sales = (salesData || []) as SalesRecord[];
       const actualTotalPurchases = sales.length;
 
