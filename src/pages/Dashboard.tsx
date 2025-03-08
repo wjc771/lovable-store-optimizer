@@ -5,7 +5,6 @@ import SmartActionsFeed from "@/components/dashboard/SmartActionsFeed";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/usePermissions";
-import { Navigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Dashboard = () => {
@@ -54,18 +53,7 @@ const Dashboard = () => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  if (!isManager) {
-    return (
-      <div className="p-4">
-        <Alert variant="destructive">
-          <AlertDescription>
-            You don't have permission to access this page. This page is only accessible to managers.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
+  // Removendo a restrição de acesso apenas para gerentes para permitir que qualquer usuário acesse o dashboard
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">

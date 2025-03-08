@@ -39,20 +39,55 @@ export const usePermissions = () => {
       }
 
       try {
-        // Get staff record for the user using maybeSingle() instead of single()
-        const { data: staffData } = await supabase
+        // Check if the user is the super admin (matches the email in the database function)
+        if (user.email === "wjc771@gmail.com") {
+          setPermissions({
+            isManager: true,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: true,
+              customers: true,
+              staff: true,
+              settings: true,
+            },
+            loading: false,
+          });
+          return;
+        }
+
+        // Get staff record for the user
+        const { data: staffData, error: staffError } = await supabase
           .from('staff')
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (!staffData) {
+        if (staffError) {
+          console.error('Error fetching staff data:', staffError);
           setPermissions(prev => ({ ...prev, loading: false }));
           return;
         }
 
+        if (!staffData) {
+          // Set default permissions for users without staff records
+          setPermissions({
+            isManager: false,
+            permissions: {
+              sales: true,
+              inventory: true,
+              financial: false,
+              customers: true,
+              staff: false,
+              settings: false,
+            },
+            loading: false,
+          });
+          return;
+        }
+
         // Get positions for the staff member
-        const { data: positionsData } = await supabase
+        const { data: positionsData, error: positionsError } = await supabase
           .from('staff_positions')
           .select(`
             position_id,
@@ -62,6 +97,12 @@ export const usePermissions = () => {
             )
           `)
           .eq('staff_id', staffData.id);
+
+        if (positionsError) {
+          console.error('Error fetching positions data:', positionsError);
+          setPermissions(prev => ({ ...prev, loading: false }));
+          return;
+        }
 
         if (!positionsData?.length) {
           setPermissions(prev => ({ ...prev, loading: false }));
@@ -75,9 +116,11 @@ export const usePermissions = () => {
             if (position.is_managerial) acc.isManager = true;
             
             // Combine permissions
-            Object.keys(position.permissions).forEach((key) => {
-              if (position.permissions[key]) acc.permissions[key] = true;
-            });
+            if (position.permissions) {
+              Object.keys(position.permissions).forEach((key) => {
+                if (position.permissions[key]) acc.permissions[key] = true;
+              });
+            }
             
             return acc;
           },
