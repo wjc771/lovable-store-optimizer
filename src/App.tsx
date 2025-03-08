@@ -35,7 +35,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppRoutes />
-          <Toaster />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
