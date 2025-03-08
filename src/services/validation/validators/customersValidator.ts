@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { validateRelationships } from '../relationshipValidators';
+import { validateSalesRelationships } from './salesValidator';
 import { ValidationResult, CustomersValidationData } from '../types';
 import { z } from 'zod';
 
@@ -29,27 +29,43 @@ export const customersValidator = async (
 
   if (!result.success) {
     return {
-      valid: false,
-      errors: result.error.errors,
+      success: false,
+      errors: result.error, // Use the full Zod error
+      data: undefined
     };
   }
 
   // Validate relationships
-  const relationshipErrors = await validateRelationships(data);
+  // For now, we'll assume only simple validation on sales relationship
+  const relationshipErrors = await validateSalesRelationships(data);
 
-  if (relationshipErrors.length > 0) {
+  if (relationshipErrors) {
     return {
-      valid: false,
+      success: false,
       errors: relationshipErrors,
+      data: undefined
     };
   }
 
   // Validate business logic
   if (data.total_purchases !== undefined) {
-    const { data: salesData } = await supabase
+    // Use explicit typing to avoid deep recursion
+    const { data: salesData, error: salesError } = await supabase
       .from('sales')
       .select('amount, created_at')
       .eq('customer_id', data.id);
+
+    if (salesError) {
+      return {
+        success: false,
+        errors: new z.ZodError([{
+          code: 'custom',
+          message: `Database error: ${salesError.message}`,
+          path: ['database']
+        }]),
+        data: undefined
+      };
+    }
 
     // Use the defined type to avoid deep type recursion
     const sales = salesData as SalesRecord[] || [];
@@ -57,20 +73,20 @@ export const customersValidator = async (
 
     if (data.total_purchases !== actualTotalPurchases) {
       return {
-        valid: false,
-        errors: [
-          {
-            code: 'custom',
-            message: `Total purchases should be ${actualTotalPurchases}`,
-            path: ['total_purchases'],
-          },
-        ],
+        success: false,
+        errors: new z.ZodError([{
+          code: 'custom',
+          message: `Total purchases should be ${actualTotalPurchases}`,
+          path: ['total_purchases']
+        }]),
+        data: undefined
       };
     }
   }
 
   return {
-    valid: true,
-    errors: [],
+    success: true,
+    errors: undefined,
+    data: result.data
   };
 };

@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export type ValidationResult<T = unknown> = {
   success: boolean;
-  errors?: z.ZodError;
+  errors?: z.ZodError | undefined;
   data?: T;
 };
 
