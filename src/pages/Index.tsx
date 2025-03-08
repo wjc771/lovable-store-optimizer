@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { LoginForm } from "@/components/auth/LoginForm"; // Changed from default to named import
+import LoginForm from "@/components/auth/LoginForm";
 import SmartActionsFeed from "@/components/dashboard/SmartActionsFeed";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";

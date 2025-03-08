@@ -7,8 +7,8 @@ import {
   validateOrdersRelationships,
   validateTasksRelationships,
   validateProductsRelationships,
+  validateCustomersRelationships
 } from './relationshipValidators';
-import { validateCustomers } from './validators/customersValidator';
 
 class ValidationService {
   validateRecord(tableName: TableNames, data: any): ValidationResult {
@@ -53,10 +53,7 @@ class ValidationService {
         case 'products':
           return await validateProductsRelationships(data);
         case 'customers':
-          return { 
-            success: true, 
-            data: await validateCustomers(data) 
-          };
+          return await validateCustomersRelationships(data);
         default:
           return { success: true, data };
       }

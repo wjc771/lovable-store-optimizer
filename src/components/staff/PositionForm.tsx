@@ -3,11 +3,10 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Crown } from "lucide-react";
 
 interface PositionFormProps {
   open: boolean;
@@ -32,8 +31,6 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
     },
   });
   const { toast } = useToast();
-
-  const isManagerial = form.watch("is_managerial");
 
   const handleSubmit = async (data: any) => {
     try {
@@ -78,35 +75,14 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
               control={form.control}
               name="is_managerial"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <div className="flex items-center space-x-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="flex items-center">
-                        {field.value ? (
-                          <>
-                            <Crown className="h-4 w-4 mr-1 text-yellow-500" />
-                            Admin Role (Full Store Access)
-                          </>
-                        ) : (
-                          <>
-                            <Shield className="h-4 w-4 mr-1 text-blue-500" />
-                            Staff Role (Limited Access)
-                          </>
-                        )}
-                      </FormLabel>
-                    </div>
-                  </div>
-                  <FormDescription className="pl-6">
-                    {field.value 
-                      ? "Admins have complete control over the store, including staff management and settings."
-                      : "Staff members have limited access based on assigned permissions below."}
-                  </FormDescription>
+                <FormItem className="flex items-center space-x-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel>Managerial Position</FormLabel>
                 </FormItem>
               )}
             />
@@ -122,9 +98,8 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
                     <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          checked={isManagerial || field.value}
+                          checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={isManagerial}
                         />
                       </FormControl>
                       <FormLabel className="capitalize">{permission}</FormLabel>
@@ -132,11 +107,6 @@ export const PositionForm = ({ open, onOpenChange, onSubmit, initialData }: Posi
                   )}
                 />
               ))}
-              {isManagerial && (
-                <FormDescription className="text-sm text-amber-500">
-                  Admin roles automatically have all permissions enabled
-                </FormDescription>
-              )}
             </div>
             <DialogFooter>
               <Button type="submit">{initialData ? "Update" : "Add"}</Button>

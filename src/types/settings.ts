@@ -39,16 +39,3 @@ export interface PositionInput {
     settings: boolean;
   };
 }
-
-export interface Customer {
-  id?: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  created_at?: string;
-  updated_at?: string;
-  store_id?: string;
-  total_purchases?: number;
-  last_purchase_date?: string;
-}

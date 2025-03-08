@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Menu, Store, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, LogOut, PieChart, MessageSquare, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,24 +18,18 @@ import {
 } from "@/components/ui/drawer";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const { store, setStore } = useStore();
-  const { user, signOut, isLoading, isSuperAdmin } = useAuth();
+  const { store } = useStore();
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isManager, isSaasAdmin, loading: permissionsLoading } = usePermissions();
+  const { isManager } = usePermissions();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Redirect to auth if no user
-  if (!isLoading && !user) {
-    return <Navigate to="/auth" replace />;
-  }
-
   const handleLogout = async () => {
     try {
-      setStore(null); // Clear store state
       await signOut();
       toast({
         title: t('common.success'),
@@ -50,15 +44,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
-    }
-    return location.pathname.startsWith(path);
-  };
-  
-  // Determine if user has manager access - either they are a manager or superadmin
-  const hasManagerAccess = isManager || isSuperAdmin || isSaasAdmin;
+  const isActive = (path: string) => location.pathname === path;
 
   const navigationItems = [
     {
@@ -71,7 +57,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       icon: PieChart,
       label: t('common.business'),
       path: "/business",
-      show: hasManagerAccess
+      show: isManager
     },
     {
       icon: Upload,
@@ -89,23 +75,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       icon: Settings,
       label: t('common.settings'),
       path: "/settings",
-      show: hasManagerAccess
-    }
-  ];
-
-  // Admin specific navigation items
-  const adminItems = [
-    {
-      icon: Store,
-      label: t('admin.stores'),
-      path: "/admin/stores",
-      show: isSuperAdmin
-    },
-    {
-      icon: ShieldCheck,
-      label: t('admin.roles'),
-      path: "/admin/roles",
-      show: isSuperAdmin
+      show: true
     }
   ];
 
@@ -125,37 +95,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           {item.label}
         </Button>
       ))}
-
-      {/* Admin Section */}
-      {isSuperAdmin && (
-        <>
-          <div className="my-2 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-            {t('admin.title') || 'ADMIN'}
-          </div>
-          {adminItems.filter(item => item.show).map((item) => (
-            <Button
-              key={item.path}
-              variant={isActive(item.path) ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => {
-                navigate(item.path);
-                if (isMobile) setIsOpen(false);
-              }}
-            >
-              <item.icon className="mr-2 h-5 w-5" />
-              {item.label}
-            </Button>
-          ))}
-        </>
-      )}
     </nav>
   );
-
-  if (isLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>;
-  }
 
   return (
     <div className="min-h-screen bg-background">

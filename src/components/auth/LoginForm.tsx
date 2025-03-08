@@ -1,122 +1,113 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { supabase, SITE_URL } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export const LoginForm = () => {
+const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { signIn } = useAuth();
+  const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    setError(null);
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      await signIn(email, password);
+      toast({
+        title: "Success",
+        description: "Successfully logged in",
       });
+    } catch (error) {
+      console.error('Login error:', error);
       
-      if (error) throw error;
-      toast.success("Login successful");
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to login");
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes('invalid_credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please verify your email address before logging in.');
+        } else {
+          setError('An error occurred during login. Please try again.');
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+
+      toast({
+        title: "Error",
+        description: "Failed to login. Please check your credentials.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // Usar o SITE_URL para garantir o redirecionamento correto
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${SITE_URL}/auth?tab=reset`,
-      });
-      
-      if (error) throw error;
-      
-      toast.success("Password reset instructions sent to your email");
-      setIsResetting(false);
-    } catch (error: any) {
-      console.error("Reset password error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to reset password");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  return (
+    <div className="w-full max-w-md mx-auto space-y-8 animate-in">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          Enter your credentials to access your account
+        </p>
+      </div>
 
-  if (isResetting) {
-    return (
-      <form onSubmit={handleResetPassword} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="reset-email">Email</Label>
+          <label className="text-sm font-medium" htmlFor="email">
+            Email
+          </label>
           <Input
-            id="reset-email"
+            id="email"
             type="email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="w-full"
+            disabled={isLoading}
           />
         </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="password">
+            Password
+          </label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full"
+            disabled={isLoading}
+          />
+        </div>
+
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Sending..." : "Send Reset Instructions"}
+          {isLoading ? "Signing in..." : "Sign in"}
         </Button>
-        <p className="text-center text-sm">
-          <button
-            type="button"
-            onClick={() => setIsResetting(false)}
-            className="text-primary hover:underline"
-          >
-            Back to Login
-          </button>
+
+        <p className="text-sm text-center text-muted-foreground">
+          Don't have an account? Please sign up first.
         </p>
       </form>
-    );
-  }
-
-  return (
-    <form onSubmit={handleLogin} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <button
-            type="button"
-            onClick={() => setIsResetting(true)}
-            className="text-sm text-primary hover:underline"
-          >
-            Forgot password?
-          </button>
-        </div>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
-      </Button>
-    </form>
+    </div>
   );
 };
+
+export default LoginForm;
