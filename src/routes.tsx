@@ -8,12 +8,12 @@ import { createContext, useContext } from "react";
 // Contexto de autenticação simples
 const AuthContext = createContext<{
   isAuthenticated: boolean;
-  login: (username: string, password: string) => void;
+  login: (username: string, password: string) => boolean; // Changed return type to boolean
   logout: () => void;
   user: { username: string } | null;
 }>({
   isAuthenticated: false,
-  login: () => {},
+  login: () => false, // Updated default value
   logout: () => {},
   user: null
 });
