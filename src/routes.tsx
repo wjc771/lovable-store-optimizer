@@ -2,7 +2,7 @@
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { HomeIcon, LogIn, Settings, User, Menu, X, ChevronRight, ArrowRightCircle, ChevronLeft } from "lucide-react";
+import { HomeIcon, LogIn, Settings, User, Menu, X, ChevronRight, ArrowRightCircle, ChevronLeft, Bell, LayoutDashboard, ListTodo } from "lucide-react";
 import { createContext, useContext } from "react";
 
 // Contexto de autenticação simples
@@ -64,6 +64,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 // Hook para usar o contexto de autenticação
 export const useAuth = () => useContext(AuthContext);
 
+// Importar as novas páginas
+import Dashboard from "./pages/Dashboard";
+import Tasks from "./pages/Tasks";
+import Notifications from "./pages/Notifications";
+
 // Layout principal com barra lateral
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -117,6 +122,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         >
           <nav className="p-4 space-y-2">
             <NavLink to="/" icon={<HomeIcon size={18} />} label="Início" onClick={() => setSidebarOpen(false)} />
+            <NavLink to="/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" onClick={() => setSidebarOpen(false)} />
+            <NavLink to="/tarefas" icon={<ListTodo size={18} />} label="Tarefas" onClick={() => setSidebarOpen(false)} />
+            <NavLink to="/notificacoes" icon={<Bell size={18} />} label="Notificações" onClick={() => setSidebarOpen(false)} />
             <NavLink to="/perfil" icon={<User size={18} />} label="Perfil" onClick={() => setSidebarOpen(false)} />
             <NavLink to="/configuracoes" icon={<Settings size={18} />} label="Configurações" onClick={() => setSidebarOpen(false)} />
           </nav>
@@ -558,6 +566,9 @@ const AppRoutes = () => {
         
         {/* Rotas protegidas */}
         <Route path="/" element={<PrivateRoute element={<HomePage />} />} />
+        <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
+        <Route path="/tarefas" element={<PrivateRoute element={<Tasks />} />} />
+        <Route path="/notificacoes" element={<PrivateRoute element={<Notifications />} />} />
         <Route path="/perfil" element={<PrivateRoute element={<ProfilePage />} />} />
         <Route path="/configuracoes" element={<PrivateRoute element={<SettingsPage />} />} />
         
