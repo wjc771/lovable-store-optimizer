@@ -1,7 +1,6 @@
 
 import { z } from 'zod';
 import { ValidationResult } from '../types';
-import { customersTable } from '../schemas';
 
 export const validateCustomerData = (data: any): ValidationResult => {
   try {
@@ -14,24 +13,26 @@ export const validateCustomerData = (data: any): ValidationResult => {
     });
 
     schema.parse(data);
-    return { valid: true, errors: null };
+    return { success: true, errors: undefined, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {
-        valid: false,
-        errors: error
+        success: false,
+        errors: error,
+        data: undefined
       };
     }
     // For non-zod errors, create a compatible format
     return {
-      valid: false,
+      success: false,
       errors: new z.ZodError([
         {
           code: "custom",
           path: ["unknown"],
           message: "Erro de validação desconhecido"
         }
-      ])
+      ]),
+      data: undefined
     };
   }
 };
@@ -39,7 +40,7 @@ export const validateCustomerData = (data: any): ValidationResult => {
 export const validateCustomer = (data: any): ValidationResult => {
   // First validate basic data structure
   const basicValidation = validateCustomerData(data);
-  if (!basicValidation.valid) {
+  if (!basicValidation.success) {
     return basicValidation;
   }
 
@@ -58,12 +59,13 @@ export const validateCustomer = (data: any): ValidationResult => {
   // If we have custom errors, return them
   if (errors.length > 0) {
     return {
-      valid: false,
-      errors: new z.ZodError(errors)
+      success: false,
+      errors: new z.ZodError(errors),
+      data: undefined
     };
   }
 
-  return { valid: true, errors: null };
+  return { success: true, errors: undefined, data };
 };
 
 export default {

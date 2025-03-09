@@ -158,16 +158,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { exists: false, confirmed: false };
       }
       
-      const user = data.users.find(u => u.email === email);
-      
-      if (!user) {
-        return { exists: false, confirmed: false };
+      // Fix the error by properly accessing users array and checking for undefined
+      if (data && data.users) {
+        const user = data.users.find(u => u.email === email);
+        
+        if (!user) {
+          return { exists: false, confirmed: false };
+        }
+        
+        return { 
+          exists: true, 
+          confirmed: user.email_confirmed_at !== null 
+        };
       }
       
-      return { 
-        exists: true, 
-        confirmed: user.email_confirmed_at !== null 
-      };
+      return { exists: false, confirmed: false };
     } catch (error) {
       console.error("Error checking user status:", error);
       return { exists: false, confirmed: false };
