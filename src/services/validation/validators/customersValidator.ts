@@ -1,8 +1,18 @@
 
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { CustomerSchema } from "../schemas";
-import type { CustomersValidationData, ValidationResult } from "../types";
+import type { ValidationResult } from "../types";
+
+// Customer schema definition
+const CustomerSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+  total_purchases: z.number().optional(),
+});
+
+export type CustomersValidationData = z.infer<typeof CustomerSchema>;
 
 // Basic validation using Zod schema
 const validateCustomerBasics = (data: CustomersValidationData): z.SafeParseReturnType<CustomersValidationData, CustomersValidationData> => {
@@ -23,22 +33,6 @@ const validateCustomerExists = async (id: string): Promise<boolean> => {
   
   return true;
 }
-
-// Helper function to validate sales relationships for a customer
-const validateCustomerSalesRelationships = async (customerId: string): Promise<boolean> => {
-  // Check if customer has valid sales relationships
-  const { data, error } = await supabase
-    .from('sales')
-    .select('id')
-    .eq('customer_id', customerId)
-    .limit(1);
-    
-  if (error || !data || data.length === 0) {
-    return false;
-  }
-  
-  return true;
-};
 
 // Main validation function
 export const validateCustomer = async (data: CustomersValidationData): Promise<ValidationResult> => {
