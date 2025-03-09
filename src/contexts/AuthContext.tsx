@@ -1,249 +1,125 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
-import { useToast } from "@/hooks/use-toast";
 
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
+import { Session, User } from "@supabase/supabase-js";
+
+// Define os tipos para o contexto de autenticação
 interface AuthContextType {
-  user: User | null;
   session: Session | null;
+  user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  isLoading: boolean;
-  checkUserStatus: (email: string) => Promise<{ exists: boolean, confirmed: boolean }>;
+  loading: boolean;
 }
 
+// Cria o contexto de autenticação
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define a type for Supabase user response
-interface SupabaseUser {
-  email?: string;
-  [key: string]: any;
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+// Provider do contexto de autenticação
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // Efeito para verificar a sessão atual e se inscrever para mudanças de autenticação
   useEffect(() => {
-    // Check active sessions and sets the user
-    const initializeAuth = async () => {
+    // Obtém a sessão atual
+    const getSession = async () => {
       try {
-        console.log("Checking for existing session...");
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (currentSession) {
-          console.log("Found existing session:", currentSession.user.email);
-          setSession(currentSession);
-          setUser(currentSession.user);
-        } else {
-          console.log("No existing session found");
-        }
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
       } catch (error) {
-        console.error("Error checking auth session:", error);
+        console.error('Error getting session:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    initializeAuth();
+    // Executa a verificação de sessão
+    getSession();
 
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log("Auth state changed:", event, currentSession?.user?.email);
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setIsLoading(false);
-    });
+    // Inscreve-se para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
+      }
+    );
 
+    // Limpa a inscrição quando o componente é desmontado
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  // Função para realizar login
   const signIn = async (email: string, password: string) => {
     try {
-      console.log(`Attempting to sign in: ${email}`);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error("Sign in error:", error);
-        
-        // Check if it's an unconfirmed email error
-        if (error.message.includes("Email not confirmed") || error.code === "email_not_confirmed") {
-          toast({
-            title: "Email não confirmado",
-            description: "Por favor, verifique seu email para confirmar seu cadastro ou entre em contato com o suporte.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erro de login",
-            description: "Email ou senha incorretos. Por favor, tente novamente.",
-            variant: "destructive",
-          });
-        }
         throw error;
       }
-      
-      console.log("Sign in successful:", data.user?.email);
-      toast({
-        title: "Login realizado",
-        description: "Você entrou com sucesso!",
-      });
     } catch (error) {
-      console.error("Error during sign in:", error);
+      console.error('Login error:', error);
       throw error;
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    try {
-      console.log(`Attempting to sign up: ${email}`);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          // Enable email confirmation for production
-          emailRedirectTo: window.location.origin,
-        },
-      });
-
-      if (error) {
-        console.error("Sign up error:", error);
-        toast({
-          title: "Erro no cadastro",
-          description: "Não foi possível criar sua conta. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      console.log("Sign up successful:", data.user?.email);
-      
-      // Check if email confirmation is needed
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast({
-          title: "Usuário já existe",
-          description: "Este email já está cadastrado. Por favor, faça login ou recupere sua senha.",
-          variant: "destructive",
-        });
-      } else if (data.user && !data.session) {
-        toast({
-          title: "Cadastro realizado",
-          description: "Um email de confirmação foi enviado. Por favor, verifique sua caixa de entrada.",
-        });
-      } else {
-        toast({
-          title: "Cadastro realizado",
-          description: "Sua conta foi criada com sucesso! Agora você pode fazer login.",
-        });
-      }
-    } catch (error) {
-      console.error("Error during sign up:", error);
-      throw error;
-    }
-  };
-
-  const checkUserStatus = async (email: string) => {
-    try {
-      // Query to check if the user exists at all
-      const { data: users, error: usersError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .limit(1);
-
-      if (usersError) {
-        console.error("Error checking if user exists:", usersError);
-        return { exists: false, confirmed: false };
-      }
-
-      // If no users found with this email, they don't exist
-      if (!users || users.length === 0) {
-        return { exists: false, confirmed: false };
-      }
-
-      // Try a passwordless sign-in to check confirmation status
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false }
-      });
-      
-      // Check the error message to determine the status
-      if (error) {
-        if (error.message.includes("Email not confirmed") || error.code === "email_not_confirmed") {
-          return { exists: true, confirmed: false };
-        }
-        // If it's a different error (like invalid credentials), the user exists and is confirmed
-        return { exists: true, confirmed: true };
-      }
-      
-      // If no error, user exists and is confirmed
-      return { exists: true, confirmed: true };
-    } catch (error) {
-      console.error("Error checking user status:", error);
-      return { exists: false, confirmed: false };
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      console.log(`Attempting to send reset password email to: ${email}`);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
-      });
-
-      if (error) {
-        console.error("Reset password error:", error);
-        throw error;
-      }
-      
-      console.log("Reset password email sent successfully");
-    } catch (error) {
-      console.error("Error during password reset:", error);
-      throw error;
-    }
-  };
-
+  // Função para realizar logout
   const signOut = async () => {
     try {
-      console.log("Signing out...");
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error("Sign out error:", error);
         throw error;
       }
-      
-      // Clear session and user state after sign out
-      setSession(null);
-      setUser(null);
-      console.log("Sign out successful");
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error('Logout error:', error);
       throw error;
     }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, resetPassword, isLoading, checkUserStatus }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  // Função para reset de senha
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw error;
+    }
+  };
 
+  // Valor do contexto
+  const value = {
+    session,
+    user,
+    signIn,
+    signOut,
+    resetPassword,
+    loading,
+  };
+
+  // Renderiza o provider com o valor
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Hook para usar o contexto de autenticação
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
