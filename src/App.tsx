@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,9 +18,9 @@ import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   
-  if (isLoading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
   
@@ -33,9 +32,9 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   
-  if (isLoading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
   

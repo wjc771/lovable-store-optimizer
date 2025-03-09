@@ -6,8 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { BusinessSettings } from "@/components/settings/BusinessSettings";
 import { StaffSettings } from "@/components/settings/StaffSettings";
-import { IntegrationSettings as IntegrationsSettings } from "@/components/settings/IntegrationSettings";
-import { NotificationSettings as NotificationsSettings } from "@/components/settings/NotificationSettings";
+import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { SmartActionsSettings } from "@/components/settings/SmartActionsSettings";
 import ProductsSettings from "@/components/settings/ProductsSettings";
 import { BusinessReconciliationSettings as ReconciliationSettings } from "@/components/settings/BusinessReconciliationSettings";
@@ -136,11 +136,17 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="integrations" className="space-y-4">
-          <IntegrationsSettings />
+          <IntegrationSettings 
+            uploadWebhookUrl=""
+            chatWebhookUrl=""
+            onUploadWebhookUrlChange={() => {}}
+            onChatWebhookUrlChange={() => {}}
+            onSave={() => {}}
+          />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">
-          <NotificationsSettings />
+          <NotificationSettings />
         </TabsContent>
 
         <TabsContent value="smartActions" className="space-y-4">

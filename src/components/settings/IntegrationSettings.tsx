@@ -1,11 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
-interface IntegrationSettingsProps {
+export interface IntegrationSettingsProps {
   uploadWebhookUrl: string;
   chatWebhookUrl: string;
   onUploadWebhookUrlChange: (value: string) => void;
@@ -21,6 +21,19 @@ export const IntegrationSettings: React.FC<IntegrationSettingsProps> = ({
   onSave,
 }) => {
   const { t } = useTranslation();
+  
+  const [localUploadWebhook, setLocalUploadWebhook] = useState(uploadWebhookUrl);
+  const [localChatWebhook, setLocalChatWebhook] = useState(chatWebhookUrl);
+
+  const handleUploadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalUploadWebhook(e.target.value);
+    onUploadWebhookUrlChange(e.target.value);
+  };
+
+  const handleChatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalChatWebhook(e.target.value);
+    onChatWebhookUrlChange(e.target.value);
+  };
 
   return (
     <Card>
@@ -33,8 +46,8 @@ export const IntegrationSettings: React.FC<IntegrationSettingsProps> = ({
           <label htmlFor="uploadWebhook">{t('settings.uploadWebhookUrl')}</label>
           <Input
             id="uploadWebhook"
-            value={uploadWebhookUrl}
-            onChange={(e) => onUploadWebhookUrlChange(e.target.value)}
+            value={localUploadWebhook}
+            onChange={handleUploadChange}
             placeholder={t('settings.enterUploadWebhookUrl')}
           />
         </div>
@@ -42,8 +55,8 @@ export const IntegrationSettings: React.FC<IntegrationSettingsProps> = ({
           <label htmlFor="chatWebhook">{t('settings.chatWebhookUrl')}</label>
           <Input
             id="chatWebhook"
-            value={chatWebhookUrl}
-            onChange={(e) => onChatWebhookUrlChange(e.target.value)}
+            value={localChatWebhook}
+            onChange={handleChatChange}
             placeholder={t('settings.enterChatWebhookUrl')}
           />
         </div>

@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 
-// Define os tipos para o contexto de autenticação
+// Define the types for the authentication context
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -15,18 +15,18 @@ interface AuthContextType {
   loading: boolean;
 }
 
-// Cria o contexto de autenticação
+// Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Provider do contexto de autenticação
+// Provider component for the authentication context
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Efeito para verificar a sessão atual e se inscrever para mudanças de autenticação
+  // Effect to check the current session and subscribe to authentication changes
   useEffect(() => {
-    // Obtém a sessão atual
+    // Get the current session
     const getSession = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -39,10 +39,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Executa a verificação de sessão
+    // Execute the session check
     getSession();
 
-    // Inscreve-se para mudanças de autenticação
+    // Subscribe to authentication changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
@@ -51,13 +51,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Limpa a inscrição quando o componente é desmontado
+    // Clean up the subscription when the component is unmounted
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Função para realizar login
+  // Function to sign in
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Função para realizar logout
+  // Function to sign out
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Função para reset de senha
+  // Function for password reset
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Função para signup
+  // Function for sign up
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
       const { error } = await supabase.auth.signUp({
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Função para verificar o status do usuário
+  // Function to check user status
   const checkUserStatus = async (email: string) => {
     try {
       const { data, error } = await supabase
@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
 
       const exists = !!data;
-      const confirmed = exists; // simplificação, em um sistema real precisaria verificar mais
+      const confirmed = exists; // simplified, in a real system would need more checks
       
       return { exists, confirmed };
     } catch (error) {
@@ -144,8 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Valor do contexto
-  const value = {
+  // Context value
+  const value: AuthContextType = {
     session,
     user,
     signIn,
@@ -156,11 +156,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
   };
 
-  // Renderiza o provider com o valor
+  // Render the provider with the value
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook para usar o contexto de autenticação
+// Hook to use the authentication context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
