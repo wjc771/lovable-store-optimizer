@@ -33,12 +33,21 @@ export const addPosition = async (data: PositionInput): Promise<Position> => {
 };
 
 export const updatePosition = async (id: string, data: PositionInput): Promise<void> => {
+  const permissionsData = {
+    sales: data.permissions.sales || false,
+    inventory: data.permissions.inventory || false,
+    financial: data.permissions.financial || false,
+    customers: data.permissions.customers || false,
+    staff: data.permissions.staff || false,
+    settings: data.permissions.settings || false
+  };
+
   const { error } = await supabase
     .from('positions')
     .update({
       name: data.name,
       is_managerial: data.is_managerial,
-      permissions: data.permissions,
+      permissions: permissionsData,
     })
     .eq('id', id);
 

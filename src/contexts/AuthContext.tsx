@@ -143,8 +143,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Define the context value without recursive types
-  const contextValue: AuthContextType = {
+  // Create a non-recursive value object to avoid the infinite type instantiation
+  const contextValue = {
     session,
     user,
     signIn,
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     checkUserStatus,
     loading,
-  };
+  } as const;
 
   // Render the provider with the value
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

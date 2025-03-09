@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -54,14 +55,18 @@ const Settings = () => {
         .select('*');
       
       return data?.map(position => {
-        const permissionsData = position.permissions as Json;
+        // Create a properly typed permissions object by safely handling Json type
+        const permissionsObj = typeof position.permissions === 'object' && position.permissions 
+          ? position.permissions 
+          : {};
+        
         const typedPermissions = {
-          sales: permissionsData?.sales === true,
-          inventory: permissionsData?.inventory === true,
-          financial: permissionsData?.financial === true,
-          customers: permissionsData?.customers === true,
-          staff: permissionsData?.staff === true,
-          settings: permissionsData?.settings === true
+          sales: !!permissionsObj.sales,
+          inventory: !!permissionsObj.inventory,
+          financial: !!permissionsObj.financial,
+          customers: !!permissionsObj.customers,
+          staff: !!permissionsObj.staff,
+          settings: !!permissionsObj.settings
         };
 
         return {
