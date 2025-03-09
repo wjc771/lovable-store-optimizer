@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Context value
-  const value: AuthContextType = {
+  const value = {
     session,
     user,
     signIn,

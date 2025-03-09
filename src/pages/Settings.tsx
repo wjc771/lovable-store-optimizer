@@ -12,16 +12,15 @@ import { SmartActionsSettings } from "@/components/settings/SmartActionsSettings
 import ProductsSettings from "@/components/settings/ProductsSettings";
 import { BusinessReconciliationSettings as ReconciliationSettings } from "@/components/settings/BusinessReconciliationSettings";
 import { supabase } from "@/integrations/supabase/client";
-import { StaffMember, Position } from "@/types/settings";
-import { ProductWithCategory } from "@/types/products";
 // Import the new PurgeUsers component
 import { PurgeUsers } from "@/components/settings/PurgeUsers";
 import { usePermissions } from "@/hooks/usePermissions";
+import { ProductWithCategory } from "@/types/products";
 
 const Settings = () => {
   const { t } = useTranslation();
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
-  const [positions, setPositions] = useState<Position[]>([]);
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [positions, setPositions] = useState([]);
   const [products, setProducts] = useState<ProductWithCategory[]>([]);
 
   const { isManager, permissions } = usePermissions();
@@ -49,10 +48,8 @@ const Settings = () => {
         position_ids: staff.staff_positions?.map(sp => sp.position_id) || [],
       })) || [];
     },
-    meta: {
-      onSuccess: (data: StaffMember[]) => {
-        setStaffMembers(data);
-      }
+    onSuccess: (data) => {
+      setStaffMembers(data);
     }
   });
 
@@ -64,10 +61,8 @@ const Settings = () => {
         .select('*');
       return data || [];
     },
-    meta: {
-      onSuccess: (data: Position[]) => {
-        setPositions(data);
-      }
+    onSuccess: (data) => {
+      setPositions(data);
     }
   });
 
@@ -90,10 +85,8 @@ const Settings = () => {
         `);
       return data || [];
     },
-    meta: {
-      onSuccess: (data: ProductWithCategory[]) => {
-        setProducts(data || []);
-      }
+    onSuccess: (data: ProductWithCategory[]) => {
+      setProducts(data || []);
     }
   });
 
@@ -154,10 +147,7 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="products" className="space-y-4">
-          <ProductsSettings
-            products={products}
-            setProducts={setProducts}
-          />
+          <ProductsSettings />
         </TabsContent>
 
         <TabsContent value="reconciliation" className="space-y-4">
