@@ -16,6 +16,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Define a type for Supabase user response
+interface SupabaseUser {
+  email?: string;
+  [key: string]: any;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -69,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Sign in error:", error);
         
         // Check if it's an unconfirmed email error
-        if (error.message.includes("Email not confirmed")) {
+        if (error.message.includes("Email not confirmed") || error.code === "email_not_confirmed") {
           toast({
             title: "Email não confirmado",
             description: "Por favor, verifique seu email para confirmar seu cadastro ou entre em contato com o suporte.",
@@ -149,22 +155,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkUserStatus = async (email: string) => {
     try {
-      // Using a simpler approach to check user status
-      const { data, error } = await supabase.auth.signInWithOtp({
+      // Query to check if the user exists at all
+      const { data: users, error: usersError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .limit(1);
+
+      if (usersError) {
+        console.error("Error checking if user exists:", usersError);
+        return { exists: false, confirmed: false };
+      }
+
+      // If no users found with this email, they don't exist
+      if (!users || users.length === 0) {
+        return { exists: false, confirmed: false };
+      }
+
+      // Try a passwordless sign-in to check confirmation status
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: { shouldCreateUser: false }
       });
       
+      // Check the error message to determine the status
       if (error) {
-        // If we get "User not found", then the user doesn't exist
-        if (error.message.includes("User not found")) {
-          return { exists: false, confirmed: false };
+        if (error.message.includes("Email not confirmed") || error.code === "email_not_confirmed") {
+          return { exists: true, confirmed: false };
         }
-        
-        // If we get a different error, assume the user exists but might not be confirmed
-        console.log("User exists, checking status from error message:", error.message);
-        const isConfirmed = !error.message.includes("Email not confirmed");
-        return { exists: true, confirmed: isConfirmed };
+        // If it's a different error (like invalid credentials), the user exists and is confirmed
+        return { exists: true, confirmed: true };
       }
       
       // If no error, user exists and is confirmed

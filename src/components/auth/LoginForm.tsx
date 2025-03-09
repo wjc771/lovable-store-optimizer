@@ -34,15 +34,15 @@ const LoginForm = () => {
       
       // Handle specific error cases with clear error messages
       if (error instanceof Error) {
-        if (error.message.includes('invalid_credentials')) {
+        if (error.message.includes('email_not_confirmed') || error.message.includes('Email not confirmed')) {
+          setError('Por favor, verifique seu email para confirmar seu cadastro antes de fazer login.');
+        } else if (error.message.includes('invalid_credentials') || error.message.includes('Invalid login credentials')) {
           setError('Email ou senha incorretos. Por favor, verifique suas credenciais e tente novamente.');
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('Por favor, verifique seu email antes de fazer login.');
         } else {
           setError(`Erro durante o login: ${error.message}`);
         }
       } else {
-        setError('Email ou senha incorretos. Por favor, tente novamente.');
+        setError('Ocorreu um erro durante o login. Por favor, tente novamente.');
       }
 
       toast({
