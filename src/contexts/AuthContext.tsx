@@ -143,8 +143,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Define the context value
-  const value: AuthContextType = {
+  // Define the context value without recursive types
+  const contextValue: AuthContextType = {
     session,
     user,
     signIn,
@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Render the provider with the value
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 // Hook to use the authentication context

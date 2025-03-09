@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -14,8 +13,9 @@ import { BusinessReconciliationSettings as ReconciliationSettings } from "@/comp
 import { supabase } from "@/integrations/supabase/client";
 import { PurgeUsers } from "@/components/settings/PurgeUsers";
 import { usePermissions } from "@/hooks/usePermissions";
-import { ProductWithCategory } from "@/types/products";
+import { Position, StaffMember } from "@/types/settings";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Json } from "@/integrations/supabase/types";
 
 const Settings = () => {
   const { t } = useTranslation();
@@ -52,7 +52,25 @@ const Settings = () => {
       const { data } = await supabase
         .from('positions')
         .select('*');
-      return data || [];
+      
+      return data?.map(position => {
+        const permissionsData = position.permissions as Json;
+        const typedPermissions = {
+          sales: permissionsData?.sales === true,
+          inventory: permissionsData?.inventory === true,
+          financial: permissionsData?.financial === true,
+          customers: permissionsData?.customers === true,
+          staff: permissionsData?.staff === true,
+          settings: permissionsData?.settings === true
+        };
+
+        return {
+          id: position.id,
+          name: position.name || '',
+          is_managerial: position.is_managerial || false,
+          permissions: typedPermissions
+        } as Position;
+      }) || [];
     },
   });
 
