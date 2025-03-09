@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
@@ -144,8 +143,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Define the context value explicitly with the correct type to avoid recursion
-  const contextValue: AuthContextType = {
+  // Define the context value
+  const value: AuthContextType = {
     session,
     user,
     signIn,
@@ -157,7 +156,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Render the provider with the value
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // Hook to use the authentication context

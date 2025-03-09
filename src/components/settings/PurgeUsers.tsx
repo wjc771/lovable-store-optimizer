@@ -51,7 +51,7 @@ export const PurgeUsers = () => {
         // Handle potentially empty responses
         const text = await response.text();
         console.log("Response text:", text);
-        result = text ? JSON.parse(text) : {};
+        result = text && text.trim() ? JSON.parse(text) : {};
       } catch (e) {
         console.error("Error parsing response:", e);
         throw new Error("Failed to parse server response");
