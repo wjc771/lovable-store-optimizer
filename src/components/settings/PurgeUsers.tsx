@@ -45,54 +45,61 @@ export const PurgeUsers = () => {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete users');
+      let result;
+      try {
+        // Handle potentially empty responses
+        const text = await response.text();
+        result = text ? JSON.parse(text) : {};
+      } catch (e) {
+        console.error("Error parsing response:", e);
+        throw new Error("Failed to parse server response");
       }
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete users');
+      }
+
       console.log("User deletion result:", result);
 
       // Step 2: Delete related data from other tables
-      // Get all users except wjc771@gmail.com and jotafieldsfirst@gmail.com
-      const { data: profiles, error: fetchError } = await supabase
-        .from('profiles')
-        .select('id')
-        .not('id', 'in', [user?.id]);
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      if (profiles && profiles.length > 0) {
-        const userIds = profiles.map(profile => profile.id);
-        
-        // Delete tasks
-        await supabase
-          .from('tasks')
-          .delete()
-          .in('staff_id', (await supabase.from('staff').select('id').in('user_id', userIds)).data?.map(s => s.id) || []);
-        
-        // Delete staff positions
-        await supabase
-          .from('staff_positions')
-          .delete()
-          .in('staff_id', (await supabase.from('staff').select('id').in('user_id', userIds)).data?.map(s => s.id) || []);
-        
-        // Delete staff
-        await supabase
-          .from('staff')
-          .delete()
-          .in('user_id', userIds);
-        
-        // Delete user related data from other tables here
-        // For example: orders, customers, etc.
-        
-        // Finally, delete profiles
-        await supabase
+      if (user?.id) {
+        // Get all users except current user
+        const { data: profiles, error: fetchError } = await supabase
           .from('profiles')
-          .delete()
-          .in('id', userIds);
+          .select('id')
+          .neq('id', user.id);
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        if (profiles && profiles.length > 0) {
+          const userIds = profiles.map(profile => profile.id);
+          
+          // Delete tasks
+          await supabase
+            .from('tasks')
+            .delete()
+            .in('staff_id', (await supabase.from('staff').select('id').in('user_id', userIds)).data?.map(s => s.id) || []);
+          
+          // Delete staff positions
+          await supabase
+            .from('staff_positions')
+            .delete()
+            .in('staff_id', (await supabase.from('staff').select('id').in('user_id', userIds)).data?.map(s => s.id) || []);
+          
+          // Delete staff
+          await supabase
+            .from('staff')
+            .delete()
+            .in('user_id', userIds);
+          
+          // Finally, delete profiles
+          await supabase
+            .from('profiles')
+            .delete()
+            .in('id', userIds);
+        }
       }
 
       toast({

@@ -51,7 +51,14 @@ serve(async (req) => {
     }
 
     // Get request data
-    const requestData: RequestData = await req.json();
+    let requestData: RequestData;
+    try {
+      requestData = await req.json();
+    } catch (e) {
+      // Default preserveEmails if JSON parsing fails
+      requestData = { preserveEmails: ['wjc771@gmail.com', 'jotafieldsfirst@gmail.com'] };
+    }
+    
     const preserveEmails = requestData.preserveEmails || ['wjc771@gmail.com', 'jotafieldsfirst@gmail.com'];
 
     // Get all users except the preserved ones
@@ -94,6 +101,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    console.error('Error in delete-users function:', error);
     return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,
