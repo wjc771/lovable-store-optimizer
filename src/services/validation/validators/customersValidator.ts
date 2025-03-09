@@ -22,12 +22,12 @@ interface SimpleSalesRecord {
 }
 
 // Helper function to validate sales relationships for a customer
-const validateCustomerSalesRelationships = async (data: CustomersValidationData): Promise<z.ZodError | undefined> => {
+const validateCustomerSalesRelationships = async (customerId: string): Promise<z.ZodError | undefined> => {
   // Check if customer has valid sales relationships
   const { error } = await supabase
     .from('sales')
     .select('id')
-    .eq('customer_id', data.id)
+    .eq('customer_id', customerId)
     .limit(1);
     
   if (error) {
@@ -55,7 +55,7 @@ export const customersValidator = async (data: CustomersValidationData): Promise
   }
 
   // Relationship validation
-  const relationshipError = await validateCustomerSalesRelationships(data);
+  const relationshipError = await validateCustomerSalesRelationships(data.id);
   if (relationshipError) {
     return {
       success: false,
@@ -68,7 +68,8 @@ export const customersValidator = async (data: CustomersValidationData): Promise
   if (data.total_purchases !== undefined) {
     const salesResponse = await supabase
       .from('sales')
-      .select('amount, created_at');
+      .select('amount, created_at')
+      .eq('customer_id', data.id);
       
     if (salesResponse.error) {
       return {
