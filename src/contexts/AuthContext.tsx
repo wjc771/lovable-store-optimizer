@@ -158,9 +158,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { exists: false, confirmed: false };
       }
       
-      // Fix the error by properly accessing users array and checking for undefined
-      if (data && data.users) {
-        const user = data.users.find(u => u.email === email);
+      // Fix the typing issue by properly defining the structure of the response
+      interface SupabaseUser {
+        id: string;
+        email?: string;
+        email_confirmed_at?: string | null;
+      }
+      
+      if (data && Array.isArray(data.users)) {
+        // Use type assertion to tell TypeScript about the structure
+        const user = (data.users as SupabaseUser[]).find(u => u.email === email);
         
         if (!user) {
           return { exists: false, confirmed: false };
