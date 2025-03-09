@@ -57,7 +57,11 @@ export const validateCustomer = async (data: CustomersValidationData): Promise<V
     if (!exists) {
       return {
         success: false,
-        message: `Customer with id ${data.id} does not exist`,
+        errors: new z.ZodError([{
+          code: z.ZodIssueCode.custom,
+          path: ["id"],
+          message: `Customer with id ${data.id} does not exist`
+        }])
       };
     }
   }
@@ -72,7 +76,11 @@ export const validateCustomer = async (data: CustomersValidationData): Promise<V
     if (error) {
       return {
         success: false,
-        message: `Error validating customer purchases: ${error.message}`,
+        errors: new z.ZodError([{
+          code: z.ZodIssueCode.custom,
+          path: ["total_purchases"],
+          message: `Error validating customer purchases: ${error.message}`
+        }])
       };
     }
   }

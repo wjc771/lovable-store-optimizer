@@ -57,3 +57,9 @@ export const schemas = {
   }),
 } as const;
 
+// Export individual schemas for direct use
+export const CustomerSchema = schemas.customers;
+export const SalesSchema = schemas.sales;
+export const OrdersSchema = schemas.orders;
+export const TasksSchema = schemas.tasks;
+export const ProductsSchema = schemas.products;

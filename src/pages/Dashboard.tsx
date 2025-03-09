@@ -20,16 +20,13 @@ const Index = () => {
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const promises = [
-        // Get total sales
         supabase
           .from('sales')
           .select('amount')
           .eq('status', 'completed'),
-        // Get total products
         supabase
           .from('products')
           .select('id', { count: 'exact' }),
-        // Get total customers
         supabase
           .from('customers')
           .select('id', { count: 'exact' })
@@ -47,7 +44,6 @@ const Index = () => {
       const totalProducts = productsResponse.count || 0;
       const totalCustomers = customersResponse.count || 0;
 
-      // Mock sales trend data
       const salesTrend = [
         { date: "2024-01", amount: 1200 },
         { date: "2024-02", amount: 1500 },
@@ -105,7 +101,6 @@ const Index = () => {
           </h1>
         </div>
 
-        {/* Metrics Cards Section */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -144,7 +139,6 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Sales Trend Chart */}
         {stats?.salesTrend && stats.salesTrend.length > 0 && (
           <Card>
             <CardHeader>
@@ -165,7 +159,6 @@ const Index = () => {
           </Card>
         )}
 
-        {/* Smart Actions Section */}
         <section id="smart-actions" className="space-y-4">
           <div>
             <h2 className="text-2xl font-bold">
