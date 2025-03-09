@@ -10,8 +10,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  signUp?: (email: string, password: string) => Promise<void>;
-  checkUserStatus?: () => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  checkUserStatus: (email: string) => Promise<{exists: boolean, confirmed: boolean}>;
   loading: boolean;
 }
 
@@ -103,6 +103,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Função para signup
+  const signUp = async (email: string, password: string, fullName: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    }
+  };
+
+  // Função para verificar o status do usuário
+  const checkUserStatus = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const exists = !!data;
+      const confirmed = exists; // simplificação, em um sistema real precisaria verificar mais
+      
+      return { exists, confirmed };
+    } catch (error) {
+      console.error('Error checking user status:', error);
+      return { exists: false, confirmed: false };
+    }
+  };
+
   // Valor do contexto
   const value = {
     session,
@@ -110,6 +151,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn,
     signOut,
     resetPassword,
+    signUp,
+    checkUserStatus,
     loading,
   };
 

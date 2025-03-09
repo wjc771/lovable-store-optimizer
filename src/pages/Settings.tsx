@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -5,11 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { BusinessSettings } from "@/components/settings/BusinessSettings";
 import { StaffSettings } from "@/components/settings/StaffSettings";
-import { IntegrationsSettings } from "@/components/settings/IntegrationsSettings";
-import { NotificationsSettings } from "@/components/settings/NotificationsSettings";
+import { IntegrationSettings as IntegrationsSettings } from "@/components/settings/IntegrationSettings";
+import { NotificationSettings as NotificationsSettings } from "@/components/settings/NotificationSettings";
 import { SmartActionsSettings } from "@/components/settings/SmartActionsSettings";
-import { ProductsSettings } from "@/components/settings/ProductsSettings";
-import { ReconciliationSettings } from "@/components/settings/ReconciliationSettings";
+import ProductsSettings from "@/components/settings/ProductsSettings";
+import { BusinessReconciliationSettings as ReconciliationSettings } from "@/components/settings/BusinessReconciliationSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { StaffMember, Position } from "@/types/settings";
 import { ProductWithCategory } from "@/types/products";
@@ -48,9 +49,11 @@ const Settings = () => {
         position_ids: staff.staff_positions?.map(sp => sp.position_id) || [],
       })) || [];
     },
-    onSuccess: (data) => {
-      setStaffMembers(data);
-    },
+    meta: {
+      onSuccess: (data: StaffMember[]) => {
+        setStaffMembers(data);
+      }
+    }
   });
 
   const { data: initialPositions } = useQuery({
@@ -61,9 +64,11 @@ const Settings = () => {
         .select('*');
       return data || [];
     },
-    onSuccess: (data) => {
-      setPositions(data);
-    },
+    meta: {
+      onSuccess: (data: Position[]) => {
+        setPositions(data);
+      }
+    }
   });
 
   const { data: initialProducts } = useQuery({
@@ -85,9 +90,11 @@ const Settings = () => {
         `);
       return data || [];
     },
-    onSuccess: (data) => {
-      setProducts(data || []);
-    },
+    meta: {
+      onSuccess: (data: ProductWithCategory[]) => {
+        setProducts(data || []);
+      }
+    }
   });
 
   return (
