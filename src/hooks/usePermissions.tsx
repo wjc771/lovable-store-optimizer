@@ -39,8 +39,8 @@ export const usePermissions = () => {
       }
 
       try {
-        // Check if the user is the super admin (matches the email in the database function)
-        if (user.email === "wjc771@gmail.com") {
+        // Check if the user is a super admin (matches either of the admin emails)
+        if (user.email === "wjc771@gmail.com" || user.email === "jotafieldsfirst@gmail.com") {
           setPermissions({
             isManager: true,
             permissions: {
