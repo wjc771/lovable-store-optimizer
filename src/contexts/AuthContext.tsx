@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
+  checkUserStatus: (email: string) => Promise<{ exists: boolean, confirmed: boolean }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,11 +67,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error("Sign in error:", error);
-        toast({
-          title: "Erro de login",
-          description: "Email ou senha incorretos. Por favor, tente novamente.",
-          variant: "destructive",
-        });
+        
+        // Check if it's an unconfirmed email error
+        if (error.message.includes("Email not confirmed")) {
+          toast({
+            title: "Email não confirmado",
+            description: "Por favor, verifique seu email para confirmar seu cadastro ou entre em contato com o suporte.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro de login",
+            description: "Email ou senha incorretos. Por favor, tente novamente.",
+            variant: "destructive",
+          });
+        }
         throw error;
       }
       
@@ -95,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
+          // Disable email confirmation for testing
           emailRedirectTo: window.location.origin,
         },
       });
@@ -110,13 +122,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       console.log("Sign up successful:", data.user?.email);
-      toast({
-        title: "Cadastro realizado",
-        description: "Sua conta foi criada com sucesso! Agora você pode fazer login.",
-      });
+      
+      // Check if email confirmation is needed
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast({
+          title: "Usuário já existe",
+          description: "Este email já está cadastrado. Por favor, faça login ou recupere sua senha.",
+          variant: "destructive",
+        });
+      } else if (data.user && !data.session) {
+        toast({
+          title: "Cadastro realizado",
+          description: "Um email de confirmação foi enviado. Por favor, verifique sua caixa de entrada.",
+        });
+      } else {
+        toast({
+          title: "Cadastro realizado",
+          description: "Sua conta foi criada com sucesso! Agora você pode fazer login.",
+        });
+      }
     } catch (error) {
       console.error("Error during sign up:", error);
       throw error;
+    }
+  };
+
+  const checkUserStatus = async (email: string) => {
+    try {
+      // This is an admin-only API, will only work with service role key
+      // For demonstration only - in production, you'd use a server function
+      const { data, error } = await supabase.auth.admin.listUsers();
+      
+      if (error) {
+        console.error("Error checking user status:", error);
+        return { exists: false, confirmed: false };
+      }
+      
+      const user = data.users.find(u => u.email === email);
+      
+      if (!user) {
+        return { exists: false, confirmed: false };
+      }
+      
+      return { 
+        exists: true, 
+        confirmed: user.email_confirmed_at !== null 
+      };
+    } catch (error) {
+      console.error("Error checking user status:", error);
+      return { exists: false, confirmed: false };
     }
   };
 
@@ -140,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, isLoading }}>
+    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, isLoading, checkUserStatus }}>
       {children}
     </AuthContext.Provider>
   );

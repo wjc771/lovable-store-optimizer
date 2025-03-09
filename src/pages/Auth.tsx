@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -14,9 +15,17 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const { signIn, signUp, checkUserStatus, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const validateEmail = (email: string) => {
     // Basic email validation
@@ -53,10 +62,21 @@ const Auth = () => {
     }
 
     try {
+      // First check if user exists and is confirmed
+      setIsCheckingStatus(true);
+      const { exists, confirmed } = await checkUserStatus(email);
+      setIsCheckingStatus(false);
+      
+      if (exists && !confirmed) {
+        setError("Este email já está cadastrado mas não foi confirmado. Verifique seu email para o link de confirmação.");
+        setIsLoading(false);
+        return;
+      }
+      
       await signUp(email, password, fullName);
       toast({
         title: "Cadastro realizado",
-        description: "Agora você pode fazer login com suas credenciais",
+        description: "Sua conta foi criada com sucesso! Você já pode fazer login.",
       });
       setEmail("");
       setPassword("");
@@ -92,7 +112,11 @@ const Auth = () => {
     } catch (error) {
       console.error('Erro no login:', error);
       if (error instanceof Error) {
-        setError(error.message);
+        if (error.message.includes("Email not confirmed")) {
+          setError("Email não confirmado. Verifique sua caixa de entrada para o link de confirmação.");
+        } else {
+          setError("Email ou senha incorretos");
+        }
       } else {
         setError("Email ou senha incorretos");
       }
@@ -154,7 +178,12 @@ const Auth = () => {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Entrando..." : "Entrar"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : "Entrar"}
                 </Button>
               </form>
             </TabsContent>
@@ -171,7 +200,7 @@ const Auth = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || isCheckingStatus}
                   />
                 </div>
 
@@ -185,7 +214,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || isCheckingStatus}
                   />
                 </div>
 
@@ -199,13 +228,18 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || isCheckingStatus}
                     minLength={6}
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Cadastrando..." : "Cadastrar"}
+                <Button type="submit" className="w-full" disabled={isLoading || isCheckingStatus}>
+                  {isLoading || isCheckingStatus ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isCheckingStatus ? "Verificando..." : "Cadastrando..."}
+                    </>
+                  ) : "Cadastrar"}
                 </Button>
               </form>
             </TabsContent>

@@ -1,81 +1,71 @@
 
-import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import type { ValidationResult } from "../types";
+import { z } from 'zod';
+import { ValidationResult } from '../types';
+import { customersTable } from '../schemas';
 
-// Customer schema definition
-const CustomerSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  total_purchases: z.number().optional(),
-});
+export const validateCustomerData = (data: any): ValidationResult => {
+  try {
+    // Basic schema validation
+    const schema = z.object({
+      name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
+      phone: z.string().optional(),
+      email: z.string().email({ message: "Email inválido" }).optional().nullable(),
+      status: z.enum(["active", "inactive"]).optional(),
+    });
 
-export interface CustomersValidationData {
-  id?: string;
-  name: string;
-  email: string;
-  phone?: string;
-  total_purchases?: number;
-}
-
-// Basic validation using Zod schema
-const validateCustomerBasics = (data: CustomersValidationData): z.SafeParseReturnType<any, any> => {
-  return CustomerSchema.safeParse(data);
-};
-
-// Helper function to validate if a customer exists
-const validateCustomerExists = async (customerId: string): Promise<boolean> => {
-  // Check if customer exists
-  const { data, error } = await supabase
-    .from('customers')
-    .select('id')
-    .eq('id', customerId)
-    .single();
-    
-  if (error || !data) {
-    return false;
-  }
-  
-  return true;
-}
-
-// Main validation function
-export const validateCustomer = async (data: CustomersValidationData): Promise<ValidationResult> => {
-  // First, validate the basic structure using Zod
-  const basicValidation = validateCustomerBasics(data);
-  
-  if (!basicValidation.success) {
-    return {
-      success: false,
-      errors: basicValidation.error.errors.map(err => ({
-        path: err.path.join('.'),
-        message: err.message
-      }))
-    };
-  }
-  
-  // If we have an ID, verify that the customer exists
-  if (data.id) {
-    const customerExists = await validateCustomerExists(data.id);
-    if (!customerExists) {
+    schema.parse(data);
+    return { valid: true, errors: null };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
       return {
-        success: false,
-        errors: [{
-          path: 'id',
-          message: 'Customer does not exist'
-        }]
+        valid: false,
+        errors: error
       };
     }
+    // For non-zod errors, create a compatible format
+    return {
+      valid: false,
+      errors: new z.ZodError([
+        {
+          code: "custom",
+          path: ["unknown"],
+          message: "Erro de validação desconhecido"
+        }
+      ])
+    };
   }
-  
-  // If all validations pass, return success
-  return {
-    success: true,
-    data: data
-  };
 };
 
-// Export the validator for use in other modules
-export const customersValidator = validateCustomer;
+export const validateCustomer = (data: any): ValidationResult => {
+  // First validate basic data structure
+  const basicValidation = validateCustomerData(data);
+  if (!basicValidation.valid) {
+    return basicValidation;
+  }
+
+  // Additional business logic validations
+  const errors: z.ZodIssue[] = [];
+
+  // Check for required store_id for records
+  if (!data.store_id) {
+    errors.push({
+      code: "custom",
+      path: ["store_id"],
+      message: "ID da loja é obrigatório"
+    });
+  }
+
+  // If we have custom errors, return them
+  if (errors.length > 0) {
+    return {
+      valid: false,
+      errors: new z.ZodError(errors)
+    };
+  }
+
+  return { valid: true, errors: null };
+};
+
+export default {
+  validateCustomer
+};
