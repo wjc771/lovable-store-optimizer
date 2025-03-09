@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
-          // Disable email confirmation for testing
+          // Enable email confirmation for production
           emailRedirectTo: window.location.origin,
         },
       });
@@ -149,37 +149,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkUserStatus = async (email: string) => {
     try {
-      // This is an admin-only API, will only work with service role key
-      // For demonstration only - in production, you'd use a server function
-      const { data, error } = await supabase.auth.admin.listUsers();
+      // Using a simpler approach to check user status
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false }
+      });
       
       if (error) {
-        console.error("Error checking user status:", error);
-        return { exists: false, confirmed: false };
-      }
-      
-      // Fix the typing issue by properly defining the structure of the response
-      interface SupabaseUser {
-        id: string;
-        email?: string;
-        email_confirmed_at?: string | null;
-      }
-      
-      if (data && Array.isArray(data.users)) {
-        // Use type assertion to tell TypeScript about the structure
-        const user = (data.users as SupabaseUser[]).find(u => u.email === email);
-        
-        if (!user) {
+        // If we get "User not found", then the user doesn't exist
+        if (error.message.includes("User not found")) {
           return { exists: false, confirmed: false };
         }
         
-        return { 
-          exists: true, 
-          confirmed: user.email_confirmed_at !== null 
-        };
+        // If we get a different error, assume the user exists but might not be confirmed
+        console.log("User exists, checking status from error message:", error.message);
+        const isConfirmed = !error.message.includes("Email not confirmed");
+        return { exists: true, confirmed: isConfirmed };
       }
       
-      return { exists: false, confirmed: false };
+      // If no error, user exists and is confirmed
+      return { exists: true, confirmed: true };
     } catch (error) {
       console.error("Error checking user status:", error);
       return { exists: false, confirmed: false };

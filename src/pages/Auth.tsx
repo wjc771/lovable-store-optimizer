@@ -71,6 +71,10 @@ const Auth = () => {
         setError("Este email já está cadastrado mas não foi confirmado. Verifique seu email para o link de confirmação.");
         setIsLoading(false);
         return;
+      } else if (exists) {
+        setError("Este email já está cadastrado. Tente fazer login.");
+        setIsLoading(false);
+        return;
       }
       
       await signUp(email, password, fullName);
@@ -106,19 +110,27 @@ const Auth = () => {
       return;
     }
 
+    if (!password) {
+      setError("Por favor, informe sua senha");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await signIn(email, password);
-      navigate("/");
+      // Successful login will redirect through the useEffect
     } catch (error) {
       console.error('Erro no login:', error);
       if (error instanceof Error) {
         if (error.message.includes("Email not confirmed")) {
           setError("Email não confirmado. Verifique sua caixa de entrada para o link de confirmação.");
+        } else if (error.message.includes("Invalid login credentials")) {
+          setError("Email ou senha incorretos. Por favor, tente novamente.");
         } else {
-          setError("Email ou senha incorretos");
+          setError(error.message);
         }
       } else {
-        setError("Email ou senha incorretos");
+        setError("Email ou senha incorretos. Por favor, tente novamente.");
       }
     } finally {
       setIsLoading(false);

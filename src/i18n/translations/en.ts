@@ -1,3 +1,4 @@
+
 export const englishTranslations = {
   common: {
     dashboard: "Dashboard",
@@ -135,10 +136,24 @@ export const englishTranslations = {
     email: "Email",
     password: "Password",
     fullName: "Full Name",
+    welcome: "Welcome",
     loginSuccess: "Successfully logged in",
     loginError: "Failed to login",
-    logoutSuccess: "Successfully logged out",
-    logoutError: "Failed to logout"
+    invalidCredentials: "Email or password is incorrect",
+    emailNotConfirmed: "Email not confirmed. Please check your inbox",
+    userExists: "User already exists. Please sign in",
+    passwordLength: "Password must be at least 6 characters",
+    required: "This field is required",
+    signUpSuccess: "Account created successfully",
+    loginToAccount: "Login to your account",
+    createAccount: "Create an account",
+    enterCredentials: "Enter your credentials to access your account",
+    enterDetails: "Enter your details to create an account",
+    noAccount: "Don't have an account? Please sign up first",
+    hasAccount: "Already have an account? Please sign in",
+    checking: "Checking...",
+    processingSignUp: "Creating account...",
+    processingSignIn: "Signing in..."
   },
   business: {
     title: "Business Control",

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -23,20 +23,11 @@ const LoginForm = () => {
     console.log("Attempting login with:", { email, password: "***" });
 
     try {
-      // Try direct login via Supabase to get detailed error info
-      const { error: supabaseError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (supabaseError) {
-        console.error("Supabase login error:", supabaseError);
-        throw supabaseError;
-      }
-
+      await signIn(email, password);
+      
       toast({
-        title: "Success",
-        description: "Successfully logged in",
+        title: "Sucesso",
+        description: "Login realizado com sucesso",
       });
     } catch (error) {
       console.error('Login error:', error);
@@ -44,14 +35,14 @@ const LoginForm = () => {
       // Handle specific error cases with clear error messages
       if (error instanceof Error) {
         if (error.message.includes('invalid_credentials')) {
-          setError('Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente.');
+          setError('Email ou senha incorretos. Por favor, verifique suas credenciais e tente novamente.');
         } else if (error.message.includes('Email not confirmed')) {
           setError('Por favor, verifique seu email antes de fazer login.');
         } else {
           setError(`Erro durante o login: ${error.message}`);
         }
       } else {
-        setError('Ocorreu um erro inesperado. Por favor, tente novamente.');
+        setError('Email ou senha incorretos. Por favor, tente novamente.');
       }
 
       toast({
@@ -87,7 +78,7 @@ const LoginForm = () => {
           <Input
             id="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -112,7 +103,12 @@ const LoginForm = () => {
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Entrando..." : "Entrar"}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Entrando...
+            </>
+          ) : "Entrar"}
         </Button>
 
         <p className="text-sm text-center text-muted-foreground">
