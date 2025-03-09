@@ -1,3 +1,4 @@
+
 export const portugueseTranslations = {
   common: {
     dashboard: "Painel",
@@ -41,6 +42,7 @@ export const portugueseTranslations = {
     }
   },
   settings: {
+    title: "Configurações",
     settings: "Configurações",
     general: "Geral",
     business: "Negócio",
@@ -81,6 +83,8 @@ export const portugueseTranslations = {
     chatWebhookUrl: "URL do Webhook de Chat",
     enterUploadWebhookUrl: "Digite a URL do webhook de upload",
     enterChatWebhookUrl: "Digite a URL do webhook de chat",
+    notificationSettings: "Configurações de Notificação",
+    notImplemented: "Este recurso ainda não está implementado.",
 
     // Novas traduções para Smart Actions
     smartActions: "Ações Inteligentes",
@@ -106,6 +110,18 @@ export const portugueseTranslations = {
     errorLoadingThresholds: "Erro ao carregar as configurações",
     errorSavingThresholds: "Erro ao salvar as configurações",
     thresholdsSaved: "Configurações salvas com sucesso",
+
+    tabs: {
+      general: "Geral",
+      business: "Negócio",
+      staff: "Equipe",
+      integrations: "Integrações",
+      notifications: "Notificações",
+      smartActions: "Ações Inteligentes",
+      products: "Produtos",
+      reconciliation: "Reconciliação",
+      admin: "Admin"
+    },
     
     reconciliation: {
       title: "Reconciliação",

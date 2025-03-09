@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
 }
 
-// Create the authentication context
+// Create the authentication context with a default undefined value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component for the authentication context
@@ -144,8 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Context value - explicitly specify type to avoid recursive type issue
-  const value: AuthContextType = {
+  // Create an explicit object with the correct type to avoid recursive type issues
+  const contextValue: AuthContextType = {
     session,
     user,
     signIn,
@@ -157,7 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Render the provider with the value
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 // Hook to use the authentication context

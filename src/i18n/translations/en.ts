@@ -42,6 +42,7 @@ export const englishTranslations = {
     }
   },
   settings: {
+    title: "Settings",
     settings: "Settings",
     general: "General",
     business: "Business",
@@ -83,6 +84,8 @@ export const englishTranslations = {
     chatWebhookUrl: "Chat Webhook URL",
     enterUploadWebhookUrl: "Enter upload webhook URL",
     enterChatWebhookUrl: "Enter chat webhook URL",
+    notificationSettings: "Notification Settings",
+    notImplemented: "This feature is not implemented yet.",
 
     // Smart Actions translations
     revenueAlerts: "Revenue Alerts",
@@ -107,6 +110,18 @@ export const englishTranslations = {
     errorLoadingThresholds: "Error loading settings",
     errorSavingThresholds: "Error saving settings",
     thresholdsSaved: "Settings saved successfully",
+
+    tabs: {
+      general: "General",
+      business: "Business",
+      staff: "Staff",
+      integrations: "Integrations",
+      notifications: "Notifications",
+      smartActions: "Smart Actions",
+      products: "Products",
+      reconciliation: "Reconciliation",
+      admin: "Admin"
+    },
 
     reconciliation: {
       title: "Reconciliation",

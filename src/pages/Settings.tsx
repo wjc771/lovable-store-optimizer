@@ -105,19 +105,19 @@ const Settings = () => {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('settings.settings')}</h2>
       </div>
       
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="general">{t('settings.tabs.general')}</TabsTrigger>
-          <TabsTrigger value="business">{t('settings.tabs.business')}</TabsTrigger>
-          <TabsTrigger value="staff">{t('settings.tabs.staff')}</TabsTrigger>
-          <TabsTrigger value="integrations">{t('settings.tabs.integrations')}</TabsTrigger>
-          <TabsTrigger value="notifications">{t('settings.tabs.notifications')}</TabsTrigger>
-          <TabsTrigger value="smartActions">{t('settings.tabs.smartActions')}</TabsTrigger>
-          <TabsTrigger value="products">{t('settings.tabs.products')}</TabsTrigger>
-          <TabsTrigger value="reconciliation">{t('settings.tabs.reconciliation')}</TabsTrigger>
+          <TabsTrigger value="general">{t('settings.general')}</TabsTrigger>
+          <TabsTrigger value="business">{t('settings.business')}</TabsTrigger>
+          <TabsTrigger value="staff">{t('settings.staff')}</TabsTrigger>
+          <TabsTrigger value="integrations">{t('settings.integrations')}</TabsTrigger>
+          <TabsTrigger value="notifications">{t('settings.notifications')}</TabsTrigger>
+          <TabsTrigger value="smartActions">{t('settings.smartActions')}</TabsTrigger>
+          <TabsTrigger value="products">{t('products.products')}</TabsTrigger>
+          <TabsTrigger value="reconciliation">{t('settings.reconciliation.title')}</TabsTrigger>
           {isManager && (
             <TabsTrigger value="admin">{t('settings.tabs.admin')}</TabsTrigger>
           )}
