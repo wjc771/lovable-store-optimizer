@@ -34,6 +34,7 @@ export const PurgeUsers = () => {
         throw new Error("Not authenticated");
       }
 
+      console.log("Calling delete-users function");
       const response = await fetch(`${window.location.origin}/functions/v1/delete-users`, {
         method: 'POST',
         headers: {
@@ -49,6 +50,7 @@ export const PurgeUsers = () => {
       try {
         // Handle potentially empty responses
         const text = await response.text();
+        console.log("Response text:", text);
         result = text ? JSON.parse(text) : {};
       } catch (e) {
         console.error("Error parsing response:", e);
@@ -70,35 +72,39 @@ export const PurgeUsers = () => {
           .neq('id', user.id);
 
         if (fetchError) {
+          console.error("Error fetching profiles:", fetchError);
           throw fetchError;
         }
 
         if (profiles && profiles.length > 0) {
           const userIds = profiles.map(profile => profile.id);
+          console.log(`Found ${userIds.length} profiles to clean up`);
           
-          // Delete tasks
-          await supabase
-            .from('tasks')
-            .delete()
-            .in('staff_id', (await supabase.from('staff').select('id').in('user_id', userIds)).data?.map(s => s.id) || []);
-          
-          // Delete staff positions
-          await supabase
-            .from('staff_positions')
-            .delete()
-            .in('staff_id', (await supabase.from('staff').select('id').in('user_id', userIds)).data?.map(s => s.id) || []);
-          
-          // Delete staff
-          await supabase
-            .from('staff')
-            .delete()
-            .in('user_id', userIds);
-          
-          // Finally, delete profiles
-          await supabase
-            .from('profiles')
-            .delete()
-            .in('id', userIds);
+          try {
+            // Delete tasks
+            const staffResult = await supabase.from('staff').select('id').in('user_id', userIds);
+            const staffIds = staffResult.data?.map(s => s.id) || [];
+            
+            if (staffIds.length > 0) {
+              console.log(`Deleting tasks for ${staffIds.length} staff members`);
+              await supabase.from('tasks').delete().in('staff_id', staffIds);
+              
+              // Delete staff positions
+              console.log("Deleting staff positions");
+              await supabase.from('staff_positions').delete().in('staff_id', staffIds);
+            }
+            
+            // Delete staff
+            console.log("Deleting staff records");
+            await supabase.from('staff').delete().in('user_id', userIds);
+            
+            // Finally, delete profiles
+            console.log("Deleting user profiles");
+            await supabase.from('profiles').delete().in('id', userIds);
+          } catch (error) {
+            console.error("Error cleaning up user data:", error);
+            throw error;
+          }
         }
       }
 
@@ -110,7 +116,7 @@ export const PurgeUsers = () => {
       console.error('Error purging users:', error);
       toast({
         title: "Erro ao excluir usuários",
-        description: error.message || "Ocorreu um erro ao tentar excluir os usuários.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao tentar excluir os usuários.",
         variant: "destructive",
       });
     } finally {

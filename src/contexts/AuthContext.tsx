@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Define the context value explicitly with the correct type
+  // Define the context value explicitly with the correct type to avoid recursion
   const contextValue: AuthContextType = {
     session,
     user,
