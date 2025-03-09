@@ -237,7 +237,7 @@ const Dashboard = () => {
               <div className="h-[200px] w-full">
                 <BarChart
                   data={stats.salesTrend}
-                  index="date"
+                  indexKey="date"
                   categories={["amount"]}
                   colors={["blue"]}
                   valueFormatter={(number) => `$${number.toFixed(2)}`}

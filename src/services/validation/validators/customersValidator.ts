@@ -1,10 +1,21 @@
 
 import { supabase } from '@/lib/supabase';
 import { schemas } from '../schemas';
-import { ValidationResult, CustomersValidationData } from '../types';
+import { ValidationResult } from '../types';
 import { z } from 'zod';
 
-// Explicitly define a simple record type to avoid circular references
+// Define explicit simple type to avoid recursive type issues
+export interface CustomersValidationData {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  total_purchases?: number;
+  last_purchase_date?: string;
+  [key: string]: any;
+}
+
+// Simple sales record type without references to customers
 interface SimpleSalesRecord {
   amount: number;
   created_at: string;
@@ -55,30 +66,23 @@ export const customersValidator = async (data: CustomersValidationData): Promise
 
   // Validate business logic
   if (data.total_purchases !== undefined) {
-    // Use a type assertion to break the type recursion
     const salesResponse = await supabase
       .from('sales')
       .select('amount, created_at');
       
-    // Explicitly type the response to avoid deep recursion
-    const typedResponse: { 
-      data: SimpleSalesRecord[] | null, 
-      error: { message: string } | null 
-    } = salesResponse as any;
-    
-    if (typedResponse.error) {
+    if (salesResponse.error) {
       return {
         success: false,
         errors: new z.ZodError([{
           code: z.ZodIssueCode.custom,
-          message: `Database error: ${typedResponse.error.message}`,
+          message: `Database error: ${salesResponse.error.message}`,
           path: ['database']
         }]),
         data: undefined
       };
     }
 
-    const sales = typedResponse.data || [];
+    const sales = salesResponse.data || [];
     const actualTotalPurchases = sales.length;
 
     if (data.total_purchases !== actualTotalPurchases) {
