@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { customerSchema } from '../schemas';
+import { schemas } from '../schemas';
 import { ValidationResult, CustomersValidationData } from '../types';
 import { z } from 'zod';
 
@@ -31,7 +31,8 @@ const validateCustomerSalesRelationships = async (data: CustomersValidationData)
 };
 
 export const customersValidator = async (data: CustomersValidationData): Promise<ValidationResult<CustomersValidationData>> => {
-  // Schema validation
+  // Schema validation using the customers schema from schemas.ts
+  const customerSchema = schemas.customers;
   const result = customerSchema.safeParse(data);
   
   if (!result.success) {
@@ -54,16 +55,16 @@ export const customersValidator = async (data: CustomersValidationData): Promise
 
   // Validate business logic
   if (data.total_purchases !== undefined) {
-    // Use a type assertion to explicitly break the type recursion
+    // Use a type assertion to break the type recursion
     const salesResponse = await supabase
       .from('sales')
       .select('amount, created_at');
       
-    // Break the type recursion by using a simple type
-    const typedResponse = salesResponse as unknown as { 
+    // Explicitly type the response to avoid deep recursion
+    const typedResponse: { 
       data: SimpleSalesRecord[] | null, 
       error: { message: string } | null 
-    };
+    } = salesResponse as any;
     
     if (typedResponse.error) {
       return {
