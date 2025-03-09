@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
@@ -10,6 +9,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   isLoading: boolean;
   checkUserStatus: (email: string) => Promise<{ exists: boolean, confirmed: boolean }>;
 }
@@ -195,6 +195,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      console.log(`Attempting to send reset password email to: ${email}`);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        console.error("Reset password error:", error);
+        throw error;
+      }
+      
+      console.log("Reset password email sent successfully");
+    } catch (error) {
+      console.error("Error during password reset:", error);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     try {
       console.log("Signing out...");
@@ -215,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, isLoading, checkUserStatus }}>
+    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, resetPassword, isLoading, checkUserStatus }}>
       {children}
     </AuthContext.Provider>
   );

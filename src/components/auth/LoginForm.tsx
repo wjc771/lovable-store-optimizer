@@ -12,7 +12,9 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const { signIn, resetPassword } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +57,109 @@ const LoginForm = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    if (!email) {
+      setError("Por favor, informe seu email para recuperar a senha");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await resetPassword(email);
+      setResetSent(true);
+      toast({
+        title: "Email enviado",
+        description: "Verifique sua caixa de entrada para redefinir sua senha",
+      });
+    } catch (error) {
+      console.error('Reset password error:', error);
+      
+      if (error instanceof Error) {
+        setError(`Erro ao enviar email de recuperação: ${error.message}`);
+      } else {
+        setError('Ocorreu um erro ao tentar recuperar sua senha. Por favor, tente novamente.');
+      }
+
+      toast({
+        title: "Erro",
+        description: "Falha ao enviar email de recuperação de senha",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsResetMode(!isResetMode);
+    setError(null);
+    setResetSent(false);
+  };
+
+  if (isResetMode) {
+    return (
+      <div className="w-full max-w-md mx-auto space-y-8 animate-in">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold tracking-tight">Recuperação de senha</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Digite seu email para receber um link de recuperação de senha
+          </p>
+        </div>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {resetSent && (
+          <Alert>
+            <AlertDescription>
+              Um email de recuperação foi enviado. Verifique sua caixa de entrada.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="reset-email">
+              Email
+            </label>
+            <Input
+              id="reset-email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full"
+              disabled={isLoading || resetSent}
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading || resetSent}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enviando...
+              </>
+            ) : resetSent ? "Email enviado" : "Enviar link de recuperação"}
+          </Button>
+
+          <p className="text-sm text-center">
+            <Button variant="link" className="p-0" onClick={toggleMode} disabled={isLoading}>
+              Voltar para o login
+            </Button>
+          </p>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md mx-auto space-y-8 animate-in">
       <div className="text-center">
@@ -88,9 +193,14 @@ const LoginForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="password">
-            Senha
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium" htmlFor="password">
+              Senha
+            </label>
+            <Button variant="link" className="p-0 h-auto text-xs" onClick={toggleMode} disabled={isLoading}>
+              Esqueceu a senha?
+            </Button>
+          </div>
           <Input
             id="password"
             type="password"
