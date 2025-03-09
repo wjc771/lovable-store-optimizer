@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,10 +48,14 @@ const Settings = () => {
         position_ids: staff.staff_positions?.map(sp => sp.position_id) || [],
       })) || [];
     },
-    onSuccess: (data) => {
-      setStaffMembers(data);
-    }
   });
+
+  // Use effect to update the state when data is fetched
+  useEffect(() => {
+    if (initialStaff) {
+      setStaffMembers(initialStaff);
+    }
+  }, [initialStaff]);
 
   const { data: initialPositions } = useQuery({
     queryKey: ['positions'],
@@ -61,10 +65,14 @@ const Settings = () => {
         .select('*');
       return data || [];
     },
-    onSuccess: (data) => {
-      setPositions(data);
-    }
   });
+
+  // Use effect to update the state when data is fetched
+  useEffect(() => {
+    if (initialPositions) {
+      setPositions(initialPositions);
+    }
+  }, [initialPositions]);
 
   const { data: initialProducts } = useQuery({
     queryKey: ['products'],
@@ -85,10 +93,14 @@ const Settings = () => {
         `);
       return data || [];
     },
-    onSuccess: (data: ProductWithCategory[]) => {
-      setProducts(data || []);
-    }
   });
+
+  // Use effect to update the state when data is fetched
+  useEffect(() => {
+    if (initialProducts) {
+      setProducts(initialProducts as ProductWithCategory[]);
+    }
+  }, [initialProducts]);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
