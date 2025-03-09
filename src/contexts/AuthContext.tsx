@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
@@ -143,8 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Create a non-recursive value object to avoid the infinite type instantiation
-  const contextValue = {
+  // Explicitly define the value with a fixed type to avoid recursive type issues
+  const contextValue: AuthContextType = {
     session,
     user,
     signIn,
@@ -152,8 +153,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     resetPassword,
     signUp,
     checkUserStatus,
-    loading,
-  } as const;
+    loading
+  };
 
   // Render the provider with the value
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

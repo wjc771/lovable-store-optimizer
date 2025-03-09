@@ -55,18 +55,17 @@ const Settings = () => {
         .select('*');
       
       return data?.map(position => {
-        // Create a properly typed permissions object by safely handling Json type
-        const permissionsObj = typeof position.permissions === 'object' && position.permissions 
-          ? position.permissions 
-          : {};
+        // Extract permissions safely from the JSON structure
+        const permissionsObj = position.permissions as Record<string, unknown>;
         
+        // Create a properly typed permissions object with safe type checks
         const typedPermissions = {
-          sales: !!permissionsObj.sales,
-          inventory: !!permissionsObj.inventory,
-          financial: !!permissionsObj.financial,
-          customers: !!permissionsObj.customers,
-          staff: !!permissionsObj.staff,
-          settings: !!permissionsObj.settings
+          sales: typeof permissionsObj === 'object' && permissionsObj !== null ? Boolean(permissionsObj.sales) : false,
+          inventory: typeof permissionsObj === 'object' && permissionsObj !== null ? Boolean(permissionsObj.inventory) : false,
+          financial: typeof permissionsObj === 'object' && permissionsObj !== null ? Boolean(permissionsObj.financial) : false,
+          customers: typeof permissionsObj === 'object' && permissionsObj !== null ? Boolean(permissionsObj.customers) : false,
+          staff: typeof permissionsObj === 'object' && permissionsObj !== null ? Boolean(permissionsObj.staff) : false,
+          settings: typeof permissionsObj === 'object' && permissionsObj !== null ? Boolean(permissionsObj.settings) : false
         };
 
         return {
