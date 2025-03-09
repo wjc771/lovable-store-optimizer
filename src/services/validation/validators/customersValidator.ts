@@ -12,19 +12,26 @@ const CustomerSchema = z.object({
   total_purchases: z.number().optional(),
 });
 
-export type CustomersValidationData = z.infer<typeof CustomerSchema>;
+export interface CustomersValidationData {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  total_purchases?: number;
+}
 
 // Basic validation using Zod schema
-const validateCustomerBasics = (data: CustomersValidationData): z.SafeParseReturnType<CustomersValidationData, CustomersValidationData> => {
+const validateCustomerBasics = (data: CustomersValidationData): z.SafeParseReturnType<any, any> => {
   return CustomerSchema.safeParse(data);
 };
 
-// Helper function to validate customer exists
-const validateCustomerExists = async (id: string): Promise<boolean> => {
+// Helper function to validate if a customer exists
+const validateCustomerExists = async (customerId: string): Promise<boolean> => {
+  // Check if customer exists
   const { data, error } = await supabase
     .from('customers')
     .select('id')
-    .eq('id', id)
+    .eq('id', customerId)
     .single();
     
   if (error || !data) {
@@ -36,50 +43,39 @@ const validateCustomerExists = async (id: string): Promise<boolean> => {
 
 // Main validation function
 export const validateCustomer = async (data: CustomersValidationData): Promise<ValidationResult> => {
-  // Basic validation
+  // First, validate the basic structure using Zod
   const basicValidation = validateCustomerBasics(data);
+  
   if (!basicValidation.success) {
     return {
       success: false,
-      errors: basicValidation.error,
+      errors: basicValidation.error.errors.map(err => ({
+        path: err.path.join('.'),
+        message: err.message
+      }))
     };
   }
-
-  // Existence validation
+  
+  // If we have an ID, verify that the customer exists
   if (data.id) {
-    const exists = await validateCustomerExists(data.id);
-    if (!exists) {
+    const customerExists = await validateCustomerExists(data.id);
+    if (!customerExists) {
       return {
         success: false,
-        errors: new z.ZodError([{
-          code: z.ZodIssueCode.custom,
-          path: ["id"],
-          message: `Customer with id ${data.id} does not exist`
-        }])
+        errors: [{
+          path: 'id',
+          message: 'Customer does not exist'
+        }]
       };
     }
   }
-
-  // Perform additional validation if needed
-  if (data.total_purchases !== undefined) {
-    const { data: salesData, error } = await supabase
-      .from('sales')
-      .select('amount')
-      .eq('customer_id', data.id);
-      
-    if (error) {
-      return {
-        success: false,
-        errors: new z.ZodError([{
-          code: z.ZodIssueCode.custom,
-          path: ["total_purchases"],
-          message: `Error validating customer purchases: ${error.message}`
-        }])
-      };
-    }
-  }
-
+  
+  // If all validations pass, return success
   return {
     success: true,
+    data: data
   };
 };
+
+// Export the validator for use in other modules
+export const customersValidator = validateCustomer;

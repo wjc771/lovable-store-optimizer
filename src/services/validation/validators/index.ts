@@ -1,14 +1,7 @@
 
-import { validateSalesRelationships } from './salesValidator';
-import { validateOrdersRelationships } from './ordersValidator';
-import { validateTasksRelationships } from './tasksValidator';
-import { validateProductsRelationships } from './productsValidator';
-import { validateCustomer } from './customersValidator';
-
-export {
-  validateSalesRelationships,
-  validateOrdersRelationships,
-  validateTasksRelationships,
-  validateProductsRelationships,
-  validateCustomer
-};
+// Export all validators from the validators directory
+export * from "./salesValidator";
+export * from "./ordersValidator";
+export * from "./tasksValidator";
+export * from "./productsValidator";
+export * from "./customersValidator";

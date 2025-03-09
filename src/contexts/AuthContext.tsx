@@ -2,11 +2,13 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
 }
@@ -17,6 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -63,12 +66,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error("Sign in error:", error);
+        toast({
+          title: "Erro de login",
+          description: "Email ou senha incorretos. Por favor, tente novamente.",
+          variant: "destructive",
+        });
         throw error;
       }
       
       console.log("Sign in successful:", data.user?.email);
+      toast({
+        title: "Login realizado",
+        description: "Você entrou com sucesso!",
+      });
     } catch (error) {
       console.error("Error during sign in:", error);
+      throw error;
+    }
+  };
+
+  const signUp = async (email: string, password: string, fullName: string) => {
+    try {
+      console.log(`Attempting to sign up: ${email}`);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (error) {
+        console.error("Sign up error:", error);
+        toast({
+          title: "Erro no cadastro",
+          description: "Não foi possível criar sua conta. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      console.log("Sign up successful:", data.user?.email);
+      toast({
+        title: "Cadastro realizado",
+        description: "Sua conta foi criada com sucesso! Agora você pode fazer login.",
+      });
+    } catch (error) {
+      console.error("Error during sign up:", error);
       throw error;
     }
   };
@@ -93,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signOut, isLoading }}>
+    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

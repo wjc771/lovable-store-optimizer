@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -19,109 +22,105 @@ const Auth = () => {
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return "Please enter a valid email address";
+      return "Por favor, insira um email válido";
     }
     return null;
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
     
     // Validate email before making the request
     const emailError = validateEmail(email);
     if (emailError) {
-      toast({
-        title: "Invalid Email",
-        description: emailError,
-        variant: "destructive",
-      });
+      setError(emailError);
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("A senha deve ter pelo menos 6 caracteres");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!fullName) {
+      setError("Por favor, informe seu nome completo");
+      setIsLoading(false);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-      
-      if (error) {
-        let errorMessage = error.message;
-        // Handle specific error cases
-        if (error.message.includes("email_address_invalid")) {
-          errorMessage = "Please enter a valid email address";
-        } else if (error.message.includes("over_email_send_rate_limit")) {
-          errorMessage = "Please wait a minute before trying to sign up again";
-        }
-        throw new Error(errorMessage);
-      }
-      
+      await signUp(email, password, fullName);
       toast({
-        title: "Success",
-        description: "Please check your email to confirm your account",
+        title: "Cadastro realizado",
+        description: "Agora você pode fazer login com suas credenciais",
       });
+      setEmail("");
+      setPassword("");
+      setFullName("");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to sign up",
-        variant: "destructive",
-      });
+      console.error('Erro no cadastro:', error);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Ocorreu um erro inesperado no cadastro");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
     
     // Validate email before making the request
     const emailError = validateEmail(email);
     if (emailError) {
-      toast({
-        title: "Invalid Email",
-        description: emailError,
-        variant: "destructive",
-      });
+      setError(emailError);
+      setIsLoading(false);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      
+      await signIn(email, password);
       navigate("/");
-      toast({
-        title: "Success",
-        description: "Successfully logged in",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to sign in",
-        variant: "destructive",
-      });
+      console.error('Erro no login:', error);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Email ou senha incorretos");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-3xl font-bold tracking-tight">
-          Welcome
+          Bem-vindo(a)
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">Entrar</TabsTrigger>
+              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -136,12 +135,13 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="signin-password" className="block text-sm font-medium">
-                    Password
+                    Senha
                   </label>
                   <Input
                     id="signin-password"
@@ -149,17 +149,32 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Sign In
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-6">
+                <div>
+                  <label htmlFor="full-name" className="block text-sm font-medium">
+                    Nome Completo
+                  </label>
+                  <Input
+                    id="full-name"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
                 <div>
                   <label htmlFor="signup-email" className="block text-sm font-medium">
                     Email
@@ -170,25 +185,13 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="full-name" className="block text-sm font-medium">
-                    Full Name
-                  </label>
-                  <Input
-                    id="full-name"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
+                    disabled={isLoading}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="signup-password" className="block text-sm font-medium">
-                    Password
+                    Senha
                   </label>
                   <Input
                     id="signup-password"
@@ -196,11 +199,13 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
+                    minLength={6}
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Sign Up
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Cadastrando..." : "Cadastrar"}
                 </Button>
               </form>
             </TabsContent>
