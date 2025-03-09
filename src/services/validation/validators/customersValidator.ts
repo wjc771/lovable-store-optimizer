@@ -1,107 +1,83 @@
 
-import { supabase } from '@/lib/supabase';
-import { schemas } from '../schemas';
-import { ValidationResult } from '../types';
-import { z } from 'zod';
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { CustomerSchema } from "../schemas";
+import type { CustomersValidationData, ValidationResult } from "../types";
 
-// Define explicit simple type to avoid recursive type issues
-export interface CustomersValidationData {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  total_purchases?: number;
-  last_purchase_date?: string;
-  [key: string]: any;
-}
+// Basic validation using Zod schema
+const validateCustomerBasics = (data: CustomersValidationData): z.SafeParseReturnType<CustomersValidationData, CustomersValidationData> => {
+  return CustomerSchema.safeParse(data);
+};
 
-// Simple sales record type without references to customers
-interface SimpleSalesRecord {
-  amount: number;
-  created_at: string;
+// Helper function to validate customer exists
+const validateCustomerExists = async (id: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('customers')
+    .select('id')
+    .eq('id', id)
+    .single();
+    
+  if (error || !data) {
+    return false;
+  }
+  
+  return true;
 }
 
 // Helper function to validate sales relationships for a customer
-const validateCustomerSalesRelationships = async (customerId: string): Promise<z.ZodError | undefined> => {
+const validateCustomerSalesRelationships = async (customerId: string): Promise<boolean> => {
   // Check if customer has valid sales relationships
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('sales')
     .select('id')
     .eq('customer_id', customerId)
     .limit(1);
     
-  if (error) {
-    return new z.ZodError([{
-      code: z.ZodIssueCode.custom,
-      message: `Error validating sales relationships: ${error.message}`,
-      path: ['sales_relationships']
-    }]);
+  if (error || !data || data.length === 0) {
+    return false;
   }
-
-  return undefined;
+  
+  return true;
 };
 
-export const customersValidator = async (data: CustomersValidationData): Promise<ValidationResult<CustomersValidationData>> => {
-  // Schema validation using the customers schema from schemas.ts
-  const customerSchema = schemas.customers;
-  const result = customerSchema.safeParse(data);
-  
-  if (!result.success) {
+// Main validation function
+export const validateCustomer = async (data: CustomersValidationData): Promise<ValidationResult> => {
+  // Basic validation
+  const basicValidation = validateCustomerBasics(data);
+  if (!basicValidation.success) {
     return {
       success: false,
-      errors: result.error,
-      data: undefined
+      errors: basicValidation.error,
     };
   }
 
-  // Relationship validation
-  const relationshipError = await validateCustomerSalesRelationships(data.id);
-  if (relationshipError) {
-    return {
-      success: false,
-      errors: relationshipError,
-      data: undefined
-    };
-  }
-
-  // Validate business logic
-  if (data.total_purchases !== undefined) {
-    const salesResponse = await supabase
-      .from('sales')
-      .select('amount, created_at')
-      .eq('customer_id', data.id);
-      
-    if (salesResponse.error) {
+  // Existence validation
+  if (data.id) {
+    const exists = await validateCustomerExists(data.id);
+    if (!exists) {
       return {
         success: false,
-        errors: new z.ZodError([{
-          code: z.ZodIssueCode.custom,
-          message: `Database error: ${salesResponse.error.message}`,
-          path: ['database']
-        }]),
-        data: undefined
+        message: `Customer with id ${data.id} does not exist`,
       };
     }
+  }
 
-    const sales = salesResponse.data || [];
-    const actualTotalPurchases = sales.length;
-
-    if (data.total_purchases !== actualTotalPurchases) {
+  // Perform additional validation if needed
+  if (data.total_purchases !== undefined) {
+    const { data: salesData, error } = await supabase
+      .from('sales')
+      .select('amount')
+      .eq('customer_id', data.id);
+      
+    if (error) {
       return {
         success: false,
-        errors: new z.ZodError([{
-          code: z.ZodIssueCode.custom,
-          message: `Total purchases should be ${actualTotalPurchases}`,
-          path: ['total_purchases']
-        }]),
-        data: undefined
+        message: `Error validating customer purchases: ${error.message}`,
       };
     }
   }
 
   return {
     success: true,
-    data: data,
-    errors: undefined
   };
 };
