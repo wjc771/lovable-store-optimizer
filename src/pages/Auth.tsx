@@ -21,10 +21,6 @@ const Auth = () => {
     if (!emailRegex.test(email)) {
       return "Please enter a valid email address";
     }
-    // Prevent test@example.com which Supabase rejects
-    if (email.toLowerCase().includes("example.com")) {
-      return "Please use a real email address (example.com is not allowed)";
-    }
     return null;
   };
 
