@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 // Define the types for the authentication context
 interface AuthContextType {
@@ -13,6 +14,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   checkUserStatus: (email: string) => Promise<{exists: boolean, confirmed: boolean}>;
   loading: boolean;
+  error: Error | null;
 }
 
 // Create the authentication context with a default undefined value
@@ -23,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   // Effect to check the current session and subscribe to authentication changes
   useEffect(() => {
@@ -34,6 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(currentSession?.user ?? null);
       } catch (error) {
         console.error('Error getting session:', error);
+        setError(error instanceof Error ? error : new Error('Unknown authentication error'));
       } finally {
         setLoading(false);
       }
@@ -44,10 +48,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Subscribe to authentication changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      (event, newSession) => {
+        console.log('Auth state changed:', event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
+        
+        // Provide feedback for auth events
+        if (event === 'SIGNED_IN') {
+          toast.success('Signed in successfully');
+        } else if (event === 'SIGNED_OUT') {
+          toast.info('Signed out');
+        } else if (event === 'PASSWORD_RECOVERY') {
+          toast.info('Password recovery initiated');
+        }
       }
     );
 
@@ -59,6 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Function to sign in
   const signIn = async (email: string, password: string) => {
+    setError(null);
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -70,12 +85,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error('Login error:', error);
+      setError(error instanceof Error ? error : new Error('Login failed'));
       throw error;
     }
   };
 
   // Function to sign out
   const signOut = async () => {
+    setError(null);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -83,12 +100,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error('Logout error:', error);
+      setError(error instanceof Error ? error : new Error('Logout failed'));
       throw error;
     }
   };
 
   // Function for password reset
   const resetPassword = async (email: string) => {
+    setError(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password',
@@ -97,14 +116,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         throw error;
       }
+      
+      toast.success(`Password reset email sent to ${email}`);
     } catch (error) {
       console.error('Password reset error:', error);
+      setError(error instanceof Error ? error : new Error('Password reset failed'));
       throw error;
     }
   };
 
   // Function for sign up
   const signUp = async (email: string, password: string, fullName: string) => {
+    setError(null);
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -117,14 +140,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) throw error;
+      
+      toast.success('Registration successful! Please check your email to verify your account.');
     } catch (error) {
       console.error('Signup error:', error);
+      setError(error instanceof Error ? error : new Error('Signup failed'));
       throw error;
     }
   };
 
   // Function to check user status
   const checkUserStatus = async (email: string) => {
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -140,6 +167,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { exists, confirmed };
     } catch (error) {
       console.error('Error checking user status:', error);
+      setError(error instanceof Error ? error : new Error('Failed to check user status'));
       return { exists: false, confirmed: false };
     }
   };
@@ -153,7 +181,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     resetPassword,
     signUp,
     checkUserStatus,
-    loading
+    loading,
+    error
   };
 
   // Render the provider with the value

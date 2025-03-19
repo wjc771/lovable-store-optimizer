@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Permissions {
   isManager: boolean;
@@ -14,6 +15,7 @@ interface Permissions {
     settings: boolean;
   };
   loading: boolean;
+  error: Error | null;
 }
 
 export const usePermissions = () => {
@@ -29,6 +31,7 @@ export const usePermissions = () => {
       settings: false,
     },
     loading: true,
+    error: null
   });
 
   useEffect(() => {
@@ -39,8 +42,11 @@ export const usePermissions = () => {
       }
 
       try {
+        console.log("Fetching permissions for user:", user.id);
+        
         // Check if the user is a super admin (matches either of the admin emails)
         if (user.email === "wjc771@gmail.com" || user.email === "jotafieldsfirst@gmail.com") {
+          console.log("User is a super admin");
           setPermissions({
             isManager: true,
             permissions: {
@@ -52,6 +58,7 @@ export const usePermissions = () => {
               settings: true,
             },
             loading: false,
+            error: null
           });
           return;
         }
@@ -65,11 +72,16 @@ export const usePermissions = () => {
 
         if (staffError) {
           console.error('Error fetching staff data:', staffError);
-          setPermissions(prev => ({ ...prev, loading: false }));
+          setPermissions(prev => ({ 
+            ...prev, 
+            loading: false,
+            error: staffError instanceof Error ? staffError : new Error('Failed to fetch staff data') 
+          }));
           return;
         }
 
         if (!staffData) {
+          console.log("No staff record found for user, using default permissions");
           // Set default permissions for users without staff records
           setPermissions({
             isManager: false,
@@ -82,9 +94,12 @@ export const usePermissions = () => {
               settings: false,
             },
             loading: false,
+            error: null
           });
           return;
         }
+
+        console.log("Staff record found:", staffData.id);
 
         // Get positions for the staff member
         const { data: positionsData, error: positionsError } = await supabase
@@ -100,14 +115,21 @@ export const usePermissions = () => {
 
         if (positionsError) {
           console.error('Error fetching positions data:', positionsError);
-          setPermissions(prev => ({ ...prev, loading: false }));
+          setPermissions(prev => ({ 
+            ...prev, 
+            loading: false,
+            error: positionsError instanceof Error ? positionsError : new Error('Failed to fetch positions data')
+          }));
           return;
         }
 
         if (!positionsData?.length) {
+          console.log("No positions found for staff member");
           setPermissions(prev => ({ ...prev, loading: false }));
           return;
         }
+
+        console.log("Positions found:", positionsData);
 
         // Combine permissions from all positions
         const combinedPermissions = positionsData.reduce(
@@ -137,14 +159,22 @@ export const usePermissions = () => {
           }
         );
 
+        console.log("Combined permissions:", combinedPermissions);
+
         setPermissions({
           ...combinedPermissions,
           loading: false,
+          error: null
         });
 
       } catch (error) {
         console.error('Error fetching permissions:', error);
-        setPermissions(prev => ({ ...prev, loading: false }));
+        toast.error('Failed to load user permissions');
+        setPermissions(prev => ({ 
+          ...prev, 
+          loading: false,
+          error: error instanceof Error ? error : new Error('Unknown error fetching permissions')
+        }));
       }
     };
 

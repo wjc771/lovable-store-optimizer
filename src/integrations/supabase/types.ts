@@ -1280,6 +1280,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_can_access_store_safely: {
+        Args: {
+          store_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       system_role: "saas_admin" | "store_admin" | "staff"
